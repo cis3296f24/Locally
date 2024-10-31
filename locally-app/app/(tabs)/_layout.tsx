@@ -2,8 +2,7 @@
 import { View, Text, Image } from 'react-native'
 import React from 'react';
 import { Tabs } from 'expo-router'
-import { FontAwesome6, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
-
+import { FontAwesome6, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
 
 const TabsLayout = () => {
   return (
@@ -74,6 +73,20 @@ const TabsLayout = () => {
                 ), 
             }} 
           />
+
+          <Tabs.Screen
+          name="maxwell"
+          options={{
+            title: 'Max',
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) =>
+              focused ? (
+                <AntDesign name="rocket1" size={24} color={color} />
+              ) : (
+                <AntDesign name="user" size={24} color={color} />
+              ),
+          }}
+        />
       </Tabs>
     </>
   )
