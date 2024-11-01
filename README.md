@@ -4,7 +4,7 @@
 
 Locally is a mobile app that connects users to nearby experiences, offering personalized recommendations for events, restaurants, landmarks, and activities. It provides real-time updates, community insights, and interactive features that help users explore local options, discover new places, and share experiences. Local businesses can also promote their offerings and showcase local culture, connecting with both residents and visitors to boost visibility and engagement. Whether you're exploring a new city or looking for something fun nearby, Locally makes it easy to find tailored experiences and connect with the community.
 
-[Project Board]([https://trello.com/b/ByZkiFVe/locally])
+[ProjectBoard](https://trello.com/b/ByZkiFVe/locally)
 
 # How to install and run
 
