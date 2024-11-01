@@ -1,16 +1,18 @@
 # Locally
+
 ## Description
-Put here a short paragraph describing your project. 
-Adding an screenshot or a mockup of your application in action would be nice.  
 
-![This is a screenshot.](images.png)
+Locally is a mobile app that connects users to nearby experiences, offering personalized recommendations for events, restaurants, landmarks, and activities. It provides real-time updates, community insights, and interactive features that help users explore local options, discover new places, and share experiences. Local businesses can also promote their offerings and showcase local culture, connecting with both residents and visitors to boost visibility and engagement. Whether you're exploring a new city or looking for something fun nearby, Locally makes it easy to find tailored experiences and connect with the community.
+
+[Project Board]([https://trello.com/b/ByZkiFVe/locally])
+
 # How to install and run
-## Prerequisites
 
+## Prerequisites
 
 **Node.js**: Official [website](https://nodejs.org/en).
 
-**npm**: Node Package Manager comes bundled with Node.js. Verify your installation by running 
+**npm**: Node Package Manager comes bundled with Node.js. Verify your installation by running
 
 ```
 npm -v
@@ -19,59 +21,87 @@ npm -v
 ## Node.js Installation Instructions
 
 **Windows Users**
+
 1. Download the installer from official [website](https://nodejs.org/en) and run it.
 2. Once it is installed, verify the installation by running
-``` 
+
+```
 node -v
-npm -v 
+npm -v
 ```
 
 **macOS Users**
 
 1. Run the commands:
+
 ```
 brew update
 brew install node
 ```
+
 2. Once they are installed, verify the installation by running
-``` 
+
+```
 node -v
-npm -v 
+npm -v
 ```
 
 **Linux Users (Ubuntu or Debian)**
 
 1. From the terminal run the commands
-``` 
+
+```
 sudo apt update
 sudo apt install nodejs npm
 ```
+
 2. Once they are installed, verify the installation by running
-``` 
+
+```
 node -v
-npm -v 
+npm -v
 ```
 
 ## Installation Instructions
+
 1. Run the command
+
 ```
 npm install -g expo-cli
 ```
+
 2. Clone the Github repository
 3. From the root directory, run the commands
+
 ```
 cd .\locally-app\
 npm install
 ```
+
 In order to install the project's dependancies.
 
-# How to contribute
-Follow this project board to know the latest status of the project: [http://...]([http://...])  
+### Start the Development Server
 
-### How to run
-- Use this github repository: ... 
-- Specify what branch to use for a more stable release or for cutting edge development.  
-- Use InteliJ 11
-- Specify additional library to download if needed 
-- What file and target to compile and run. 
-- What is expected to happen when the app start. 
+Run the following command to start the Expo development server:
+
+```bash
+npx expo start -c
+```
+
+This will compile and serve the app, displaying a QR code in the terminal.
+
+### Run the App on Your Device
+
+### Option 1: Use Expo Go on Mobile
+
+1. Install **Expo Go** on your mobile device.
+2. Open Expo Go, and scan the QR code generated in the terminal to load the app on your device.
+
+### Option 2: Use an Emulator or Simulator
+
+- **Android Emulator**:
+  - Open Android Studio and launch an emulator.
+  - In the terminal, press `a` to open the app on Android.
+- **iOS Simulator (macOS only)**:
+  - Open Xcode and launch an iOS simulator.
+  - In the terminal, press `i` to open the app on iOS.
