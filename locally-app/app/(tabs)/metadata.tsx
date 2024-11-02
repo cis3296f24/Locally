@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const Jaime = () => {
+const Metadata = () => {
   return (
     <View className="flex-1 justify-center items-center bg-white">
       <View className="bg-[#003566] p-4 rounded-md">
@@ -11,4 +11,4 @@ const Jaime = () => {
   )
 }
 
-export default Jaime
+export default Metadata
