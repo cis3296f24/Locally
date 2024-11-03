@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router'
 import { FontAwesome6, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+
 const TabsLayout = () => {
   return (
     <>
@@ -34,15 +35,15 @@ const TabsLayout = () => {
         />
 
         <Tabs.Screen
-          name="jaime"
+          name="metadata"
           options={{
-            title: 'Jaime',
+            title: 'Metadata',
             headerShown: false,
             tabBarIcon: ({ color, focused }) =>
               focused ? (
-                <FontAwesome6 name="meh" size={24} color={color} />
+                <MaterialIcons name="event-available" size={24} color={color} />
               ) : (
-                <FontAwesome6 name="face-meh-blank" size={24} color={color} />
+                <MaterialIcons name="event" size={24} color={color} />
               ),
           }}
         />
