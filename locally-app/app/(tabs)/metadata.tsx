@@ -1,6 +1,7 @@
-import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList } from 'react-native'
 import React from 'react'
 import { icons } from '@/constants'
+import EventCard from '@/components/EventCard'
 
 const Metadata = () => {
   return (
@@ -9,6 +10,21 @@ const Metadata = () => {
         <Header/>
         
         <CategoryFilter />
+
+        <FlatList
+          data={[1, 2, 3, 4]}
+          keyExtractor={(item) => item.toString()}
+          renderItem={({ item }) => (
+            <View className="flex-row mr-12">
+              <EventCard />
+            </View>
+          )}
+          horizontal
+          viewabilityConfig={{
+            itemVisiblePercentThreshold: 20
+          }}
+          className='ml-1'
+        />
 
       </ScrollView>
     </SafeAreaView>
