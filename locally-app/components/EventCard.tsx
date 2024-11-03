@@ -3,9 +3,13 @@ import React from 'react'
 
 import { images, icons } from '@/constants'
 
-const EventCard = () => {
+const EventCard = ({
+  styling,
+}: {
+  styling?: string
+}) => {
   return (
-    <View className="bg-white p-4 rounded-lg shadow-none w-[275px] mx-auto my-4 items-center">
+    <View className={`bg-white p-4 rounded-lg shadow-none w-[275px] items-center ${styling}`}>
       <View className='relative'>
         <Image
           source={ images.dog }
