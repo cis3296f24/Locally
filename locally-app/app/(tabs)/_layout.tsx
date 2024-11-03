@@ -2,7 +2,7 @@
 import { View, Text, Image } from 'react-native'
 import React from 'react';
 import { Tabs } from 'expo-router'
-import { FontAwesome6, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
+import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
 
 const TabsLayout = () => {
   return (
@@ -19,15 +19,15 @@ const TabsLayout = () => {
         }}
       >
         <Tabs.Screen
-          name="jaime"
+          name="metadata"
           options={{
-            title: 'Jaime',
+            title: 'Metadata',
             headerShown: false,
             tabBarIcon: ({ color, focused }) =>
               focused ? (
-                <FontAwesome6 name="meh" size={24} color={color} />
+                <MaterialIcons name="event-available" size={24} color={color} />
               ) : (
-                <FontAwesome6 name="face-meh-blank" size={24} color={color} />
+                <MaterialIcons name="event" size={24} color={color} />
               ),
           }}
         />
@@ -42,20 +42,6 @@ const TabsLayout = () => {
                 <FontAwesome6 name="l" size={24} color={color} />
               ) : (
                 <FontAwesome6 name="user" size={24} color={color} />
-              ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="home"
-          options={{
-            title: 'Home',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) =>
-              focused ? (
-                <MaterialCommunityIcons name="home" size={24} color={color} />
-              ) : (
-                <MaterialCommunityIcons name="home-outline" size={24} color={color} />
               ),
           }}
         />
