@@ -1,12 +1,14 @@
-
 import { View, Text, Image } from 'react-native'
 import React from 'react';
 import { Tabs } from 'expo-router'
-import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
+import { FontAwesome6, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
+import { SafeAreaView } from 'react-native-safe-area-context'
+
 
 const TabsLayout = () => {
   return (
     <>
+      <SafeAreaView className='flex-1'>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: '#FFD60A',
@@ -18,6 +20,20 @@ const TabsLayout = () => {
           },
         }}
       >
+        <Tabs.Screen 
+          name="nana"
+          options={{
+            title: 'Explore',
+            headerShown: false,
+            tabBarIcon: ({color, focused}) => 
+              focused ? (
+                <MaterialCommunityIcons name="map" size={24} color={color} />
+              ) : (
+                <MaterialCommunityIcons name="map-outline" size={24} color={color} />
+              ), 
+          }} 
+        />
+
         <Tabs.Screen
           name="metadata"
           options={{
@@ -46,21 +62,21 @@ const TabsLayout = () => {
           }}
         />
 
-          <Tabs.Screen 
-            name="nana"
-            options={{
-              title: 'Nana\'s screen',
-              headerShown: false,
-              tabBarIcon: ({color, focused}) => 
-                focused ? (
-                  <MaterialCommunityIcons name="blur" size={24} color={color} />
-                ) : (
-                  <MaterialCommunityIcons name="blur" size={24} color={color} />
-                ), 
-            }} 
-          />
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: 'Home',
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) =>
+              focused ? (
+                <MaterialCommunityIcons name="home" size={24} color={color} />
+              ) : (
+                <MaterialCommunityIcons name="home-outline" size={24} color={color} />
+              ),
+          }}
+        />
 
-          <Tabs.Screen
+        <Tabs.Screen
           name="maxwell"
           options={{
             title: 'Max',
@@ -74,6 +90,7 @@ const TabsLayout = () => {
           }}
         />
       </Tabs>
+      </SafeAreaView>
     </>
   )
 }
