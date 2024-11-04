@@ -1,5 +1,6 @@
-import {StyleSheet, Text, View} from "react-native"
+import {SafeAreaView, StyleSheet, Text, View} from "react-native"
 import MapView, { PROVIDER_DEFAULT } from 'react-native-maps'
+import SearchBar from '@/components/SearchBar'
 
 // map component
 

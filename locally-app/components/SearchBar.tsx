@@ -10,7 +10,6 @@ const SearchBar = () => {
   };
 
   return (
-
     <View 
       className="flex-row bg-white w-[90%] px-4 py-3 rounded-full text-lg items-center justify-between mx-6"
     >
