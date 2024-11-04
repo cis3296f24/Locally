@@ -6,6 +6,8 @@ import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
 
 const Metadata = () => {
+
+  
   return (
     <SafeAreaView className='h-full'>
       <ScrollView className="py-4">

@@ -20,7 +20,7 @@ const EventDetailsScreen = () => {
                 )}
             </View>
             <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '500' }} >{title}</Text>
+                <Text className='text-lg font-semibold' >{title}</Text>
                 <Text style={{ fontSize: 13, fontStyle: 'italic', color: '#003566', marginTop: 2 }}>{subtitle}</Text>
             </View>
             {rightElement}
