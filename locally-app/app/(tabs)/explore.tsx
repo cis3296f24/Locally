@@ -4,7 +4,7 @@ import Map from '../../components/Map'
 import SearchBar from '../../components/SearchBar'
 import CategoryCard from '../../components/CategoryCard'
 
-const Nana = () => {
+const Explore = () => {
   return (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss() } accessible={false}>
     <View className="flex-1 flexDirection-column bg-transparent">
@@ -40,4 +40,4 @@ const Nana = () => {
   )
 }
 
-export default Nana
+export default Explore

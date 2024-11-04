@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 const TabsLayout = () => {
   return (
     <>
-      <SafeAreaView className='flex-1'>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: '#FFD60A',
@@ -21,7 +20,7 @@ const TabsLayout = () => {
         }}
       >
         <Tabs.Screen 
-          name="nana"
+          name="explore"
           options={{
             title: 'Explore',
             headerShown: false,
@@ -63,20 +62,6 @@ const TabsLayout = () => {
         />
 
         <Tabs.Screen
-          name="home"
-          options={{
-            title: 'Home',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) =>
-              focused ? (
-                <MaterialCommunityIcons name="home" size={24} color={color} />
-              ) : (
-                <MaterialCommunityIcons name="home-outline" size={24} color={color} />
-              ),
-          }}
-        />
-
-        <Tabs.Screen
           name="maxwell"
           options={{
             title: 'Max',
@@ -90,7 +75,6 @@ const TabsLayout = () => {
           }}
         />
       </Tabs>
-      </SafeAreaView>
     </>
   )
 }
