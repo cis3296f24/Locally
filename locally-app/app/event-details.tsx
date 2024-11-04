@@ -2,6 +2,7 @@ import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native'
 import React, { useState } from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import { images } from '@/constants'
 
 const EventDetailsScreen = () => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -11,7 +12,7 @@ const EventDetailsScreen = () => {
             <View style={{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
                 {(icon.endsWith('.jpg') || icon.endsWith('.png')) ? (
                     <Image
-                        source={require('../assets/images/organizer.jpg')}
+                        source={images.organizer}
                         style={{ width: 40, height: 40, borderRadius: 15 }}
                     />
                 ) : (
@@ -31,11 +32,11 @@ const EventDetailsScreen = () => {
             <View style={{ flex: 1 }}>
                 {/* Cover Image */}
                 <Image
-                    source={require('../assets/images/concert.jpg')}
+                    source={images.concert}
                     style={{ width: '100%', height: 250 }}
                 />
                 {/* Top Icons */}
-                <View style={{ position: 'absolute', top: 0, left: 0, margin: 20 }}>
+                <View style={{ position: 'absolute', top: 0, left: 0, margin: 20, marginTop: 50 }}>
                     <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.35)', padding: 12, borderRadius: 40 }}>
                         <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Ionicons name="arrow-back" size={24} color="white" />
@@ -43,7 +44,7 @@ const EventDetailsScreen = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ position: 'absolute', top: 0, right: 0, margin: 20 }}>
+                <View style={{ position: 'absolute', top: 0, right: 0, margin: 20,  marginTop: 50 }}>
                     <TouchableOpacity>
                         <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.25)', padding: 16, borderRadius: 6 }}>
                             <Ionicons name="bookmark" size={24} color="#003566" />
@@ -54,21 +55,21 @@ const EventDetailsScreen = () => {
                 {/* Attendees and Invite Button */}
                 <View style={{ width: 250, height: 50, backgroundColor: 'white', position: 'relative', bottom: 15, marginLeft: 'auto', marginRight: 'auto', borderRadius: 20, flexDirection: 'row', alignItems: 'center', paddingLeft: 10 }}>
                     <Image
-                        source={require('../assets/images/woman1.png')}
+                        source={images.woman1}
                         style={{
                             width: 30, height: 30, borderRadius: 20, zIndex: 3
                         }}
                     />
 
                     <Image
-                        source={require('../assets/images/woman2.jpg')}
+                        source={images.woman2}
                         style={{
                             width: 30, height: 30, borderRadius: 20, marginLeft: -15, zIndex: 2
                         }}
                     />
 
                     <Image
-                        source={require('../assets/images/woman3.jpg')}
+                        source={images.woman3}
                         style={{
                             width: 30, height: 30, borderRadius: 20, marginLeft: -15, zIndex: 1
                         }}
