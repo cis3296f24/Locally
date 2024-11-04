@@ -1,7 +1,7 @@
 import { View, Text, Image } from 'react-native'
 import React from 'react';
 import { Tabs } from 'expo-router'
-import { FontAwesome6, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';'@expo/vector-icons/AntDesign';
+import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 
