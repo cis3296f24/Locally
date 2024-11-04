@@ -8,6 +8,11 @@ import bookmark from '@/assets/icons/bookmark.png';
 import bookmarkFilled from '@/assets/icons/bookmark-filled.png';
 
 import dog from '@/assets/images/dog.png';
+import concert from '@/assets/images/concert.jpg';
+import organizer from '@/assets/images/organizer.jpg';
+import woman1 from '@/assets/images/woman1.png';
+import woman2 from '@/assets/images/woman2.jpg';
+import woman3 from '@/assets/images/woman3.jpg';
 
 export const icons = {
   calendar,
@@ -21,5 +26,10 @@ export const icons = {
 }
 
 export const images = {
-  dog
+  dog,
+  concert,
+  organizer,
+  woman1,
+  woman2,
+  woman3
 }

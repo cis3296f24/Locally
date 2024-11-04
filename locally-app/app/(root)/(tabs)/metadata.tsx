@@ -133,11 +133,17 @@ const EventHorizontalList = () => {
       data={[1, 2, 3, 4]}
       keyExtractor={(item) => item.toString()}
       renderItem={({ item }) => (
-        <View className="flex-row mr-12">
+        <TouchableOpacity 
+          className="flex-row mr-12"
+          delayPressIn={10}
+          onPress={() => {
+            router.push('./../event-details')
+          }}
+        >
           <EventCard 
             styling='left-6'
           />
-        </View>
+        </TouchableOpacity>
       )}
       horizontal
       viewabilityConfig={{
