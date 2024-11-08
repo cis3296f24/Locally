@@ -1,9 +1,11 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import { router } from 'expo-router'
+import { Link, router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import GoogleButton from '../components/GoogleButton'
-import FormInput from '../components/FormInput'
+import GoogleButton from '../../components/GoogleButton'
+import FormInput from '../../components/FormInput'
+
+import { images } from '@/constants'
 
 const PrimaryButton = ({ text, onPress }: { text: string; onPress: () => void }) => (
     <TouchableOpacity
@@ -21,37 +23,33 @@ const PrimaryButton = ({ text, onPress }: { text: string; onPress: () => void })
     </TouchableOpacity>
 )
 
-const SignUpScreen = () => {
-    const [fullName, setFullName] = useState('');
+//Login logic goes here
+const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSignUp = () => {
-        //router.push('/(tabs)/metadata')
+    const handleLogin = () => {
+        router.replace('/(root)/(tabs)/explore')
     }
 
     const handleGoogleLogin = () => {
     }
+
+
 
     return (
         <View className="flex-1 bg-white p-6">
             {/* Logo and Title */}
             <View className="items-center mb-8">
                 <Image
-                    source={require('../assets/images/splash.png')}
+                    source={ images.logo }
                     className="w-64 h-64"
                 />
-                <Text className="text-2xl font-bold text-center">Sign Up</Text>
+                <Text className="text-2xl font-bold text-center">Log In</Text>
             </View>
 
-            {/* Sign Up Form */}
+            {/* Login Form */}
             <View className="mb-6">
-                <FormInput
-                    icon="person-outline"
-                    placeholder="Full name"
-                    value={fullName}
-                    onChangeText={setFullName}
-                />
                 <FormInput
                     icon="mail-outline"
                     placeholder="abc@email.com"
@@ -66,12 +64,17 @@ const SignUpScreen = () => {
                     onChangeText={setPassword}
                 />
 
+                <TouchableOpacity className="self-end mb-4">
+                    <Text className="text-orange-500">Forgot Password?</Text>
+                </TouchableOpacity>
+
                 <PrimaryButton
-                    text="REGISTER"
-                    onPress={handleSignUp}
+                    text="LOG IN"
+                    onPress={handleLogin}
                 />
             </View>
 
+            {/* Divider */}
             <View className="flex-row items-center mb-6">
                 <View className="flex-1 h-[1px] bg-gray-300" />
                 <Text className="mx-4 text-gray-500">OR</Text>
@@ -80,15 +83,17 @@ const SignUpScreen = () => {
 
             <GoogleButton onPress={handleGoogleLogin} />
 
-            {/* Login Link */}
+
+            {/* Sign Up Link */}
             <View className="flex-row justify-center mt-6">
-                <Text className="text-gray-600">Already have an account? </Text>
-                <TouchableOpacity onPress={() => router.push('/login')}>
-                    <Text className="text-[#40BFFF]">Log In</Text>
-                </TouchableOpacity>
+                <Text className="text-gray-600">Don't have an account? </Text>
+                {/* <TouchableOpacity onPress={() => router.push('./signup')}>
+                    <Text className="text-blue-500">Sign up</Text>
+                </TouchableOpacity> */}
+                <Link href="./signup">Sign up</Link>
             </View>
         </View>
     )
 }
 
-export default SignUpScreen
+export default LoginScreen
