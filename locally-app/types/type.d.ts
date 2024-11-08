@@ -24,25 +24,4 @@ interface CardPopProps {
   styling?: string;
 }
 
-export const events: Event[] = [
-  {
-    id: 1,
-    title: "Candlelight Fine Dining",
-    coordinate: {
-      latitude: 39.965519,
-      longitude: -75.181053,
-    },
-    emote: "🍽️",
-    category: "dining"
-  },
-  {
-    id: 2,
-    title: "Art Exhibition",
-    coordinate: {
-      latitude: 39.9526,
-      longitude: -75.1652,
-    },
-    emote: "🎨",
-    category: "exhibition"
-  },
-]
+export type { CategoryCardProps, MapProps, Event, CardPopProps }

@@ -6,8 +6,6 @@ import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
 
 const Metadata = () => {
-
-  
   return (
     <SafeAreaView className='h-full'>
       <ScrollView className="py-4">
@@ -32,7 +30,6 @@ const Metadata = () => {
           styling='mt-6'
           onSeeAllPress={() => {}}
         />
-
       </ScrollView>
     </SafeAreaView>
   )

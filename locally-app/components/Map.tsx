@@ -1,10 +1,33 @@
+import { Event, MapProps } from "@/types/type"
 import {SafeAreaView, StyleSheet, Text, View} from "react-native"
-import MapView, { PROVIDER_DEFAULT } from 'react-native-maps'
-import SearchBar from '@/components/SearchBar'
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
 
 // map component
+const Map = ({ onMarkerSelect }: MapProps) => {
 
-const Map = () => {
+  const events: Event[] = [
+    {
+      id: 1,
+      title: "Candlelight Fine Dining",
+      coordinate: {
+        latitude: 39.965519,
+        longitude: -75.181053,
+      },
+      emote: "🍽️",
+      category: "dining"
+    },
+    {
+      id: 2,
+      title: "Art Exhibition",
+      coordinate: {
+        latitude: 39.9526,
+        longitude: -75.1652,
+      },
+      emote: "🎨",
+      category: "exhibition"
+    },
+  ]
+
   return (
     <MapView
       provider={PROVIDER_DEFAULT}
@@ -17,6 +40,17 @@ const Map = () => {
         longitudeDelta: 0.06,    // Adjust these values for zoom level
       }}
     >
+      {events.map((event) => (
+        <Marker
+          key={event.id}
+          coordinate={event.coordinate}
+          onPress={() => onMarkerSelect(event)}
+        >
+          <View className="bg-blue-500 rounded-2xl px-3 py-1.5">
+            <Text className="text-white text-xs font-medium">{event.emote}</Text>
+          </View>
+        </Marker>
+      ))}
     </MapView>
   )
 }
