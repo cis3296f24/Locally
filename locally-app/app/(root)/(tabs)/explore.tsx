@@ -1,14 +1,25 @@
-import { View, Keyboard, TouchableWithoutFeedback, ScrollView, Pressable, FlatList } from 'react-native'
+import { View, Keyboard, TouchableWithoutFeedback, ScrollView, Pressable, FlatList, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import Map from '@/components/Map'
 import SearchBar from '@/components/SearchBar'
 import CategoryCard from '@/components/CategoryCard'
+import { Event } from '@/types/type'
+import CardPop from '@/components/CardPop'
+import { router } from 'expo-router'
 
 const Explore = () => {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+  const handleMarkerSelect = (event: Event) => {
+    setSelectedEvent(event);
+  };
+
   return (
     <View className="h-full w-full bg-transparent">
       <View className="z-0">
-        <Map />
+        <Map 
+          onMarkerSelect={handleMarkerSelect}
+        />
       </View>
       
       <View className="absolute top-[8%] left-5 right-5 z-1 items-center justify-center">
@@ -27,14 +38,20 @@ const Explore = () => {
             <CategoryCard label="Exhibtion" iconName='palette'></CategoryCard>
           </View>
         </ScrollView>
-
       </View>
 
-    </View>
+      {selectedEvent && (
+        <TouchableOpacity 
+          className="absolute bottom-8 left-0 right-0 z-1 items-center"
+          onPress={() => {
+            router.push('./../event-details')
+          }}
+        >
+          <CardPop event={selectedEvent} />
+        </TouchableOpacity>
+      )}
 
-    // <TouchableWithoutFeedback onPress={() => Keyboard.dismiss() } accessible={false}>
-      
-    // </TouchableWithoutFeedback>
+    </View>
   )
 }
 

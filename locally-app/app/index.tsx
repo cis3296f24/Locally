@@ -3,8 +3,8 @@ import { Text, View } from "react-native";
 
 export default function Index() {
   return (
-    <Redirect href='/(tabs)/explore' />
-
+    <Redirect href='./(auth)/login' />
+    // <Redirect href='./(root)/(tabs)/explore' />
   );
 }
 

@@ -1,25 +1,12 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import { router } from 'expo-router'
+import { Link, router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import GoogleButton from '../components/GoogleButton'
-import FormInput from '../components/FormInput'
+import GoogleButton from '../../components/GoogleButton'
+import FormInput from '../../components/FormInput'
 
-const PrimaryButton = ({ text, onPress }: { text: string; onPress: () => void }) => (
-    <TouchableOpacity
-        onPress={onPress}
-        className="bg-[#40BFFF] rounded-xl py-4"
-    >
-        <View className="flex-row items-center justify-center">
-            <Text className="text-white font-semibold">
-                {text}
-            </Text>
-            <View className="bg-[#003566] rounded-full p-1.5 ml-3">
-                <Ionicons name="arrow-forward" size={16} color="white" />
-            </View>
-        </View>
-    </TouchableOpacity>
-)
+import { images } from '@/constants'
+import PrimaryButton from '@/components/PrimaryButton'
 
 //Login logic goes here
 const LoginScreen = () => {
@@ -27,27 +14,27 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
 
     const handleLogin = () => {
-        //router.push('/(tabs)/metadata')
+        router.replace('/(root)/(tabs)/explore')
     }
 
     const handleGoogleLogin = () => {
     }
 
-
-
     return (
         <View className="flex-1 bg-white p-6">
             {/* Logo and Title */}
-            <View className="items-center mb-8">
+            <View className="items-center mt-24 gap-4">
                 <Image
-                    source={require('../assets/images/splash.png')}
-                    className="w-64 h-64"
+                    source={ images.logo }
+                    className="w-32 h-32"
                 />
-                <Text className="text-2xl font-bold text-center">Log In</Text>
+                <Text className="text-3xl font-bold text-center">Locally</Text>
             </View>
 
             {/* Login Form */}
             <View className="mb-6">
+                <Text className="text-2xl font-bold text-start my-8">Log In</Text>
+
                 <FormInput
                     icon="mail-outline"
                     placeholder="abc@email.com"
@@ -85,9 +72,10 @@ const LoginScreen = () => {
             {/* Sign Up Link */}
             <View className="flex-row justify-center mt-6">
                 <Text className="text-gray-600">Don't have an account? </Text>
-                <TouchableOpacity onPress={() => router.push('/signup')}>
+                {/* <TouchableOpacity onPress={() => router.push('./signup')}>
                     <Text className="text-blue-500">Sign up</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                <Link href="./signup" className="text-blue-500 font-semibold">Sign up</Link>
             </View>
         </View>
     )

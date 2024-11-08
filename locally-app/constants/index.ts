@@ -13,6 +13,7 @@ import organizer from '@/assets/images/organizer.jpg';
 import woman1 from '@/assets/images/woman1.png';
 import woman2 from '@/assets/images/woman2.jpg';
 import woman3 from '@/assets/images/woman3.jpg';
+import logo from '@/assets/images/splash.png';
 
 export const icons = {
   calendar,
@@ -31,5 +32,6 @@ export const images = {
   organizer,
   woman1,
   woman2,
-  woman3
+  woman3,
+  logo
 }
