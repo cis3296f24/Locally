@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import Ionicons from '@expo/vector-icons/Ionicons'
 
 const PrimaryButton = ({ text, onPress }: { text: string; onPress: () => void }) => (
@@ -18,3 +18,9 @@ const PrimaryButton = ({ text, onPress }: { text: string; onPress: () => void })
 )
 
 export default PrimaryButton
+
+export const LoadingIndicator = () => (
+    <View className="flex-row items-center justify-center">
+        <ActivityIndicator size="large" color="#40BFFF" />
+    </View>
+) 

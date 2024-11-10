@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -6,15 +6,37 @@ import GoogleButton from '../../components/GoogleButton'
 import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
-import PrimaryButton from '@/components/PrimaryButton'
+import PrimaryButton, { LoadingIndicator } from '@/components/PrimaryButton'
+import { signUpUser } from '@/services/firebase-service'
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSignUp = () => {
-        //router.push('/(tabs)/metadata')
+    const handleSignUp = async () => {
+        if (!fullName || !email || !password) {
+            Alert.alert('Error', 'Please fill in all fields')
+            return
+        }
+        setLoading(true)
+
+        try {
+            const user = await signUpUser({ email, password })
+            
+            if (user) {
+                console.log('User signed up successfully', user)
+                setLoading(false)
+                router.navigate('/(tabs)/explore')
+            }
+        } catch (error: any) {
+            console.log('Error signing up', error.message)
+            Alert.alert('Error', error.message)
+            setLoading(false)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleGoogleLogin = () => {
@@ -55,10 +77,13 @@ const SignUpScreen = () => {
                     onChangeText={setPassword}
                 />
 
-                <PrimaryButton
-                    text="REGISTER"
-                    onPress={handleSignUp}
-                />
+                { loading ? 
+                    <LoadingIndicator/> : 
+                    <PrimaryButton
+                        text="REGISTER"
+                        onPress={handleSignUp}
+                    />
+                }
             </View>
 
             <View className="flex-row items-center mb-6">
