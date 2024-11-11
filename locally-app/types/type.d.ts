@@ -25,8 +25,9 @@ interface Event {
     latitude: number;
     longitude: number;
   };
-  emote: string;
-  category: string;
+  city: string;
+  emote?: string;
+  category?: string;
 }
 
 interface CardPopProps {
