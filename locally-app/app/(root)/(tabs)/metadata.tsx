@@ -5,18 +5,22 @@ import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
 import { router, useFocusEffect } from 'expo-router'
 import { getCurrentUser } from '@/services/storage-service'
-import { User } from '@/types/type'
+import { User, Event } from '@/types/type'
 import { fetchEventsByCity } from '@/services/firebase-service'
+import { useEventsByCity } from '@/services/tanstack-service'
+import PrimaryButton from '@/components/PrimaryButton'
+import { useQueryClient } from '@tanstack/react-query'
 
 const Metadata = () => {
-
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
+  const [remote, setRemote] = useState(false)
+  const { data: events, isLoading, isError, error, isFetching, refetch } = useEventsByCity("Philadelphia", remote);
 
   useFocusEffect(
     React.useCallback(() => {
       const fetchUser = async () => {
         const currentUser = await getCurrentUser();
-        const events = await fetchEventsByCity('Philadelphia');
         // console.log('Events:', events);
         // console.log('Current User:', currentUser);
         setUser(currentUser);
@@ -25,6 +29,24 @@ const Metadata = () => {
       fetchUser();
     }, [])
   );
+
+  useEffect(() => {
+    if (isLoading) {
+      console.log("Loading events from network...");
+    } else if (isFetching) {
+      console.log("Fetching events from cache...");
+    } else if (events) {
+      console.log("Events loaded from cache:", events);
+    }
+  }, [isLoading, isFetching, events]);
+
+  const handleManualRefresh = async () => {
+    // await queryClient.invalidateQueries({
+    //   queryKey: ['events', 'Philadelphia'],
+    // });
+    setRemote(true);
+    refetch();
+  };
   
   return (
     <SafeAreaView className='h-full'>
@@ -49,6 +71,11 @@ const Metadata = () => {
           arrowColor='#39C3F2'
           styling='mt-6'
           onSeeAllPress={() => {}}
+        />
+
+        <PrimaryButton 
+          text="Fetch Events"
+          onPress={handleManualRefresh}
         />
       </ScrollView>
     </SafeAreaView>

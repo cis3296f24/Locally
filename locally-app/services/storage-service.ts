@@ -15,7 +15,7 @@ export const getCurrentUser = async () => {
     const storedUser = await AsyncStorage.getItem('user');
     if (storedUser !== null) {
       const user = JSON.parse(storedUser);
-      console.log('Retrieved object:', user);
+      // console.log('Retrieved object:', user);
       return user;
     } else {
       console.log('No object found');
