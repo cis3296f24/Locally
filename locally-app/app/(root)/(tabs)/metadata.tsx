@@ -1,11 +1,14 @@
 import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
+import { useQuery } from '@tanstack/react-query'
+import { fetchUserProfile } from '@/services/firebase-service'
 
 const Metadata = () => {
+  
   return (
     <SafeAreaView className='h-full'>
       <ScrollView className="py-4">
@@ -46,7 +49,7 @@ const Header = () => {
           Go Exploring,
         </Text>
         <Text className="text-2xl font-semibold text-primary-pBlue">
-          Jaime
+          username
         </Text>
       </View>
 

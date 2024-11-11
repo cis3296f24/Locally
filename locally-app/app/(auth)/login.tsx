@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -6,15 +6,37 @@ import GoogleButton from '../../components/GoogleButton'
 import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
-import PrimaryButton from '@/components/PrimaryButton'
+import PrimaryButton, { LoadingIndicator } from '@/components/PrimaryButton'
+import { signInUser } from '@/services/firebase-service'
 
 //Login logic goes here
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = () => {
-        router.replace('/(root)/(tabs)/explore')
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('Error', 'Please fill in all fields')
+            return
+        }
+        setLoading(true)
+
+        try {
+            const user = await signInUser({email, password })
+            
+            if (user) {
+                console.log('User signed in successfully', user)
+                setLoading(false)
+                router.navigate('/(tabs)/explore')
+            }
+        } catch (error: any) {
+            console.log('Error signing in', error.message)
+            Alert.alert('Error', error.message)
+            setLoading(false)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleGoogleLogin = () => {
@@ -53,10 +75,13 @@ const LoginScreen = () => {
                     <Text className="text-orange-500">Forgot Password?</Text>
                 </TouchableOpacity>
 
-                <PrimaryButton
-                    text="LOG IN"
-                    onPress={handleLogin}
-                />
+                { loading ? 
+                    <LoadingIndicator /> : 
+                    <PrimaryButton
+                        text="LOG IN"
+                        onPress={handleLogin}
+                    />
+                }
             </View>
 
             {/* Divider */}

@@ -1,7 +1,9 @@
 import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
 import { User } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+
+// Firebase Authentication
 
 export const signUpUser = async ({
   fullName, 
@@ -40,6 +42,7 @@ export const signInUser = async ({
   try {
     const userCredential = await signInWithEmailAndPassword(Firebase_Auth, email, password);
     const user = userCredential.user;
+    
     return { user }; 
   } catch (error) {
     throw new Error('Invalid credentials. Please check your email or password.');
@@ -56,6 +59,8 @@ export const signOutUser = async () => {
   }
 }
 
+// Firebase Firestore
+
 export const updateUserProfile = async (userData: User) => {
   try {
     const userRef = doc(Firebase_Firestore, 'users', userData.id);
@@ -71,4 +76,15 @@ export const updateUserProfile = async (userData: User) => {
   } catch (error) {
     console.error("Error creating user profile:", error);
   }
+}
+
+export const fetchUserProfile = async (userId: string) => {
+  const userRef = doc(Firebase_Firestore, 'users', userId);
+  const userSnapshot = await getDoc(userRef);
+
+  if (!userSnapshot.exists()) {
+    throw new Error('User not found');
+  }
+
+  return userSnapshot.data() as User;
 }
