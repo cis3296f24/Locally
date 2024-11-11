@@ -1,17 +1,23 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-native'
 import React from 'react'
 import { images, icons } from '@/constants'
 import { CardPopProps } from '@/types/type';
 
 const CardPop = ({
   event,
-  styling,
+  additionalStyling,
+  style, 
 }: CardPopProps) => {
+
+  const basicStyling = "bg-white p-3 rounded-2xl shadow-none w-[340px] flex-row items-center"
+  const styling = style ? style: basicStyling
+  const image = event.image ? event.image: images.dog; // this checks if the event has an associated image
+
   return (
-    <View className={`bg-white p-3 rounded-2xl shadow-none w-[340px] flex-row items-center ${styling}`}>
+    <View className={`${styling} ${additionalStyling}`}>
       <View className='relative w-[100px] h-[100px]'>
         <Image
-          source={ images.dog }
+          source={ image }
           className='w-full h-full rounded-xl'
           resizeMode='cover'
         />
