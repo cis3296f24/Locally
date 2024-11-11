@@ -23,7 +23,7 @@ const SignUpScreen = () => {
         setLoading(true)
 
         try {
-            const user = await signUpUser({ email, password })
+            const user = await signUpUser({fullName, email, password })
             
             if (user) {
                 console.log('User signed up successfully', user)

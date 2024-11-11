@@ -2,9 +2,9 @@ interface User {
   id: string;          
   email: string;       
   fullName: string;   
-  username: string;    
+  username?: string = null;    
   isSubscribed: boolean = false; 
-  profileImage?: string; 
+  profileImage: string = ""; 
 }
 
 
