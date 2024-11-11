@@ -1,6 +1,8 @@
 import { Event, MapProps } from "@/types/type"
 import {SafeAreaView, StyleSheet, Text, View} from "react-native"
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
+import { Image } from "react-native"
+import { images } from "@/constants"
 
 // map component
 const Map = ({ onMarkerSelect }: MapProps) => {
@@ -24,7 +26,8 @@ const Map = ({ onMarkerSelect }: MapProps) => {
         longitude: -75.1652,
       },
       emote: "🎨",
-      category: "exhibition"
+      category: "exhibition",
+      image: images.painting
     },
   ]
 

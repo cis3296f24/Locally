@@ -1,13 +1,15 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-native'
 import React from 'react'
 
 import { images, icons } from '@/constants'
 
 const EventCard = ({
-  styling,
+  styling, image
 }: {
-  styling?: string
+  styling?: string; image?: ImageSourcePropType | undefined;
 }) => {
+  image = image ? image: images.dog;
+
   return (
     <View className={`bg-white p-4 rounded-lg shadow-none w-[275px] items-center ${styling}`}>
       <View className='relative'>

@@ -14,6 +14,10 @@ import woman1 from '@/assets/images/woman1.png';
 import woman2 from '@/assets/images/woman2.jpg';
 import woman3 from '@/assets/images/woman3.jpg';
 import logo from '@/assets/images/splash.png';
+import check from '@/assets/images/checkIcon.png'
+import ticketShape from '@/assets/images/ticket.png'
+import barcode from '@/assets/images/barcode.png'
+import painting from '@/assets/images/painting.jpg'
 
 export const icons = {
   calendar,
@@ -33,5 +37,9 @@ export const images = {
   woman1,
   woman2,
   woman3,
-  logo
+  logo,
+  check,
+  ticketShape,
+  barcode,
+  painting
 }

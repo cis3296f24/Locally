@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, TouchableHighlight, Button} from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { MaterialCommunityIcons } from '@expo/vector-icons';import { CategoryCardProps } from '@/types/type';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { CategoryCardProps } from '@/types/type';
 '@expo/vector-icons/AntDesign';
 
 const CategoryCard = ({
