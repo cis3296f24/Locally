@@ -2,6 +2,7 @@ import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
 import { User } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { removeCurrentUser, saveCurrentUser } from "./storage-service";
 
 // Firebase Authentication
 
@@ -16,15 +17,16 @@ export const signUpUser = async ({
 }) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(Firebase_Auth, email, password);
-    const user = userCredential.user;
-
-    await updateUserProfile({
-      id: user.uid,
+    const user = {
+      id: userCredential.user.uid,
       email,
       fullName,
       isSubscribed: false,
       profileImage: "",
-    });
+    }
+
+    await updateUserProfile(user);
+    await saveCurrentUser(user);
 
     return { user };
   } catch (error) {
@@ -41,8 +43,10 @@ export const signInUser = async ({
 }) => {
   try {
     const userCredential = await signInWithEmailAndPassword(Firebase_Auth, email, password);
-    const user = userCredential.user;
+    const user = await fetchUserProfile(userCredential.user.uid);
     
+    await saveCurrentUser(user);
+
     return { user }; 
   } catch (error) {
     throw new Error('Invalid credentials. Please check your email or password.');
@@ -52,6 +56,7 @@ export const signInUser = async ({
 export const signOutUser = async () => {
   try {
     await Firebase_Auth.signOut();
+    await removeCurrentUser();
     return true
   } catch (error) {
     console.error("Error signing out:", error);

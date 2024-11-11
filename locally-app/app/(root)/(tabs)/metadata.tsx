@@ -3,16 +3,30 @@ import React, { useEffect, useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
-import { router } from 'expo-router'
-import { useQuery } from '@tanstack/react-query'
-import { fetchUserProfile } from '@/services/firebase-service'
+import { router, useFocusEffect } from 'expo-router'
+import { getCurrentUser } from '@/services/storage-service'
+import { User } from '@/types/type'
 
 const Metadata = () => {
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUser = async () => {
+        const currentUser = await getCurrentUser();
+        console.log('Current User:', currentUser);
+        setUser(currentUser);
+      };
+
+      fetchUser();
+    }, [])
+  );
   
   return (
     <SafeAreaView className='h-full'>
       <ScrollView className="py-4">
-        <Header/>
+        <Header username={user?.username ?? "username"}/>
         
         <CategoryFilter />
 
@@ -41,7 +55,7 @@ const Metadata = () => {
 export default Metadata
 
 // Header component
-const Header = () => {
+const Header = ({ username }: { username: string }) => {
   return (
     <View className="justify-between items-start flex-row mb-6 pl-6 pr-4">
       <View>
@@ -49,7 +63,7 @@ const Header = () => {
           Go Exploring,
         </Text>
         <Text className="text-2xl font-semibold text-primary-pBlue">
-          username
+          {username}
         </Text>
       </View>
 
