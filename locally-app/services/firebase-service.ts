@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
-import { User } from "@/types/type";
+import { User, Event } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { removeCurrentUser, saveCurrentUser } from "./storage-service";
 
 // Firebase Authentication
@@ -64,7 +64,7 @@ export const signOutUser = async () => {
   }
 }
 
-// Firebase Firestore
+// Firebase Firestore (USER)
 
 export const updateUserProfile = async (userData: User) => {
   try {
@@ -93,3 +93,18 @@ export const fetchUserProfile = async (userId: string) => {
 
   return userSnapshot.data() as User;
 }
+
+// Firebase Firestore (EVENTS)
+
+export const fetchEventsByCity = async (city: string) => {
+  const eventsCollectionRef = collection(Firebase_Firestore, "events");
+  const cityQuery = query(eventsCollectionRef, where("city", "==", city));
+  const querySnapshot = await getDocs(cityQuery);
+
+    const events = querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Event[];
+
+  return events;
+};

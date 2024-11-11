@@ -6,6 +6,7 @@ import SeeAll from '@/components/SeeAll'
 import { router, useFocusEffect } from 'expo-router'
 import { getCurrentUser } from '@/services/storage-service'
 import { User } from '@/types/type'
+import { fetchEventsByCity } from '@/services/firebase-service'
 
 const Metadata = () => {
 
@@ -15,7 +16,9 @@ const Metadata = () => {
     React.useCallback(() => {
       const fetchUser = async () => {
         const currentUser = await getCurrentUser();
-        console.log('Current User:', currentUser);
+        const events = await fetchEventsByCity('Philadelphia');
+        // console.log('Events:', events);
+        // console.log('Current User:', currentUser);
         setUser(currentUser);
       };
 

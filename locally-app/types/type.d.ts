@@ -19,15 +19,15 @@ interface MapProps {
 
 // CardPop.tsx
 interface Event {
-  id: number;
+  id: string;
   title: string;
   coordinate: {
     latitude: number;
     longitude: number;
   };
   city: string;
-  emote?: string;
-  category?: string;
+  // emote?: string;
+  // category?: string;
 }
 
 interface CardPopProps {
