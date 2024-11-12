@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 interface User {
   id: string;          
   email: string;       
@@ -38,14 +40,21 @@ interface Ticket {
 interface Event {
   id: string;
   title: string;
+  description: string;
   coordinate: {
     latitude: number;
     longitude: number;
   };
   city: string;
-  emote?: string;
+  // emote?: string;
   category?: string;
   coverImage?: string;
+  dateCreated: Timestamp;
+  dateStart: Timestamp;
+  dateEnd?: Timestamp;
+  price?: number;
+  timeStart?: string;
+  timeEnd?: string;
 }
 
 interface CardPopProps {
@@ -70,7 +79,7 @@ export type {
   User,
   CategoryCardProps, 
   MapProps, 
-  Event, 
+  Event,
   CardPopProps, 
   PrimaryButtonProps,
   Ticket, 

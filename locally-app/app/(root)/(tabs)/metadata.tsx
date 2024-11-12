@@ -7,6 +7,8 @@ import { router } from 'expo-router'
 import { useEventsByCity } from '@/services/tanstack-service'
 import PrimaryButton from '@/components/PrimaryButton'
 import { useUserStore } from '@/store/user'
+import { Timestamp } from 'firebase/firestore'
+import { Event } from '@/types/type'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
@@ -19,7 +21,7 @@ const Metadata = () => {
     refetch();
     setRemote(false);
   };
-  
+
   return (
     <SafeAreaView className='h-full'>
       <ScrollView className="py-4">
@@ -35,7 +37,7 @@ const Metadata = () => {
           onSeeAllPress={() => {}}
         />
 
-        <EventHorizontalList />
+        <EventHorizontalList events={events || []} />
 
         <SeeAll 
           title="Recently Viewed"
@@ -145,11 +147,21 @@ const ItemIcon = ({
 }
 
 // Horizontal List component
-const EventHorizontalList = () => {
+const EventHorizontalList = ({ events }: { events: Event[] }) => {
+
+  const today = Timestamp.now();
+
+  const upcomingEvents = events
+    .filter(event => event.dateStart > today)
+    .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())
+    .slice(0, 4);
+
+  console.log('Upcoming events are', JSON.stringify(upcomingEvents, null, 2));
+
   return (
     <FlatList
-      data={[1, 2, 3, 4]}
-      keyExtractor={(item) => item.toString()}
+      data={upcomingEvents}
+      keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <TouchableOpacity 
           className="flex-row mr-12"
@@ -158,7 +170,8 @@ const EventHorizontalList = () => {
             router.push('./../event-details')
           }}
         >
-          <EventCard 
+          <EventCard
+            event={item} 
             styling='left-6'
           />
         </TouchableOpacity>

@@ -2,25 +2,30 @@ import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-
 import React from 'react'
 
 import { images, icons } from '@/constants'
+import { Event } from '@/types/type';
 
 const EventCard = ({
-  styling, image
+  event,
+  styling
 }: {
-  styling?: string; image?: ImageSourcePropType | undefined;
+  event: Event;
+  styling?: string;
 }) => {
-  image = image ? image: images.dog;
+  const image = event.coverImage || images.noImage;
+  const startDate = event.dateStart.toDate();
+  const formattedDate = `${startDate.getDate()}`;
 
   return (
     <View className={`bg-white p-4 rounded-lg shadow-none w-[275px] items-center ${styling}`}>
       <View className='relative'>
         <Image
-          source={ images.dog }
+          source={{uri: image}}
           className='w-[250px] h-[180px] rounded-lg'
           resizeMode='cover'
         />
 
         <View className="absolute top-2 left-2 bg-white/80 rounded-lg px-2 py-1 h-[50px] flex justify-center items-center">
-          <Text className="text-xs font-bold text-orange-600">01</Text>
+          <Text className="text-xs font-bold text-orange-600">{formattedDate}</Text>
           <Text className="text-[10px] font-semibold text-gray-500">NOV</Text>
         </View>
 
