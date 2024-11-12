@@ -1,4 +1,5 @@
-import { TicketStore, Ticket } from "@/types/type";
+import { TicketStore } from "@/types/store";
+import { Ticket } from "@/types/type";
 import { create } from "zustand";
 
 export const useTicketStore = create<TicketStore>((set) => ({

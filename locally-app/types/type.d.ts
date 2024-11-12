@@ -45,7 +45,7 @@ interface Event {
   city: string;
   emote?: string;
   category?: string;
-  image?: ImageSourcePropType | undefined;
+  coverImage?: string;
 }
 
 interface CardPopProps {
@@ -66,14 +66,6 @@ type PrimaryButtonProps = {
   loading?: boolean;
 };
 
-interface TicketStore {
-  ticket: Ticket | null;
-  showHeader: boolean;
-  setTicket: (ticket: Ticket) => void;
-  setShowHeader: (show: boolean) => void;
-  clearTicket: () => void;
-}
-
 export type { 
   User,
   CategoryCardProps, 
@@ -82,5 +74,4 @@ export type {
   CardPopProps, 
   PrimaryButtonProps,
   Ticket, 
-  TicketStore 
 }

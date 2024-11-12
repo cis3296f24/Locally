@@ -3,6 +3,7 @@ import { User, Event } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { removeCurrentUser, saveCurrentUser } from "./storage-service";
+import { useUserStore } from "@/store/user";
 
 // Firebase Authentication
 
@@ -21,12 +22,13 @@ export const signUpUser = async ({
       id: userCredential.user.uid,
       email,
       fullName,
+      username: fullName.split(' ')[0].toLowerCase(),
       isSubscribed: false,
       profileImage: "",
     }
 
     await updateUserProfile(user);
-    await saveCurrentUser(user);
+    useUserStore.getState().setUser(user);
 
     return { user };
   } catch (error) {
@@ -45,7 +47,7 @@ export const signInUser = async ({
     const userCredential = await signInWithEmailAndPassword(Firebase_Auth, email, password);
     const user = await fetchUserProfile(userCredential.user.uid);
     
-    await saveCurrentUser(user);
+    useUserStore.getState().setUser(user);
 
     return { user }; 
   } catch (error) {
@@ -56,7 +58,7 @@ export const signInUser = async ({
 export const signOutUser = async () => {
   try {
     await Firebase_Auth.signOut();
-    await removeCurrentUser();
+    useUserStore.getState().clearUser();
     return true
   } catch (error) {
     console.error("Error signing out:", error);
@@ -83,7 +85,7 @@ export const updateUserProfile = async (userData: User) => {
   }
 }
 
-export const fetchUserProfile = async (userId: string) => {
+const fetchUserProfile = async (userId: string) => {
   const userRef = doc(Firebase_Firestore, 'users', userId);
   const userSnapshot = await getDoc(userRef);
 

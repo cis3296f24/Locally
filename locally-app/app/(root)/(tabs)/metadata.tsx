@@ -1,51 +1,23 @@
 import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, {  useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
-import { router, useFocusEffect } from 'expo-router'
-import { getCurrentUser } from '@/services/storage-service'
-import { User, Event } from '@/types/type'
-import { fetchEventsByCity } from '@/services/firebase-service'
+import { router } from 'expo-router'
 import { useEventsByCity } from '@/services/tanstack-service'
 import PrimaryButton from '@/components/PrimaryButton'
-import { useQueryClient } from '@tanstack/react-query'
+import { useUserStore } from '@/store/user'
 
 const Metadata = () => {
-  const queryClient = useQueryClient();
-  const [user, setUser] = useState<User | null>(null);
+  const user = useUserStore((state) => state.user);
+
   const [remote, setRemote] = useState(false)
   const { data: events, isLoading, isError, error, isFetching, refetch } = useEventsByCity("Philadelphia", remote);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchUser = async () => {
-        const currentUser = await getCurrentUser();
-        // console.log('Events:', events);
-        // console.log('Current User:', currentUser);
-        setUser(currentUser);
-      };
-
-      fetchUser();
-    }, [])
-  );
-
-  useEffect(() => {
-    if (isLoading) {
-      console.log("Loading events from network...");
-    } else if (isFetching) {
-      console.log("Fetching events from cache...");
-    } else if (events) {
-      console.log("Events loaded from cache:", events);
-    }
-  }, [isLoading, isFetching, events]);
-
   const handleManualRefresh = async () => {
-    // await queryClient.invalidateQueries({
-    //   queryKey: ['events', 'Philadelphia'],
-    // });
     setRemote(true);
     refetch();
+    setRemote(false);
   };
   
   return (
