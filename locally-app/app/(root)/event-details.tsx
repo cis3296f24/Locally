@@ -10,7 +10,7 @@ const EventDetailsScreen = () => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handlePurchase = () => {
-        router.push('./../purchase-screen')
+        router.push('/(root)/purchase-screen');
     }
 
     const handleGoBack = () => {
@@ -154,10 +154,11 @@ const EventDetailsScreen = () => {
             {/* Button for making purchase */}
             <View className='absolute justify-center px-8 left-5 top-[800px] right-5'>
                 <PrimaryButton
-                    text="purchase ticket $120"
+                    text="ticket $120"
                     onPress={handlePurchase}
+                    icon='currency-usd'
                     bgColor='bg-[#003566]'
-                    iconBgColor='bg-[#39C3F2]'
+                    iconBgColor='bg-[#FFC300]'
                 />
             </View>
         </View>

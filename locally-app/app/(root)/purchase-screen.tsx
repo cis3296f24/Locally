@@ -6,13 +6,14 @@ import PrimaryButton from "@/components/PrimaryButton";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import CardPop from "@/components/CardPop";
-import { Event } from "@/types/type";
+import { Event, Ticket } from "@/types/type";
 import PurchasePopup from "@/components/PurchasePopup";
 import CounterButton from "@/components/CounterButton";
-
-
+import { useTicketStore } from "@/store/ticket";
+import { images } from "@/constants";
 
 const PurchaseScreen = () => {
+  const { setTicket, setShowHeader } = useTicketStore();
   const [paymentConfirmed, setPaymentConfirmed] = useState(false); // this is to popup the payment confimed window
 
   const handleGoBack = () => {
@@ -23,27 +24,59 @@ const PurchaseScreen = () => {
     setPaymentConfirmed(true);
   };
 
+  const handleSeeTicket = () => {
+    setPaymentConfirmed(false);
+
+    const ticket: Ticket = {
+      eventName: event.title,
+      eventAddress: `${event.city}, ${event.category}`, // Placeholder for address formatting
+      userName: "Jamie Nguyen", // Placeholder: You'll want to fetch the actual username from context or data
+      orderNumber: `123`, // Example order number based on event ID
+      date: "Nov 01 2024", // Placeholder: You'll need an actual date for this
+      time: "7:00 PM", // Placeholder: Similarly, you'd get the time dynamically
+      numTickets: 2, // Placeholder: Replace with actual ticket count
+      total: 249.6, // Placeholder: Replace with actual total calculation
+      eventImage: images.concert, // Placehold
+    }
+    setShowHeader(false);
+    setTicket(ticket);
+    router.navigate({
+      pathname: "/(root)/ticket-screen", 
+      params: { showHeader: "true" }      
+    });
+  }
+
+  const handleKeepExploring = () => {
+    setPaymentConfirmed(false);
+    router.navigate("/(tabs)/explore");
+  }
+
   const event: Event = {
-    id: 3,
+    id: "3",
     title: "Candlelight Fine Dining",
     coordinate: {
       latitude: 39.965519,
       longitude: -75.181053,
     },
+    city: "Philadelphia",
     emote: "🍽️",
     category: "dining",
   };
 
-  
   return (
     <View className="flex-1 mt-16 top-[20px] bg-green ">
       
       {/* Purchase Popup Screen */}
       <View className="allign-center">
         {paymentConfirmed && (
-          <PurchasePopup nextPage={'./../ticket-screen'} eventName={event.title}>
-          </PurchasePopup> )
-        }
+          <PurchasePopup 
+            event={event} 
+            visible={paymentConfirmed} 
+            onClose={() => setPaymentConfirmed(false)} 
+            seeTicketClick={handleSeeTicket} 
+            onkeepExploringClick={handleKeepExploring}
+          /> 
+        )}
       </View>
 
       {/*----------------- Order Details Page ----------------*/}
