@@ -1,30 +1,36 @@
-import { Text, TouchableOpacity, View } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { PrimaryButtonProps } from "@/types/type";
 
-const PrimaryButton = ({text, onPress, icon, bgColor, iconBgColor, textcolor, iconVisible = true}: 
-  {text: string; onPress: () => void; icon?: string; bgColor?: string; iconBgColor?: String; iconVisible?:Boolean; textcolor?:string}) => {
-  
-  // Optional changes for styling
-  const iconName = icon ? icon : "arrow-right";
-  const buttonBgColor = bgColor ? bgColor : "bg-[#40BFFF]";
-  const buttonIconBgColor = iconBgColor ? iconBgColor : 'bg-[#003566]'
-  const iconColor = bgColor ? bgColor : "white";
-  textcolor = textcolor? textcolor : "text-white";
+const PrimaryButton = ({
+  text,
+  onPress,
+  icon = "arrow-right", 
+  bgColor = "bg-[#40BFFF]",
+  textcolor = "text-white",  
+  iconBgColor = "bg-[#003566]", 
+  iconColor = "white",
+  iconVisible = true,
+  buttonStyle = "",
+  loading = false, 
+}: PrimaryButtonProps) => {
+  if (loading) {
+    return <LoadingIndicator />; // Display only the LoadingIndicator when loading is true
+  }
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`${buttonBgColor} rounded-xl py-4`}
+      className={`${bgColor} rounded-xl py-3 ${buttonStyle}`}
     >
       <View className="flex-row items-center justify-center">
-        <Text className={`${textcolor} text-2xl uppercase px-5`}>{text}</Text>
+        <Text className={`${textcolor} text-2xl font-semibold uppercase px-5`}>
+          {text}
+        </Text>
 
-        {/* Display icon only when iconVisible is true */}
         {iconVisible && (
-          <View className={`${buttonIconBgColor} rounded-full p-1.5 ml-3`}>
-            <MaterialCommunityIcons name={`${iconName}`} size={16} color={iconColor} />
-            {/* <Ionicons name="arrow-forward" size={16} color="white" /> */}
+          <View className={`${iconBgColor} rounded-full p-1.5 ml-3`}>
+            <MaterialCommunityIcons name={icon} size={16} color={iconColor} />
           </View>
         )}
       </View>
@@ -32,4 +38,10 @@ const PrimaryButton = ({text, onPress, icon, bgColor, iconBgColor, textcolor, ic
   );
 };
 
-export default PrimaryButton;
+export default PrimaryButton
+
+const LoadingIndicator = () => (
+  <View className="flex-row items-center justify-center">
+    <ActivityIndicator size="large" color="#40BFFF" />
+  </View>
+) 
