@@ -1,4 +1,5 @@
 import { Firebase_Auth } from "@/configs/firebase";
+import 'react-native-get-random-values';
 import { Link, Redirect } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
