@@ -1,74 +1,129 @@
-import { Event, MapProps } from "@/types/type"
-import {SafeAreaView, StyleSheet, Text, View} from "react-native"
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
-import { Image } from "react-native"
-import { images } from "@/constants"
+import { Event, MapProps } from "@/types/type";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import useLocationStore from '@/store/locationStore';
+import { useRef, useEffect } from 'react';
 
 // map component
 const Map = ({ onMarkerSelect }: MapProps) => {
+  const mapRef = useRef<MapView>(null);
+  const {
+    userLatitude,
+    userLongitude,
+    destinationLatitude,
+    destinationLongitude,
+  } = useLocationStore();
+
+  console.log('Map component received locations:', {
+    userLatitude,
+    userLongitude,
+    destinationLatitude,
+    destinationLongitude,
+  });
 
   const events: Event[] = [
     {
-      id: 1,
+      id: "1",
       title: "Candlelight Fine Dining",
       coordinate: {
         latitude: 39.965519,
         longitude: -75.181053,
       },
+      city: "Philadelphia",
       emote: "🍽️",
-      category: "dining"
+      category: "dining",
     },
     {
-      id: 2,
+      id: "2",
       title: "Art Exhibition",
       coordinate: {
         latitude: 39.9526,
         longitude: -75.1652,
       },
+      city: "Philadelphia",
       emote: "🎨",
       category: "exhibition",
-      image: images.painting
     },
-  ]
+  ];
+
+  // Calculate the region based on the destination or user location
+  const region = destinationLatitude && destinationLongitude
+    ? { //Destination
+      latitude: destinationLatitude,
+      longitude: destinationLongitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    }
+    : userLatitude && userLongitude
+      ? { //User location
+        latitude: userLatitude,
+        longitude: userLongitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }
+      : { //Fallback region
+        latitude: 39.9526,
+        longitude: -75.1652,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      };
+
+  // Animate to new region when destination changes
+  useEffect(() => {
+    if (destinationLatitude && destinationLongitude && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: destinationLatitude,
+        longitude: destinationLongitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }, 1000); // 1000ms animation duration
+    }
+  }, [destinationLatitude, destinationLongitude]);
 
   return (
     <MapView
-      provider={PROVIDER_DEFAULT}
+      ref={mapRef}
+      provider={PROVIDER_GOOGLE}
       style={styles.map}
-      mapType="mutedStandard"
-      initialRegion={{
-        latitude: 39.9526,       // Latitude for Philadelphia
-        longitude: -75.1652,     // Longitude for Philadelphia
-        latitudeDelta: 0.06,     // Adjust these values for zoom level
-        longitudeDelta: 0.06,    // Adjust these values for zoom level
-      }}
+      mapType="standard"
+      initialRegion={region}
+      showsUserLocation={true}
+      showsMyLocationButton={true}
     >
       {events.map((event) => (
         <Marker
           key={event.id}
           coordinate={event.coordinate}
+          title={event.title}
           onPress={() => onMarkerSelect(event)}
         >
-          <View className="bg-blue-500 rounded-2xl px-3 py-1.5">
-            <Text className="text-white text-xs font-medium">{event.emote}</Text>
+          <View style={styles.marker}>
+            <Text style={styles.markerText}>{event.emote}</Text>
           </View>
         </Marker>
       ))}
     </MapView>
-  )
-}
-
-export default Map
+  );
+};
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    map: {
-        width: '100%',
-        height: '100%',
-    },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  marker: {
+    backgroundColor: 'blue',
+    borderRadius: 10,
+    padding: 5,
+  },
+  markerText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
+
+export default Map;
 
 // export default Map
 

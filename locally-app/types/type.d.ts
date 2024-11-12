@@ -74,6 +74,23 @@ interface TicketStore {
   clearTicket: () => void;
 }
 
+interface Location {
+  latitude: number;
+  longitude: number;
+  address: string;
+}
+
+interface LocationStore {
+  userLatitude: number | null;
+  userLongitude: number | null;
+  userAddress: string | null;
+  destinationLatitude: number | null;
+  destinationLongitude: number | null;
+  destinationAddress: string | null;
+  setUserLocation: (latitude: number, longitude: number, address: string) => void;
+  setDestinationLocation: (latitude: number, longitude: number, address: string) => void;
+}
+
 export type { 
   User,
   CategoryCardProps, 
@@ -82,5 +99,7 @@ export type {
   CardPopProps, 
   PrimaryButtonProps,
   Ticket, 
-  TicketStore 
+  TicketStore,
+  Location,
+  LocationStore
 }
