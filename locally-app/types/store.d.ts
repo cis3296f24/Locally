@@ -1,4 +1,4 @@
-import { Ticket, User } from "./type";
+import { Event, Ticket, User } from "./type";
 
 interface TicketStore {
   ticket: Ticket | null;
@@ -14,7 +14,16 @@ interface UserStore {
   clearUser: () => void;
 }
 
+interface EventStore {
+  events: Event[];                   
+  selectedEvent: Event | null;       
+  setEvents: (events: Event[]) => void;       
+  setSelectedEvent: (event: Event) => void;   
+  clearSelectedEvent: () => void;            
+}
+
 export type {
   TicketStore,
   UserStore,
+  EventStore
 }

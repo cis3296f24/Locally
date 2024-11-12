@@ -85,7 +85,7 @@ export const updateUserProfile = async (userData: User) => {
   }
 }
 
-const fetchUserProfile = async (userId: string) => {
+export const fetchUserProfile = async (userId: string) => {
   const userRef = doc(Firebase_Firestore, 'users', userId);
   const userSnapshot = await getDoc(userRef);
 

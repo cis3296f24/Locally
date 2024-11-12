@@ -9,18 +9,21 @@ import PrimaryButton from '@/components/PrimaryButton'
 import { useUserStore } from '@/store/user'
 import { Timestamp } from 'firebase/firestore'
 import { Event } from '@/types/type'
+import { useEventStore } from '@/store/event'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
 
   const [remote, setRemote] = useState(false)
-  const { data: events, isLoading, isError, error, isFetching, refetch } = useEventsByCity("Philadelphia", remote);
+  const { data: events, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
 
-  const handleManualRefresh = async () => {
-    setRemote(true);
-    refetch();
-    setRemote(false);
-  };
+  if (isFetched) useEventStore.setState({ events: events ?? [] });
+
+  // const handleManualRefresh = async () => {
+  //   setRemote(true);
+  //   refetch();
+  //   setRemote(false);
+  // };
 
   return (
     <SafeAreaView className='h-full'>
@@ -45,11 +48,6 @@ const Metadata = () => {
           arrowColor='#39C3F2'
           styling='mt-6'
           onSeeAllPress={() => {}}
-        />
-
-        <PrimaryButton 
-          text="Fetch Events"
-          onPress={handleManualRefresh}
         />
       </ScrollView>
     </SafeAreaView>
@@ -148,15 +146,18 @@ const ItemIcon = ({
 
 // Horizontal List component
 const EventHorizontalList = ({ events }: { events: Event[] }) => {
-
   const today = Timestamp.now();
-
   const upcomingEvents = events
     .filter(event => event.dateStart > today)
     .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())
     .slice(0, 4);
 
-  console.log('Upcoming events are', JSON.stringify(upcomingEvents, null, 2));
+  const { setSelectedEvent } = useEventStore();
+
+  const handleEventPress = (event: Event) => {
+    setSelectedEvent(event);
+    router.push('./../event-details')
+  }
 
   return (
     <FlatList
@@ -166,9 +167,7 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
         <TouchableOpacity 
           className="flex-row mr-12"
           delayPressIn={10}
-          onPress={() => {
-            router.push('./../event-details')
-          }}
+          onPress={() => handleEventPress(item)}
         >
           <EventCard
             event={item} 

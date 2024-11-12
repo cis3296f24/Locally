@@ -11,22 +11,25 @@ const EventCard = ({
   event: Event;
   styling?: string;
 }) => {
-  const image = event.coverImage || images.noImage;
+  const imageSource = event.coverImage
+    ? { uri: event.coverImage }
+    : images.noImage;
   const startDate = event.dateStart.toDate();
   const formattedDate = `${startDate.getDate()}`;
+  const formattedMonth = startDate.toLocaleString('default', { month: 'short' });
 
   return (
     <View className={`bg-white p-4 rounded-lg shadow-none w-[275px] items-center ${styling}`}>
       <View className='relative'>
         <Image
-          source={{uri: image}}
+          source={imageSource}
           className='w-[250px] h-[180px] rounded-lg'
           resizeMode='cover'
         />
 
-        <View className="absolute top-2 left-2 bg-white/80 rounded-lg px-2 py-1 h-[50px] flex justify-center items-center">
+        <View className="absolute top-2 left-2 bg-white/90 rounded-lg px-2 py-1 h-[50px] flex justify-center items-center">
           <Text className="text-xs font-bold text-orange-600">{formattedDate}</Text>
-          <Text className="text-[10px] font-semibold text-gray-500">NOV</Text>
+          <Text className="text-[10px] uppercase font-semibold text-gray-500">{formattedMonth}</Text>
         </View>
 
         <TouchableOpacity className="absolute top-2 right-2 bg-white/80 p-2 rounded-lg">
@@ -62,12 +65,16 @@ const EventCard = ({
               className="w-4 h-4 mr-1"
             />
             <Text className="text-gray-500 text-sm">
-              1234 Chestnut St, Philadelphia
+              {event.city}
             </Text>
           </View>
-          <View className='bg-yellow-400 rounded-full px-2 py-1'>
-            <Text className='text-white'>$</Text>
-          </View>
+          
+          {
+            event.price && 
+              <View className='bg-yellow-400 rounded-full px-2 py-1'>
+                <Text className='text-white'>$</Text>
+              </View>
+          }
         </View>
       </View>
     </View>

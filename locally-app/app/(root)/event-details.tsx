@@ -5,8 +5,18 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton';
 import { router } from 'expo-router';
+import { useEventStore } from '@/store/event';
+import { formatEventDate, formatEventDateAndTime } from '@/utils';
 
 const EventDetailsScreen = () => {
+    const { selectedEvent } = useEventStore();
+
+    const imageSource = selectedEvent?.coverImage
+        ? { uri: selectedEvent.coverImage }
+        : images.noImage;
+    const eventDate = formatEventDate(selectedEvent?.dateStart);
+    const eventInterval = formatEventDateAndTime(selectedEvent?.dateStart, selectedEvent?.timeStart, selectedEvent?.timeEnd);
+
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handlePurchase = () => {
@@ -14,7 +24,7 @@ const EventDetailsScreen = () => {
     }
 
     const handleGoBack = () => {
-        router.back();  // Goes back to the previous page
+        router.back(); 
     };
     
 
@@ -44,14 +54,15 @@ const EventDetailsScreen = () => {
                 <View style={{ flex: 1 }}>
                     {/* Cover Image */}
                     <Image
-                        source={images.concert}
+                        source={imageSource}
                         style={{ width: '100%', height: 250 }}
                     />
                     {/* Top Icons */}
                     <View style={{ position: 'absolute', top: 0, left: 0, margin: 20, marginTop: 50 }}>
-                        <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.35)', padding: 12, borderRadius: 40 }}>
-                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}
-                            onPress={handleGoBack}
+                        <View style={{ backgroundColor: 'rgba(200, 200, 200, 0.8)', padding: 12, borderRadius: 40 }}>
+                            <TouchableOpacity 
+                                style={{ flexDirection: 'row', alignItems: 'center' }}
+                                onPress={handleGoBack}
                             >
                                 <Ionicons name="arrow-back" size={24} color="white" />
                                 <Text style={{ marginLeft: 5, fontSize: 20, color: 'white' }}>Details</Text>
@@ -103,13 +114,13 @@ const EventDetailsScreen = () => {
                     {/* Body of Event Detail Page*/}
 
                     <View style={{ padding: 16 }}>
-                        <View>
-                            <Text style={{ fontSize: 40, fontWeight: 'bold' }}>Candlelight Fine Dining </Text>
+                        <View className='mb-4'>
+                            <Text style={{ fontSize: 40, fontWeight: 'bold' }}>{selectedEvent?.title}</Text>
                         </View>
 
                         <InfoRow icon="calendar"
-                            title="01 November, 2024"
-                            subtitle="Friday, 7:00 PM - 9:00 PM"
+                            title={eventDate}
+                            subtitle={eventInterval}
                         />
                         <InfoRow icon="location"
                             title="New Bar in Town"
@@ -153,13 +164,19 @@ const EventDetailsScreen = () => {
             
             {/* Button for making purchase */}
             <View className='absolute justify-center px-8 left-5 top-[800px] right-5'>
-                <PrimaryButton
-                    text="ticket $120"
-                    onPress={handlePurchase}
-                    icon='currency-usd'
-                    bgColor='bg-[#003566]'
-                    iconBgColor='bg-[#FFC300]'
-                />
+                { selectedEvent?.price ? 
+                    <PrimaryButton
+                        text="ticket $120"
+                        onPress={handlePurchase}
+                        icon='currency-usd'
+                        bgColor='bg-[#003566]'
+                        iconBgColor='bg-[#FFC300]'
+                    />  :   
+                    <PrimaryButton
+                        text="Join Now"
+                        onPress={handlePurchase}
+                    />
+                }
             </View>
         </View>
     )
