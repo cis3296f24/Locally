@@ -1,19 +1,19 @@
 import { Timestamp } from "firebase/firestore";
 
 interface User {
-  id: string;          
-  email: string;       
-  fullName: string;   
-  username?: string = null;    
-  isSubscribed: boolean = false; 
-  profileImage: string = ""; 
+  id: string;
+  email: string;
+  fullName: string;
+  username?: string = null;
+  isSubscribed: boolean = false;
+  profileImage: string = "";
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments
-    label: string; 
-    iconName: any;
-  }
-  
+  label: string;
+  iconName: any;
+}
+
 interface MapProps {
   onMarkerSelect: (event: Event) => void;
 }
@@ -87,12 +87,40 @@ type PrimaryButtonProps = {
   loading?: boolean;
 };
 
-export type { 
+interface TicketStore {
+  ticket: Ticket | null;
+  showHeader: boolean;
+  setTicket: (ticket: Ticket) => void;
+  setShowHeader: (show: boolean) => void;
+  clearTicket: () => void;
+}
+
+interface Location {
+  latitude: number;
+  longitude: number;
+  address: string;
+}
+
+interface LocationStore {
+  userLatitude: number | null;
+  userLongitude: number | null;
+  userAddress: string | null;
+  destinationLatitude: number | null;
+  destinationLongitude: number | null;
+  destinationAddress: string | null;
+  setUserLocation: (latitude: number, longitude: number, address: string) => void;
+  setDestinationLocation: (latitude: number, longitude: number, address: string) => void;
+}
+
+export type {
   User,
-  CategoryCardProps, 
-  MapProps, 
+  CategoryCardProps,
+  MapProps,
   Event,
-  CardPopProps, 
+  CardPopProps,
   PrimaryButtonProps,
-  Ticket, 
+  Ticket,
+  TicketStore,
+  Location,
+  LocationStore
 }
