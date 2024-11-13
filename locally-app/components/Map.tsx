@@ -1,6 +1,6 @@
 import { Event, MapProps } from "@/types/type";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import useLocationStore from '@/store/locationStore';
 import { useRef, useEffect } from 'react';
 
@@ -83,7 +83,7 @@ const Map = ({ onMarkerSelect }: MapProps) => {
   return (
     <MapView
       ref={mapRef}
-      provider={PROVIDER_GOOGLE}
+      provider={PROVIDER_DEFAULT}
       style={styles.map}
       mapType="standard"
       initialRegion={region}
