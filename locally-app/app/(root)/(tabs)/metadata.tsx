@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList } from 'react-native'
-import React, {  useState } from 'react'
+import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import React, {  useEffect, useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
@@ -17,38 +17,45 @@ const Metadata = () => {
   const [remote, setRemote] = useState(false)
   const { data: events, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
 
-  if (isFetched) useEventStore.setState({ events: events ?? [] });
-
   // const handleManualRefresh = async () => {
   //   setRemote(true);
   //   refetch();
   //   setRemote(false);
   // };
+  console.log(events)
 
   return (
-    <SafeAreaView className='h-full'>
+    <SafeAreaView className='h-full w-full'>
       <ScrollView className="py-4">
         <Header username={user?.username ?? "username"}/>
         
         <CategoryFilter />
 
-        <SeeAll 
-          title="Upcoming Events"
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          styling='mt-6 mb-3'
-          onSeeAllPress={() => {}}
-        />
+        { events ? (
+          <>
+            <SeeAll 
+              title="Upcoming Events"
+              seeAllColor='text-secondary-sBlue'
+              arrowColor='#39C3F2'
+              styling='mt-6 mb-3'
+              onSeeAllPress={() => {}}
+            />
 
-        <EventHorizontalList events={events || []} />
+            <EventHorizontalList events={events || []} />
 
-        <SeeAll 
-          title="Recently Viewed"
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          styling='mt-6'
-          onSeeAllPress={() => {}}
-        />
+            <SeeAll 
+              title="Recently Viewed"
+              seeAllColor='text-secondary-sBlue'
+              arrowColor='#39C3F2'
+              styling='mt-6'
+              onSeeAllPress={() => {}}
+            />
+          </>
+        ):(
+          <View className="flex-1 justify-center items-center w-screen h-[350px]">
+            <ActivityIndicator size="large" color="#003566" />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -146,11 +153,13 @@ const ItemIcon = ({
 
 // Horizontal List component
 const EventHorizontalList = ({ events }: { events: Event[] }) => {
+  const isEmpty = events.length === 0;
   const today = Timestamp.now();
+
   const upcomingEvents = events
-    .filter(event => event.dateStart > today)
-    .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())
-    .slice(0, 4);
+    // .sort(() => 0.5 - Math.random())
+    .slice(0, 4)
+    .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis());
 
   const { setSelectedEvent } = useEventStore();
 

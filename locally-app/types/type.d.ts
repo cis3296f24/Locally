@@ -45,7 +45,11 @@ interface Event {
     latitude: number;
     longitude: number;
   };
+  locationName: string;
+  street: string;
   city: string;
+  state: string;
+  zipCode: string;
   // emote?: string;
   category?: string;
   coverImage?: string;
@@ -55,6 +59,14 @@ interface Event {
   price?: number;
   timeStart?: string;
   timeEnd?: string;
+
+  // organizer
+  ownerId: string;
+  owner?: User;
+
+  // attendees
+  attendeeIds?: string[];
+  attendees?: User[];
 }
 
 interface CardPopProps {

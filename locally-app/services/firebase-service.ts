@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
 import { User, Event } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, setDoc, Timestamp, where } from "firebase/firestore";
 import { removeCurrentUser, saveCurrentUser } from "./storage-service";
 import { useUserStore } from "@/store/user";
 
@@ -100,13 +100,35 @@ export const fetchUserProfile = async (userId: string) => {
 
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
-  const cityQuery = query(eventsCollectionRef, where("city", "==", city));
-  const querySnapshot = await getDocs(cityQuery);
 
-    const events = querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as Event[];
+  const cityQuery = query(
+    eventsCollectionRef, 
+    where("city", "==", city)
+  );
+  const querySnapshot = await getDocs(cityQuery)
 
-  return events;
+  const eventsWithOwners = await Promise.all(
+    querySnapshot.docs
+      .filter((doc) => {
+        return doc.data().dateStart.toDate() >= new Date();
+      })
+      .map(async (doc) => {
+        const event = {
+          id: doc.id,
+          ...doc.data(),
+        } as Event;
+
+        try {
+          event.owner = await fetchUserProfile(event.ownerId);
+          // console.log(event.owner.fullName);
+        } catch (error) {
+          console.error(`Error fetching owner for event ${event.id}:`, error);
+        }
+
+        return event;
+      }
+    )
+  );
+
+  return eventsWithOwners;
 };

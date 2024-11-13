@@ -3,6 +3,7 @@ import React from 'react'
 
 import { images, icons } from '@/constants'
 import { Event } from '@/types/type';
+import { formatAddress } from '@/utils/util';
 
 const EventCard = ({
   event,
@@ -41,7 +42,9 @@ const EventCard = ({
       </View>
 
       <View className='w-full'>
-        <Text className="text-2xl font-semibold text-gray-900 my-6">Candlelight Fine Dining</Text>
+        <Text className="text-xl font-semibold text-gray-900 mt-3 mb-6 line-clamp-2">
+          {event.title}
+        </Text>
         <View className="flex-row items-center ml-1.5">
           <Image 
             source={ icons.bookmarkFilled } // Replace with actual image URLs
@@ -58,23 +61,24 @@ const EventCard = ({
           <Text className="ml-1 text-primary-pBlue font-medium">+20 Going</Text>
         </View>
 
-        <View className="flex-row items-center mt-6 justify-between">
-          <View className='flex-row'>
+        <View className="flex-row items-center mt-2 justify-between pr-12">
+          <View className='flex-row items-center'>
             <Image 
               source={ icons.marker }
               className="w-4 h-4 mr-1"
             />
-            <Text className="text-gray-500 text-sm">
-              {event.city}
-            </Text>
+            <View className='flex-1'>
+              <Text className="text-gray-500 text-sm line-clamp-1">
+                {event.locationName}
+              </Text>
+            </View>
           </View>
           
-          {
-            event.price && 
-              <View className='bg-yellow-400 rounded-full px-2 py-1'>
-                <Text className='text-white'>$</Text>
-              </View>
-          }
+          { event.price && (
+            <View className='bg-yellow-400 rounded-full mx-6 px-2 py-1'>
+              <Text className='text-white'>$</Text>
+            </View>
+          )}
         </View>
       </View>
     </View>

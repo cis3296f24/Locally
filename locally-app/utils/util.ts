@@ -14,13 +14,20 @@ export const formatEventDateAndTime = (dateStart?: Timestamp, timeStart?: string
   // Convert Timestamp to Date object
   const startDate = dateStart?.toDate();
   
-  // Get the day of the week (e.g., "Friday")
   const dayOfWeek = startDate?.toLocaleString('default', { weekday: 'long' });
 
   // Format the time range (start time and end time)
-  const formattedTime = `${timeStart} - ${timeEnd || 'TBD'}`; // Use 'TBD' if timeEnd is not available
+  const formattedTime = `${timeStart}${timeEnd ? ` - ${timeEnd}` : ''}`; 
 
   // Combine day and time
   return `${dayOfWeek}, ${formattedTime}`;
 };
 
+export const formatAddress = (
+  street?: string, 
+  city?: string, 
+  state?: string, 
+  zipCode?: string
+): string => {
+  return `${street}, ${city}, ${state} ${zipCode}`;
+};
