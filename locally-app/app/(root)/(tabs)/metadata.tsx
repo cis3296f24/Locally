@@ -13,16 +13,22 @@ import { useEventStore } from '@/store/event'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
+  const { events, setEvents } = useEventStore();
 
   const [remote, setRemote] = useState(false)
-  const { data: events, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
+  const { data: eventList, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
+
+  useEffect(() => {
+    if (isFetched && eventList) {
+      setEvents(eventList); 
+    }
+  }, [isFetched, eventList, setEvents]);
 
   // const handleManualRefresh = async () => {
   //   setRemote(true);
   //   refetch();
   //   setRemote(false);
   // };
-  console.log(events)
 
   return (
     <SafeAreaView className='h-full w-full'>
@@ -31,17 +37,17 @@ const Metadata = () => {
         
         <CategoryFilter />
 
-        { events ? (
+        { eventList ? (
           <>
             <SeeAll 
               title="Upcoming Events"
               seeAllColor='text-secondary-sBlue'
               arrowColor='#39C3F2'
               styling='mt-6 mb-3'
-              onSeeAllPress={() => {}}
+              onSeeAllPress={() => router.push('./../event-list')}
             />
 
-            <EventHorizontalList events={events || []} />
+            <EventHorizontalList events={eventList || []} />
 
             <SeeAll 
               title="Recently Viewed"

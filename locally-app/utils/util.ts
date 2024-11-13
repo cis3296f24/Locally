@@ -10,6 +10,15 @@ export const formatEventDate = (timestamp?: Timestamp) => {
   return `${day} ${month}, ${year}`;
 };
 
+export const formatDate = (dateStart?: Timestamp) => {
+  const date = dateStart?.toDate();
+  const weekday = date?.toLocaleString('default', { weekday: 'short' });
+  const day = String(date?.getDate()).padStart(2, '0'); 
+  const month = date?.toLocaleString('default', { month: 'short' });
+
+  return `${weekday}, ${month} ${day}`;
+};
+
 export const formatEventDateAndTime = (dateStart?: Timestamp, timeStart?: string, timeEnd?: string) => {
   // Convert Timestamp to Date object
   const startDate = dateStart?.toDate();

@@ -50,7 +50,7 @@ interface Event {
   city: string;
   state: string;
   zipCode: string;
-  // emote?: string;
+  emote?: string;
   category?: string;
   coverImage?: string;
   dateCreated: Timestamp;

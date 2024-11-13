@@ -7,6 +7,7 @@ const CoreLayout = () => {
       <Stack.Screen name="event-details" options={{ headerShown: false }} />
       <Stack.Screen name="purchase-screen" options={{ headerShown: false }} />
       <Stack.Screen name="ticket-screen" options={{ headerShown: false }} />
+      <Stack.Screen name="event-list" options={{ headerShown: false }} />
     </Stack>
   );
 };
