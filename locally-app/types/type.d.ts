@@ -1,17 +1,19 @@
+import { Timestamp } from "firebase/firestore";
+
 interface User {
-  id: string;          
-  email: string;       
-  fullName: string;   
-  username?: string = null;    
-  isSubscribed: boolean = false; 
-  profileImage: string = ""; 
+  id: string;
+  email: string;
+  fullName: string;
+  username?: string = null;
+  isSubscribed: boolean = false;
+  profileImage: string = "";
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments
-    label: string; 
-    iconName: any;
-  }
-  
+  label: string;
+  iconName: any;
+}
+
 interface MapProps {
   onMarkerSelect: (event: Event) => void;
 }
@@ -38,14 +40,33 @@ interface Ticket {
 interface Event {
   id: string;
   title: string;
+  description: string;
   coordinate: {
     latitude: number;
     longitude: number;
   };
+  locationName: string;
+  street: string;
   city: string;
+  state: string;
+  zipCode: string;
   emote?: string;
   category?: string;
-  image?: ImageSourcePropType | undefined;
+  coverImage?: string;
+  dateCreated: Timestamp;
+  dateStart: Timestamp;
+  dateEnd?: Timestamp;
+  price?: number;
+  timeStart?: string;
+  timeEnd?: string;
+
+  // organizer
+  ownerId: string;
+  owner?: User;
+
+  // attendees
+  attendeeIds?: string[];
+  attendees?: User[];
 }
 
 interface CardPopProps {
@@ -91,14 +112,14 @@ interface LocationStore {
   setDestinationLocation: (latitude: number, longitude: number, address: string) => void;
 }
 
-export type { 
+export type {
   User,
-  CategoryCardProps, 
-  MapProps, 
-  Event, 
-  CardPopProps, 
+  CategoryCardProps,
+  MapProps,
+  Event,
+  CardPopProps,
   PrimaryButtonProps,
-  Ticket, 
+  Ticket,
   TicketStore,
   Location,
   LocationStore

@@ -1,82 +1,67 @@
-import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import React, {  useEffect, useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
-import { router, useFocusEffect } from 'expo-router'
-import { getCurrentUser } from '@/services/storage-service'
-import { User, Event } from '@/types/type'
-import { fetchEventsByCity } from '@/services/firebase-service'
+import { router } from 'expo-router'
 import { useEventsByCity } from '@/services/tanstack-service'
 import PrimaryButton from '@/components/PrimaryButton'
-import { useQueryClient } from '@tanstack/react-query'
+import { useUserStore } from '@/store/user'
+import { Timestamp } from 'firebase/firestore'
+import { Event } from '@/types/type'
+import { useEventStore } from '@/store/event'
 
 const Metadata = () => {
-  const queryClient = useQueryClient();
-  const [user, setUser] = useState<User | null>(null);
+  const user = useUserStore((state) => state.user);
+  const { events, setEvents } = useEventStore();
+
   const [remote, setRemote] = useState(false)
-  const { data: events, isLoading, isError, error, isFetching, refetch } = useEventsByCity("Philadelphia", remote);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchUser = async () => {
-        const currentUser = await getCurrentUser();
-        // console.log('Events:', events);
-        // console.log('Current User:', currentUser);
-        setUser(currentUser);
-      };
-
-      fetchUser();
-    }, [])
-  );
+  const { data: eventList, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
 
   useEffect(() => {
-    if (isLoading) {
-      console.log("Loading events from network...");
-    } else if (isFetching) {
-      console.log("Fetching events from cache...");
-    } else if (events) {
-      console.log("Events loaded from cache:", events);
+    if (isFetched && eventList) {
+      setEvents(eventList); 
     }
-  }, [isLoading, isFetching, events]);
+  }, [isFetched, eventList, setEvents]);
 
-  const handleManualRefresh = async () => {
-    // await queryClient.invalidateQueries({
-    //   queryKey: ['events', 'Philadelphia'],
-    // });
-    setRemote(true);
-    refetch();
-  };
-  
+  // const handleManualRefresh = async () => {
+  //   setRemote(true);
+  //   refetch();
+  //   setRemote(false);
+  // };
+
   return (
-    <SafeAreaView className='h-full'>
+    <SafeAreaView className='h-full w-full'>
       <ScrollView className="py-4">
         <Header username={user?.username ?? "username"}/>
         
         <CategoryFilter />
 
-        <SeeAll 
-          title="Upcoming Events"
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          styling='mt-6 mb-3'
-          onSeeAllPress={() => {}}
-        />
+        { eventList ? (
+          <>
+            <SeeAll 
+              title="Upcoming Events"
+              seeAllColor='text-secondary-sBlue'
+              arrowColor='#39C3F2'
+              styling='mt-6 mb-3'
+              onSeeAllPress={() => router.push('./../event-list')}
+            />
 
-        <EventHorizontalList />
+            <EventHorizontalList events={eventList || []} />
 
-        <SeeAll 
-          title="Recently Viewed"
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          styling='mt-6'
-          onSeeAllPress={() => {}}
-        />
-
-        <PrimaryButton 
-          text="Fetch Events"
-          onPress={handleManualRefresh}
-        />
+            <SeeAll 
+              title="Recently Viewed"
+              seeAllColor='text-secondary-sBlue'
+              arrowColor='#39C3F2'
+              styling='mt-6'
+              onSeeAllPress={() => {}}
+            />
+          </>
+        ):(
+          <View className="flex-1 justify-center items-center w-screen h-[350px]">
+            <ActivityIndicator size="large" color="#003566" />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -173,20 +158,34 @@ const ItemIcon = ({
 }
 
 // Horizontal List component
-const EventHorizontalList = () => {
+const EventHorizontalList = ({ events }: { events: Event[] }) => {
+  const isEmpty = events.length === 0;
+  const today = Timestamp.now();
+
+  const upcomingEvents = events
+    // .sort(() => 0.5 - Math.random())
+    .slice(0, 4)
+    .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis());
+
+  const { setSelectedEvent } = useEventStore();
+
+  const handleEventPress = (event: Event) => {
+    setSelectedEvent(event);
+    router.push('./../event-details')
+  }
+
   return (
     <FlatList
-      data={[1, 2, 3, 4]}
-      keyExtractor={(item) => item.toString()}
+      data={upcomingEvents}
+      keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <TouchableOpacity 
           className="flex-row mr-12"
           delayPressIn={10}
-          onPress={() => {
-            router.push('./../event-details')
-          }}
+          onPress={() => handleEventPress(item)}
         >
-          <EventCard 
+          <EventCard
+            event={item} 
             styling='left-6'
           />
         </TouchableOpacity>

@@ -2,26 +2,35 @@ import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-
 import React from 'react'
 
 import { images, icons } from '@/constants'
+import { Event } from '@/types/type';
+import { formatAddress } from '@/utils/util';
 
 const EventCard = ({
-  styling, image
+  event,
+  styling
 }: {
-  styling?: string; image?: ImageSourcePropType | undefined;
+  event: Event;
+  styling?: string;
 }) => {
-  image = image ? image: images.dog;
+  const imageSource = event.coverImage
+    ? { uri: event.coverImage }
+    : images.noImage;
+  const startDate = event.dateStart.toDate();
+  const formattedDate = `${startDate.getDate()}`;
+  const formattedMonth = startDate.toLocaleString('default', { month: 'short' });
 
   return (
     <View className={`bg-white p-4 rounded-lg shadow-none w-[275px] items-center ${styling}`}>
       <View className='relative'>
         <Image
-          source={ images.dog }
+          source={imageSource}
           className='w-[250px] h-[180px] rounded-lg'
           resizeMode='cover'
         />
 
-        <View className="absolute top-2 left-2 bg-white/80 rounded-lg px-2 py-1 h-[50px] flex justify-center items-center">
-          <Text className="text-xs font-bold text-orange-600">01</Text>
-          <Text className="text-[10px] font-semibold text-gray-500">NOV</Text>
+        <View className="absolute top-2 left-2 bg-white/90 rounded-lg px-2 py-1 h-[50px] flex justify-center items-center">
+          <Text className="text-xs font-bold text-orange-600">{formattedDate}</Text>
+          <Text className="text-[10px] uppercase font-semibold text-gray-500">{formattedMonth}</Text>
         </View>
 
         <TouchableOpacity className="absolute top-2 right-2 bg-white/80 p-2 rounded-lg">
@@ -33,7 +42,9 @@ const EventCard = ({
       </View>
 
       <View className='w-full'>
-        <Text className="text-2xl font-semibold text-gray-900 my-6">Candlelight Fine Dining</Text>
+        <Text className="text-xl font-semibold text-gray-900 mt-3 mb-6 line-clamp-2">
+          {event.title}
+        </Text>
         <View className="flex-row items-center ml-1.5">
           <Image 
             source={ icons.bookmarkFilled } // Replace with actual image URLs
@@ -50,19 +61,24 @@ const EventCard = ({
           <Text className="ml-1 text-primary-pBlue font-medium">+20 Going</Text>
         </View>
 
-        <View className="flex-row items-center mt-6 justify-between">
-          <View className='flex-row'>
+        <View className="flex-row items-center mt-2 justify-between pr-12">
+          <View className='flex-row items-center'>
             <Image 
               source={ icons.marker }
               className="w-4 h-4 mr-1"
             />
-            <Text className="text-gray-500 text-sm">
-              1234 Chestnut St, Philadelphia
-            </Text>
+            <View className='flex-1'>
+              <Text className="text-gray-500 text-sm line-clamp-1">
+                {event.locationName}
+              </Text>
+            </View>
           </View>
-          <View className='bg-yellow-400 rounded-full px-2 py-1'>
-            <Text className='text-white'>$</Text>
-          </View>
+          
+          { event.price && (
+            <View className='bg-yellow-400 rounded-full mx-6 px-2 py-1'>
+              <Text className='text-white'>$</Text>
+            </View>
+          )}
         </View>
       </View>
     </View>

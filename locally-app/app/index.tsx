@@ -1,4 +1,6 @@
 import { Firebase_Auth } from "@/configs/firebase";
+import { fetchUserProfile } from "@/services/firebase-service";
+import { useUserStore } from "@/store/user";
 import 'react-native-get-random-values';
 import { Link, Redirect } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
@@ -10,8 +12,10 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    onAuthStateChanged(Firebase_Auth, (user) => {
+    onAuthStateChanged(Firebase_Auth, async (user) => {
       if (user) {
+        const currentuser = await fetchUserProfile(user.uid);
+        useUserStore.getState().setUser(currentuser);
         setIsLoggedIn(true);
       } else {
         setIsLoggedIn(false);

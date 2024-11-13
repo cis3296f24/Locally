@@ -12,7 +12,6 @@ export const useEventsByCity = (
     queryFn: () => fetchEventsByCity(city),
     staleTime: 5 * 60 * 1000,
     networkMode: forceRemote ? "online" : "always",
-    // refetchOnWindowFocus: forceRemote,
     ...options,
   });
 };

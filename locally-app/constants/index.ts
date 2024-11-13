@@ -18,6 +18,8 @@ import check from '@/assets/images/checkIcon.png'
 import ticketShape from '@/assets/images/ticket.png'
 import barcode from '@/assets/images/barcode.png'
 import painting from '@/assets/images/painting.jpg'
+import noImage from '@/assets/images/no-image.png'
+import noProfileImage from '@/assets/images/no-profile.png'
 
 export const icons = {
   calendar,
@@ -41,5 +43,7 @@ export const images = {
   check,
   ticketShape,
   barcode,
-  painting
+  painting,
+  noImage,
+  noProfileImage
 }
