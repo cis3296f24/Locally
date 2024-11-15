@@ -80,6 +80,19 @@ npm install
 
 In order to install the project's dependancies.
 
+## Google Maps Setup
+Get API Key:
+- Visit [Google Cloud Console](https://console.cloud.google.com/)
+- Create/select a project
+- Enable: Maps SDK (Android & iOS) and Places API
+- Create API key in Credentials
+### Configure Environment Variables
+- In the root of the locally-app directory, create a .env file
+- Add your API key:
+``` 
+GOOGLE_API_KEY=your_api_key_here
+```
+
 ### Start the Development Server
 
 Run the following command to start the Expo development server:
