@@ -1,18 +1,34 @@
+import { Firebase_Auth } from "@/configs/firebase";
+import { fetchUserProfile } from "@/services/firebase-service";
+import { useUserStore } from "@/store/user";
+import 'react-native-get-random-values';
 import { Link, Redirect } from "expo-router";
-import { Text, View } from "react-native";
+import { onAuthStateChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
 
 export default function Index() {
-  return (
-    <Redirect href='./(auth)/login' />
-    // <Redirect href='./(root)/(tabs)/explore' />
-  );
-}
 
-    // <View className="flex-1 justify-center items-center bg-white">
-    //   <Link
-    //     href="/(tabs)/metadata"
-    //     className="text-blue-600 font-bold text-2xl"
-    //   >
-    //     <Text>Go to Tab View</Text>
-    //   </Link>
-    // </View>
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    onAuthStateChanged(Firebase_Auth, async (user) => {
+      if (user) {
+        const currentuser = await fetchUserProfile(user.uid);
+        useUserStore.getState().setUser(currentuser);
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+      setIsLoading(false);
+    })
+  }, [])
+
+  if (!isLoading) {
+    if (isLoggedIn) {
+      return <Redirect href='/(root)/(tabs)/explore' />
+    } else {
+      return <Redirect href='./(auth)/login' />
+    }
+  }
+}

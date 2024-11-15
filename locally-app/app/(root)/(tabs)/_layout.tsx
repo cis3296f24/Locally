@@ -1,14 +1,14 @@
-import { View, Text, Image } from 'react-native'
+import 'react-native-get-random-values';
+import { View, Text, Image } from 'react-native';
 import React from 'react';
-import { Tabs } from 'expo-router'
+import { Tabs } from 'expo-router';
 import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const TabsLayout = () => {
   return (
     <Tabs
-      initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: '#FFD60A',
         tabBarInactiveTintColor: '#A3CEF1',

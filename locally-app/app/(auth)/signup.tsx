@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -7,14 +7,36 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
+import { signUpUser } from '@/services/firebase-service'
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSignUp = () => {
-        //router.push('/(tabs)/metadata')
+    const handleSignUp = async () => {
+        if (!fullName || !email || !password) {
+            Alert.alert('Error', 'Please fill in all fields')
+            return
+        }
+        setLoading(true)
+
+        try {
+            const user = await signUpUser({fullName, email, password })
+            
+            if (user) {
+                console.log('User signed up successfully', user)
+                setLoading(false)
+                router.replace('/(root)/(tabs)/explore')
+            }
+        } catch (error: any) {
+            console.log('Error signing up', error.message)
+            Alert.alert('Error', error.message)
+            setLoading(false)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleGoogleLogin = () => {
@@ -56,8 +78,10 @@ const SignUpScreen = () => {
                 />
 
                 <PrimaryButton
-                    text="REGISTER"
+                    text="Register"
+                    icon="pencil-remove-outline"
                     onPress={handleSignUp}
+                    loading={loading}
                 />
             </View>
 
@@ -72,9 +96,6 @@ const SignUpScreen = () => {
             {/* Login Link */}
             <View className="flex-row justify-center mt-6">
                 <Text className="text-gray-600">Already have an account? </Text>
-                {/* <TouchableOpacity onPress={() => router.push('./login')}>
-                    <Text className="text-[#40BFFF]">Log In</Text>
-                </TouchableOpacity> */}
                 <Link href="./login" className="text-blue-500 font-semibold">Log In</Link>
             </View>
         </View>

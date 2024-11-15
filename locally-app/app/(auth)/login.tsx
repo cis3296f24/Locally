@@ -1,20 +1,41 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, router } from 'expo-router'
-import Ionicons from '@expo/vector-icons/Ionicons'
 import GoogleButton from '../../components/GoogleButton'
 import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
+import { signInUser } from '@/services/firebase-service'
 
 //Login logic goes here
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = () => {
-        router.replace('/(root)/(tabs)/explore')
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('Error', 'Please fill in all fields')
+            return
+        }
+        setLoading(true)
+
+        try {
+            const user = await signInUser({email, password })
+            
+            if (user) {
+                console.log('User signed in successfully', user)
+                setLoading(false)
+                router.replace('/(root)/(tabs)/explore')
+            }
+        } catch (error: any) {
+            console.log('Error signing in', error.message)
+            Alert.alert('Error', error.message)
+            setLoading(false)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleGoogleLogin = () => {
@@ -54,8 +75,10 @@ const LoginScreen = () => {
                 </TouchableOpacity>
 
                 <PrimaryButton
-                    text="LOG IN"
+                    text="Log In"
+                    icon="door-open"
                     onPress={handleLogin}
+                    loading={loading}
                 />
             </View>
 
@@ -72,9 +95,6 @@ const LoginScreen = () => {
             {/* Sign Up Link */}
             <View className="flex-row justify-center mt-6">
                 <Text className="text-gray-600">Don't have an account? </Text>
-                {/* <TouchableOpacity onPress={() => router.push('./signup')}>
-                    <Text className="text-blue-500">Sign up</Text>
-                </TouchableOpacity> */}
                 <Link href="./signup" className="text-blue-500 font-semibold">Sign up</Link>
             </View>
         </View>
