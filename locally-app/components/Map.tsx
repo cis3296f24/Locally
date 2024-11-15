@@ -1,6 +1,6 @@
 import { Event } from "@/types/type";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import useLocationStore from '@/store/locationStore';
 import { useRef, useEffect } from 'react';
 
@@ -79,6 +79,18 @@ const Map = ({
             longitude: event.coordinate.longitude
           }}
           title={event.title}
+          onSelect={() => {
+            mapRef.current?.animateToRegion(
+              {
+                latitude: event.coordinate.latitude,
+                longitude: event.coordinate.longitude,
+                latitudeDelta: 0.03,  // Set appropriate zoom level
+                longitudeDelta: 0.03,
+              },
+              1000 // Animation duration in milliseconds
+            );
+            onMarkerSelect(event)
+          }}
         >
           <View className='bg-orange-400 rounded-full p-1'>
             <Text className="text-white text-xs font-medium">📍</Text>

@@ -12,10 +12,10 @@ import { useEventStore } from '@/store/event';
 import { useEventsByCity } from '@/services/tanstack-service';
 
 const Explore = () => {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  // const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { setUserLocation } = useLocationStore();
   
-  const { events, setEvents } = useEventStore();
+  const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
 
   const [remote, setRemote] = useState(false)
   const { data: eventList, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
@@ -46,7 +46,7 @@ const Explore = () => {
     if (isFetched && eventList) {
       setEvents(eventList); 
     }
-  }, [isFetched, eventList, setEvents]);
+  }, []);
 
   const handleMarkerSelect = (event: Event) => {
     setSelectedEvent(event);

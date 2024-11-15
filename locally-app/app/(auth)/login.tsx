@@ -1,7 +1,6 @@
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, router } from 'expo-router'
-import Ionicons from '@expo/vector-icons/Ionicons'
 import GoogleButton from '../../components/GoogleButton'
 import FormInput from '../../components/FormInput'
 
@@ -28,7 +27,7 @@ const LoginScreen = () => {
             if (user) {
                 console.log('User signed in successfully', user)
                 setLoading(false)
-                router.navigate('/(tabs)/explore')
+                router.replace('/(root)/(tabs)/explore')
             }
         } catch (error: any) {
             console.log('Error signing in', error.message)
