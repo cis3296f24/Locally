@@ -1,4 +1,4 @@
-import { View, Keyboard, TouchableWithoutFeedback, ScrollView, Pressable, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Keyboard, TouchableWithoutFeedback, ScrollView, Pressable, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import Map from '@/components/Map';
 import SearchBar from '@/components/SearchBar';
@@ -12,7 +12,7 @@ import { useEventStore } from '@/store/event';
 import { useEventsByCity } from '@/services/tanstack-service';
 
 const Explore = () => {
-  // const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
   const { setUserLocation } = useLocationStore();
   
   const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
@@ -43,22 +43,30 @@ const Explore = () => {
   }, []);
 
   useEffect(() => {
-    if (isFetched && eventList) {
-      setEvents(eventList); 
+    if (eventList) {
+      setEvents(eventList);
     }
+    console.log('eventList', events);
   }, []);
 
   const handleMarkerSelect = (event: Event) => {
+    setCurrentSelectedEvent(event);
     setSelectedEvent(event);
   };
 
   return (
     <View className="h-full w-full bg-transparent">
       <View className="z-0">
-        <Map
-          events={events}
-          onMarkerSelect={handleMarkerSelect} 
-        />
+        { eventList ? (
+          <Map
+            events={eventList}
+            onMarkerSelect={handleMarkerSelect} 
+          />
+        ): (
+          <View className="flex-1 justify-center items-center w-screen h-[350px]">
+            <ActivityIndicator color="#003566" />
+          </View>
+        )}
       </View>
 
       <View className="absolute top-[8%] left-5 right-5 z-10">
@@ -78,14 +86,14 @@ const Explore = () => {
         </ScrollView>
       </View>
 
-      {selectedEvent && (
+      {currentSelectedEvent && (
         <TouchableOpacity 
           className="absolute bottom-8 left-0 right-0 z-1 items-center"
           onPress={() => {
             router.push('./../event-details');
           }}
         >
-          <CardPop event={selectedEvent} />
+          <CardPop event={currentSelectedEvent} />
         </TouchableOpacity>
       )}
     </View>
