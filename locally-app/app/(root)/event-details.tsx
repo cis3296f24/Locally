@@ -8,6 +8,8 @@ import { router } from 'expo-router';
 import { useEventStore } from '@/store/event';
 import { formatAddress, formatEventDate, formatEventDateAndTime } from '@/utils/util';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import ChatButton from '@/components/ChatButton';
+import Chat from '@/components/Chat';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
@@ -26,6 +28,8 @@ const EventDetailsScreen = () => {
 
     const isLongText = selectedEvent?.description ? selectedEvent.description.length > 200 : false;
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const [isChatVisible, setIsChatVisible] = useState(false);
 
     const handlePurchase = () => {
         router.push('/(root)/purchase-screen');
@@ -210,22 +214,35 @@ const EventDetailsScreen = () => {
             </ScrollView >
             
             {/* Button for making purchase */}
-            <View className='absolute justify-center bottom-[50px] w-screen px-12'>
-                { selectedEvent?.price ? (
-                    <PrimaryButton
-                        text={`Ticket $${selectedEvent.price}`}
-                        onPress={handlePurchase}
-                        icon='currency-usd'
-                        // bgColor='bg-[#003566]'
-                        iconBgColor='bg-[#FFC300]'
-                    /> 
-                ): (
-                    <PrimaryButton
-                        text="Join Now"
-                        onPress={handleJoinEvent}
-                    />
-                )}
+            <View className='absolute justify-center bottom-[50px] w-screen px-8 bg'>
+                <View className='flex-1 justify-center pr-28'>
+                    { selectedEvent?.price ? (
+                        <PrimaryButton
+                            text={`Ticket $${selectedEvent.price}`}
+                            onPress={handlePurchase}
+                            icon='currency-usd'
+                            // bgColor='bg-[#003566]'
+                            iconBgColor='bg-[#FFC300]'
+                        /> 
+                    ): (
+                        <PrimaryButton
+                            text="Join Now"
+                            onPress={handleJoinEvent}
+                        />
+                    )}
+                </View>   
+
+                <View className='absolute right-[30%] bottom-[50px]'>
+                    <ChatButton onPress={() => setIsChatVisible(true)} />
+                </View> 
             </View>
+
+            <Chat
+                isVisible={isChatVisible}
+                onClose={() => setIsChatVisible(false)}
+                eventTitle="Candlelight Fine Dining"
+                eventDate="01 November, 2024"
+            />   
         </View>
     )
 }

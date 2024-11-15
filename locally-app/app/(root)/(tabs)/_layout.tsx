@@ -9,7 +9,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const TabsLayout = () => {
   return (
     <Tabs
-      initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: '#FFD60A',
         tabBarInactiveTintColor: '#A3CEF1',
