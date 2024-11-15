@@ -105,3 +105,16 @@ This will compile and serve the app, displaying a QR code in the terminal.
 - **iOS Simulator (macOS only)**:
   - Open Xcode and launch an iOS simulator.
   - In the terminal, press `i` to open the app on iOS.
+
+# Google Maps Setup
+Get API Key:
+- Visit [Google Cloud Console](https://console.cloud.google.com/)
+- Create/select a project
+- Enable: Maps SDK (Android & iOS) and Places API
+- Create API key in Credentials
+### Configure Environment Variables
+- In the root of the locally-app directory, create a .env file
+- Add your API key:
+``` 
+GOOGLE_API_KEY=your_api_key_here
+```

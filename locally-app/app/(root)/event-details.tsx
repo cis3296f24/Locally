@@ -181,7 +181,7 @@ const EventDetailsScreen = () => {
                                     <MapView
                                         provider={PROVIDER_DEFAULT}
                                         style={{ flex: 1 }} // Full size of container
-                                        mapType="mutedStandard"
+                                        mapType="standard"
                                         initialRegion={{
                                             latitude: selectedEvent.coordinate.latitude,
                                             longitude: selectedEvent?.coordinate.longitude,
