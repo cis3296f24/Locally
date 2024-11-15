@@ -59,7 +59,7 @@ const Metadata = () => {
           </>
         ):(
           <View className="flex-1 justify-center items-center w-screen h-[350px]">
-            <ActivityIndicator size="large" color="#003566" />
+            <ActivityIndicator color="#003566" />
           </View>
         )}
       </ScrollView>

@@ -28,7 +28,7 @@ const SignUpScreen = () => {
             if (user) {
                 console.log('User signed up successfully', user)
                 setLoading(false)
-                router.navigate('/(tabs)/explore')
+                router.replace('/(root)/(tabs)/explore')
             }
         } catch (error: any) {
             console.log('Error signing up', error.message)

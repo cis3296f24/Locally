@@ -42,6 +42,6 @@ export default PrimaryButton
 
 const LoadingIndicator = () => (
   <View className="flex-row items-center justify-center">
-    <ActivityIndicator size="large" color="#40BFFF" />
+    <ActivityIndicator color="#40BFFF" />
   </View>
 ) 

@@ -14,10 +14,6 @@ interface CategoryCardProps { // use this to define the types for the arguments
   iconName: any;
 }
 
-interface MapProps {
-  onMarkerSelect: (event: Event) => void;
-}
-
 interface CardPopProps {
   event: Event;
   additionalStyling?: string;
@@ -115,7 +111,6 @@ interface LocationStore {
 export type {
   User,
   CategoryCardProps,
-  MapProps,
   Event,
   CardPopProps,
   PrimaryButtonProps,

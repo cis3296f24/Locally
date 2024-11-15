@@ -9,7 +9,7 @@ const Maxwell = () => {
     const isSignedOut = await signOutUser()
     if (isSignedOut) {
       console.log('User signed out successfully')
-      router.navigate('/(auth)/login')
+      router.replace('/(auth)/login')
     }
   }
 

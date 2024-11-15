@@ -8,10 +8,17 @@ import CardPop from '@/components/CardPop';
 import { router } from 'expo-router';
 import useLocationStore from '@/store/locationStore';
 import * as Location from 'expo-location';
+import { useEventStore } from '@/store/event';
+import { useEventsByCity } from '@/services/tanstack-service';
 
 const Explore = () => {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  // const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { setUserLocation } = useLocationStore();
+  
+  const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
+
+  const [remote, setRemote] = useState(false)
+  const { data: eventList, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
 
   useEffect(() => {
     (async () => {
@@ -35,6 +42,12 @@ const Explore = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    if (isFetched && eventList) {
+      setEvents(eventList); 
+    }
+  }, []);
+
   const handleMarkerSelect = (event: Event) => {
     setSelectedEvent(event);
   };
@@ -42,7 +55,10 @@ const Explore = () => {
   return (
     <View className="h-full w-full bg-transparent">
       <View className="z-0">
-        <Map onMarkerSelect={handleMarkerSelect} />
+        <Map
+          events={events}
+          onMarkerSelect={handleMarkerSelect} 
+        />
       </View>
 
       <View className="absolute top-[8%] left-5 right-5 z-10">

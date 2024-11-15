@@ -1,11 +1,17 @@
-import { Event, MapProps } from "@/types/type";
+import { Event } from "@/types/type";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import useLocationStore from '@/store/locationStore';
 import { useRef, useEffect } from 'react';
 
 // map component
-const Map = ({ onMarkerSelect }: MapProps) => {
+const Map = ({ 
+  events,
+  onMarkerSelect 
+}: {
+  events: Event[];
+  onMarkerSelect: (event: Event) => void;
+}) => {
   const mapRef = useRef<MapView>(null);
   const {
     userLatitude,
@@ -20,31 +26,6 @@ const Map = ({ onMarkerSelect }: MapProps) => {
     destinationLatitude,
     destinationLongitude,
   });
-
-  const events: Event[] = [
-    {
-      id: "1",
-      title: "Candlelight Fine Dining",
-      coordinate: {
-        latitude: 39.965519,
-        longitude: -75.181053,
-      },
-      city: "Philadelphia",
-      emote: "🍽️",
-      category: "dining",
-    },
-    {
-      id: "2",
-      title: "Art Exhibition",
-      coordinate: {
-        latitude: 39.9526,
-        longitude: -75.1652,
-      },
-      city: "Philadelphia",
-      emote: "🎨",
-      category: "exhibition",
-    },
-  ];
 
   // Calculate the region based on the destination or user location
   const region = destinationLatitude && destinationLongitude
@@ -83,22 +64,36 @@ const Map = ({ onMarkerSelect }: MapProps) => {
   return (
     <MapView
       ref={mapRef}
-      provider={PROVIDER_GOOGLE}
+      provider={PROVIDER_DEFAULT}
       style={styles.map}
       mapType="standard"
       initialRegion={region}
       showsUserLocation={true}
       showsMyLocationButton={true}
     >
-      {events.map((event) => (
-        <Marker
-          key={event.id}
-          coordinate={event.coordinate}
+      {events.map((event, index) => (
+        <Marker 
+          key={index}
+          coordinate={{
+            latitude: event.coordinate.latitude,
+            longitude: event.coordinate.longitude
+          }}
           title={event.title}
-          onPress={() => onMarkerSelect(event)}
+          onSelect={() => {
+            mapRef.current?.animateToRegion(
+              {
+                latitude: event.coordinate.latitude,
+                longitude: event.coordinate.longitude,
+                latitudeDelta: 0.03,  // Set appropriate zoom level
+                longitudeDelta: 0.03,
+              },
+              1000 // Animation duration in milliseconds
+            );
+            onMarkerSelect(event)
+          }}
         >
-          <View style={styles.marker}>
-            <Text style={styles.markerText}>{event.emote}</Text>
+          <View className='bg-orange-400 rounded-full p-1'>
+            <Text className="text-white text-xs font-medium">📍</Text>
           </View>
         </Marker>
       ))}
