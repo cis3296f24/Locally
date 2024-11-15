@@ -108,7 +108,8 @@ This will compile and serve the app, displaying a QR code in the terminal.
 ### Option 1: Use Expo Go on Mobile
 
 1. Install **Expo Go** on your mobile device.
-2. Open Expo Go, and scan the QR code generated in the terminal to load the app on your device.
+2. Ensure your device is on the same Wi-Fi network as the network on the development server.
+3. Open Expo Go, and scan the QR code generated in the terminal to load the app on your device.
 
 ### Option 2: Use an Emulator or Simulator
 
