@@ -10,15 +10,16 @@ import useLocationStore from '@/store/locationStore';
 import * as Location from 'expo-location';
 import { useEventStore } from '@/store/event';
 import { useEventsByCity } from '@/services/tanstack-service';
+import { ref } from 'firebase/storage';
+import { fetchEventsByCity } from '@/services/firebase-service';
 
 const Explore = () => {
   const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
   const { setUserLocation } = useLocationStore();
-  
+  const [city, setCity] = useState("")
   const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
 
   const [remote, setRemote] = useState(false)
-  const { data: eventList, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
 
   useEffect(() => {
     (async () => {
@@ -35,19 +36,34 @@ const Explore = () => {
       });
 
       if (addressArray.length > 0) {
-        const { name, region } = addressArray[0];
+        const { name, city, region } = addressArray[0];
         const address = `${name}, ${region}`;
-        setUserLocation(location.coords.latitude, location.coords.longitude, address);
+        setUserLocation(
+          location.coords.latitude, 
+          location.coords.longitude, 
+          address,
+          city || 'Philadelphia'
+        );
+        console.log("City:", city);
+        setCity(city || 'Philadelphia');
       }
     })();
   }, []);
 
   useEffect(() => {
-    if (eventList) {
-      setEvents(eventList);
-    }
-    console.log('eventList', events);
-  }, []);
+    const fetchEvents = async () => {
+      if (!city) return;
+
+      try {
+        const eventsFromRemote = await fetchEventsByCity(city);
+        setEvents(eventsFromRemote);
+        console.log("Fetched events:", events);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } 
+    };
+    fetchEvents();
+  }, [city]);
 
   const handleMarkerSelect = (event: Event) => {
     setCurrentSelectedEvent(event);
@@ -57,20 +73,22 @@ const Explore = () => {
   return (
     <View className="h-full w-full bg-transparent">
       <View className="z-0">
-        { eventList ? (
+        { events.length > 0 ? (
           <Map
-            events={eventList}
+            events={events}
             onMarkerSelect={handleMarkerSelect} 
           />
         ): (
-          <View className="flex-1 justify-center items-center w-screen h-[350px]">
-            <ActivityIndicator color="#003566" />
+          <View className="flex-1 justify-center items-center w-screen top-[350px]">
+            <ActivityIndicator size={'large'} color="#003566" />
           </View>
         )}
       </View>
 
       <View className="absolute top-[8%] left-5 right-5 z-10">
-        <SearchBar />
+        <SearchBar 
+          currentCity={(value) => setCity(value)}
+        />
         <ScrollView
           className='mt-6 left-5'
           horizontal  // Enables horizontal scrolling

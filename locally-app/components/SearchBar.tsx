@@ -5,11 +5,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import useLocationStore from '@/store/locationStore';
 
-const SearchBar = () => {
-  const { setDestinationLocation } = useLocationStore();
-  const GOOGLE_API_KEY = Constants.expoConfig.extra.GOOGLE_API_KEY;
-
-//  console.log('API Key:', GOOGLE_API_KEY);
+const SearchBar = ({ 
+  currentCity 
+}: { 
+  currentCity: (city: string) => void 
+}) => {
+  const { setDestinationLocation, setUserLocation } = useLocationStore();
+  const GOOGLE_API_KEY = Constants.expoConfig?.extra?.GOOGLE_API_KEY;
 
   return (
     <View className="w-[90%] mx-6">
@@ -30,7 +32,12 @@ const SearchBar = () => {
               details.geometry.location.lat,
               details.geometry.location.lng,
               data.description
-            );
+            )
+        
+            const city = details.address_components.at(1)?.long_name;
+            console.log("Deatils:", details.address_components);
+            currentCity(city || 'Philadelphia');
+            console.log("City:", city);
           }
         }}
         onFail={error => console.error('Error:', error)}

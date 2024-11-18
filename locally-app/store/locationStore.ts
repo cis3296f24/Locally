@@ -5,14 +5,16 @@ const useLocationStore = create<LocationStore>((set) => ({
   userLatitude: null,
   userLongitude: null,
   userAddress: null,
+  userCity: null,
   destinationLatitude: null,
   destinationLongitude: null,
   destinationAddress: null,
-  setUserLocation: (latitude, longitude, address) =>
+  setUserLocation: (latitude, longitude, address, city: string) =>
     set({
       userLatitude: latitude,
       userLongitude: longitude,
       userAddress: address,
+      userCity: city
     }),
   setDestinationLocation: (latitude, longitude, address) =>
     set({

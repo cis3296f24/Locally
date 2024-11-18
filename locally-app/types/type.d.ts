@@ -106,10 +106,11 @@ interface LocationStore {
   userLatitude: number | null;
   userLongitude: number | null;
   userAddress: string | null;
+  userCity: string | null;
   destinationLatitude: number | null;
   destinationLongitude: number | null;
   destinationAddress: string | null;
-  setUserLocation: (latitude: number, longitude: number, address: string) => void;
+  setUserLocation: (latitude: number, longitude: number, address: string, city: string) => void;
   setDestinationLocation: (latitude: number, longitude: number, address: string) => void;
 }
 

@@ -16,6 +16,7 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 import { useEventStore } from "@/store/event";
 import { useUserStore } from "@/store/user";
 import { createTicket } from "@/services/firebase-service";
+import Constants from 'expo-constants';
 
 const PurchaseScreen = () => {
   const { setTicket, setShowHeader } = useTicketStore();
@@ -62,7 +63,7 @@ const PurchaseScreen = () => {
 
   return (
     <StripeProvider
-      publishableKey={process.env.STRIPE_PUBLISHABLE_KEY!}
+      publishableKey={Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY}
       merchantIdentifier="merchant.locally.app"
       urlScheme="myapp"
     >
