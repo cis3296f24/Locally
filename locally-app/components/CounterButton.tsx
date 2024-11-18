@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const CounterButton = ({
+    setQuantity,
     setPrice,
     unitPrice
 }: {
+    setQuantity: (newQuantity: number) => void;
     setPrice: (newPrice: number) => void;
     unitPrice: number;
 }) => {
@@ -14,6 +16,7 @@ const CounterButton = ({
     const handleIncrement = () => {
         setCount((val) => {
             const newCount = val + 1;
+            setQuantity(newCount);
             setPrice(newCount * unitPrice);
             return newCount;
         });
@@ -23,6 +26,7 @@ const CounterButton = ({
         setCount((val) => {
         if (val > 1) { // Prevent going below 1
             const newCount = val - 1;
+            setQuantity(newCount);
             setPrice(newCount * unitPrice);
             return newCount;
         }

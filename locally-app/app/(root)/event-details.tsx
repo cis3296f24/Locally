@@ -35,7 +35,9 @@ const EventDetailsScreen = () => {
         router.push('/(root)/purchase-screen');
     }
 
-    const handleJoinEvent = () => {}
+    const handleJoinEvent = () => {
+        
+    }
 
     const handleGoBack = () => {
         router.back(); 

@@ -1,9 +1,9 @@
-import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
-import { User, Event } from "@/types/type";
+import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
+import { User, Event, Ticket } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, query, setDoc, Timestamp, where } from "firebase/firestore";
-import { removeCurrentUser, saveCurrentUser } from "./storage-service";
 import { useUserStore } from "@/store/user";
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
 // Firebase Authentication
 
@@ -132,3 +132,53 @@ export const fetchEventsByCity = async (city: string) => {
 
   return eventsWithOwners;
 };
+
+// Firebase Firestore (TICKETS)
+
+export const createTicket = async (
+  event: Event,
+  user: User,
+  numTickets: number,
+  total: string
+) => {
+  const ticketId = `${user.id}_${event.id}`;
+  console.log('Ticket ID', ticketId);
+
+  const ticketRef = doc(Firebase_Firestore, 'tickets', `${ticketId}`);
+
+  const newTicket: Ticket = {
+    ticketId,
+    eventName: event.title,
+    eventAddress: `${event.street}, ${event.city}, ${event.state} ${event.zipCode}`,
+    userName: user.fullName,
+    orderNumber: `#${Math.floor(Math.random() * 100000)}`,
+    date: event.dateStart,
+    time: event.timeStart,
+    numTickets: numTickets,
+    total: total,
+    eventImage: event.coverImage,
+    qrcode: `${event.title}, ${user.fullName}`,
+
+    eventId: event.id,
+    userId: user.id,
+  };
+
+  await setDoc(ticketRef, newTicket);
+
+  const eventTicketRef = doc(Firebase_Firestore, `events/${event.id}/ticket-purchase`, ticketId);
+  await setDoc(eventTicketRef, newTicket);
+
+  // Add ticket to the user's 'ticket-purchase' subcollection
+  const userTicketRef = doc(Firebase_Firestore, `users/${user.id}/ticket-purchase`, ticketId);
+  await setDoc(userTicketRef, newTicket);
+
+  console.log('Ticket created successfully and added to event and user subcollections!');
+
+  const ticketDoc = await getDoc(ticketRef);
+
+  if (ticketDoc.exists()) {
+    return ticketDoc.data() as Ticket;
+  } else {
+    throw new Error('Ticket not found');
+  }
+}

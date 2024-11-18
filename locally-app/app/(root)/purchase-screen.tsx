@@ -6,7 +6,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import CardPop from "@/components/CardPop";
-import { Event, Ticket } from "@/types/type";
+import { Event, Ticket, User } from "@/types/type";
 import PurchasePopup from "@/components/PurchasePopup";
 import CounterButton from "@/components/CounterButton";
 import { useTicketStore } from "@/store/ticket";
@@ -15,12 +15,14 @@ import Payment from "@/components/Payment";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { useEventStore } from "@/store/event";
 import { useUserStore } from "@/store/user";
+import { createTicket } from "@/services/firebase-service";
 
 const PurchaseScreen = () => {
   const { setTicket, setShowHeader } = useTicketStore();
   const selectedEvent = useEventStore((state) => state.selectedEvent);
   const user = useUserStore((state) => state.user);
 
+  const [quantity, setQuantity] = useState(1)
   const [subTotal, setSubTotal] = useState(selectedEvent?.price || 0);
 
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -29,22 +31,22 @@ const PurchaseScreen = () => {
     router.back();
   };
 
+  const confirmTicket = async () => {
+    setPaymentConfirmed(true); 
+
+    const ticket = await createTicket(
+      selectedEvent as Event,   
+      user as User,           
+      quantity,           
+      (subTotal * 1.07).toFixed(2)
+    )
+
+    setTicket(ticket);
+  }
+
   const handleSeeTicket = () => {
     setPaymentConfirmed(false);
-
-    const ticket: Ticket = {
-      eventName: event.title,
-      eventAddress: `${event.city}, ${event.category}`, // Placeholder for address formatting
-      userName: "Jamie Nguyen", // Placeholder: You'll want to fetch the actual username from context or data
-      orderNumber: `123`, // Example order number based on event ID
-      date: "Nov 01 2024", // Placeholder: You'll need an actual date for this
-      time: "7:00 PM", // Placeholder: Similarly, you'd get the time dynamically
-      numTickets: 2, // Placeholder: Replace with actual ticket count
-      total: 249.6, // Placeholder: Replace with actual total calculation
-      eventImage: images.concert, // Placehold
-    }
     setShowHeader(false);
-    setTicket(ticket);
     router.replace({
       pathname: "/(root)/ticket-screen", 
       params: { showHeader: "true" }      
@@ -60,7 +62,7 @@ const PurchaseScreen = () => {
 
   return (
     <StripeProvider
-      publishableKey={'pk_test_51Q78Qt2LxvcbX1SF730tdyEI9eKKL5RIip7jYtxSqJBrEA8e63X0jJmGwGkqrkXsHE2xp4HhpsFACOE5OpgzZrcq00aWwaF4QO'}
+      publishableKey={process.env.STRIPE_PUBLISHABLE_KEY!}
       merchantIdentifier="merchant.locally.app"
       urlScheme="myapp"
     >
@@ -110,7 +112,8 @@ const PurchaseScreen = () => {
 
             <View className="flex-row px-6 mr-3 justify-between">
               <Text>Amount</Text>
-              <CounterButton 
+              <CounterButton
+              setQuantity={(value) => { setQuantity(value) }} 
                 setPrice={(value) => { setSubTotal(value) }}
                 unitPrice={event.price || 0}
               />            
@@ -149,7 +152,7 @@ const PurchaseScreen = () => {
               amount={`${(subTotal * 1.07)}`}
               onPaymentStatus={(status) => {
                 if (status === "success") {
-                  setPaymentConfirmed(true);;
+                  confirmTicket();
                 }
               }}
             />
