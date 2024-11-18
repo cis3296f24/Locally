@@ -36,17 +36,19 @@ export default {
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      ["expo-router", {"origin": "https://locally.com/"}]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "GOOGLE_API_KEY": process.env.GOOGLE_API_KEY
+      "GOOGLE_API_KEY": process.env.GOOGLE_API_KEY,
+      "STRIPE_PUBLISHABLE_KEY": process.env.STRIPE_PUBLISHABLE_KEY,
+      "STRIPE_SECRET_KEY": process.env.STRIPE_SECRET_KEY
     }
   }
 };
