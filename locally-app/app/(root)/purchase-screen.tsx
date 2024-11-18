@@ -19,8 +19,8 @@ import { createTicket } from "@/services/firebase-service";
 
 const PurchaseScreen = () => {
   const { setTicket, setShowHeader } = useTicketStore();
-  const selectedEvent = useEventStore((state) => state.selectedEvent);
-  const user = useUserStore((state) => state.user);
+  const { selectedEvent } = useEventStore();
+  const { user } = useUserStore();
 
   const [quantity, setQuantity] = useState(1)
   const [subTotal, setSubTotal] = useState(selectedEvent?.price || 0);

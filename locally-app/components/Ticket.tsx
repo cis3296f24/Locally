@@ -23,7 +23,7 @@ const TicketCard = ({ticket}: {ticket: Ticket}) => {
                     label={ticket.eventName} 
                     value={ticket.eventAddress}
                     labelStyle="font-medium text-xl" 
-                    valueStyle="text-gray-500"
+                    valueStyle="text-gray-500 text-sm"
                 />
             </View>
             {/* Divider */}
@@ -45,16 +45,18 @@ const TicketCard = ({ticket}: {ticket: Ticket}) => {
                 </View>
 
             </View>
-            <View className="flex items-center justify-center">
-                <QRCode 
-                    value={ticket.qrcode} 
-                    size={60}
-                />
-            </View>
+            <View className="absolute bottom-[20px] gap-2">
+                <View className="flex items-center justify-center">
+                    <QRCode 
+                        value={ticket.qrcode} 
+                        size={60}
+                    />
+                </View>
 
-            <Text className="font-light text-sm">
-                Scan your barcode at the entry gate.
-            </Text>
+                <Text className="font-light text-sm">
+                    Scan your barcode at the entry gate.
+                </Text>
+            </View>
         </ImageBackground>
     )}
 
