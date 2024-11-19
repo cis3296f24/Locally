@@ -22,8 +22,32 @@ interface EventStore {
   clearSelectedEvent: () => void;            
 }
 
+interface LocationStore {
+  userLatitude: number | null;
+  userLongitude: number | null;
+  userAddress: string | null;
+  userCity: string | null;
+  destinationLatitude: number | null;
+  destinationLongitude: number | null;
+  destinationAddress: string | null;
+  destinationCity: string | null;
+  setUserLocation: (
+    latitude: number | null, 
+    longitude: number | null, 
+    address: string | null, 
+    city: string | null
+  ) => void;
+  setDestinationLocation: (
+    latitude: number | null, 
+    longitude: number | null, 
+    address: string | null,
+    city: string | null
+  ) => void;
+}
+
 export type {
   TicketStore,
   UserStore,
-  EventStore
+  EventStore,
+  LocationStore
 }

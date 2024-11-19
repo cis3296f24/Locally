@@ -6,9 +6,9 @@ import Constants from 'expo-constants';
 import useLocationStore from '@/store/locationStore';
 
 const SearchBar = ({ 
-  currentCity 
+  setSearchCity 
 }: { 
-  currentCity: (city: string) => void 
+  setSearchCity: (city: string) => void 
 }) => {
   const { setDestinationLocation, setUserLocation } = useLocationStore();
   const GOOGLE_API_KEY = Constants.expoConfig?.extra?.GOOGLE_API_KEY;
@@ -25,19 +25,20 @@ const SearchBar = ({
           components: 'country:us', // Restrict to US results
         }}
         onPress={(data, details = null) => {
- //         console.log('Selected:', data);
- //         console.log('Details:', details);
           if (details) {
+            const city = details.address_components.find((c) => 
+              c.types.includes('locality')
+            )?.long_name || ''
+
             setDestinationLocation(
               details.geometry.location.lat,
               details.geometry.location.lng,
-              data.description
+              data.description,
+              city
             )
-        
-            const city = details.address_components.at(1)?.long_name;
-            console.log("Deatils:", details.address_components);
-            currentCity(city || 'Philadelphia');
+
             console.log("City:", city);
+            setSearchCity(city);
           }
         }}
         onFail={error => console.error('Error:', error)}

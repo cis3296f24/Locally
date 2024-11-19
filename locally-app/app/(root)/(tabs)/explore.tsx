@@ -18,8 +18,7 @@ const Explore = () => {
   const { setUserLocation } = useLocationStore();
   const [city, setCity] = useState("")
   const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
-
-  const [remote, setRemote] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -44,6 +43,7 @@ const Explore = () => {
           address,
           city || 'Philadelphia'
         );
+
         console.log("City:", city);
         setCity(city || 'Philadelphia');
       }
@@ -52,6 +52,7 @@ const Explore = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setIsLoading(true);
       if (!city) return;
 
       try {
@@ -60,7 +61,10 @@ const Explore = () => {
         console.log("Fetched events:", events);
       } catch (error) {
         console.error("Error fetching events:", error);
-      } 
+        setIsLoading(false);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchEvents();
   }, [city]);
@@ -73,21 +77,21 @@ const Explore = () => {
   return (
     <View className="h-full w-full bg-transparent">
       <View className="z-0">
-        { events.length > 0 ? (
+        { isLoading ? (
+          <View className="flex-1 justify-center items-center w-screen top-[350px]">
+            <ActivityIndicator size={'large'} color="#003566" />
+          </View>
+        ): (
           <Map
             events={events}
             onMarkerSelect={handleMarkerSelect} 
           />
-        ): (
-          <View className="flex-1 justify-center items-center w-screen top-[350px]">
-            <ActivityIndicator size={'large'} color="#003566" />
-          </View>
         )}
       </View>
 
       <View className="absolute top-[8%] left-5 right-5 z-10">
         <SearchBar 
-          currentCity={(value) => setCity(value)}
+          setSearchCity={(value) => setCity(value)}
         />
         <ScrollView
           className='mt-6 left-5'
