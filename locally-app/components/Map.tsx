@@ -86,7 +86,7 @@ const Map = ({
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-        {events.map((event, index) => (
+        {/* {events.map((event, index) => (
           <Marker 
             key={index}
             coordinate={{
@@ -111,7 +111,50 @@ const Map = ({
               <Text className="text-white text-xs font-medium">📍</Text>
             </View>
           </Marker>
-        ))}
+        ))} */}
+        {events.map((event, index) => {
+          // Map the event category to a color and emoji
+          const categoryEmojis = {
+            Festival: { color: 'bg-purple-500', emoji: '🎉' },
+            Holiday: { color: 'bg-green-500', emoji: '🌴' },
+            Exhibition: { color: 'bg-blue-500', emoji: '🖼️' },
+            Music: { color: 'bg-red-500', emoji: '🎶' },
+            Dance: { color: 'bg-pink-500', emoji: '💃' },
+            Workshop: { color: 'bg-yellow-500', emoji: '🛠️' },
+          };
+
+          const category = event.category as keyof typeof categoryEmojis;
+          const { color, emoji } = categoryEmojis[category];
+
+          return (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: event.coordinate.latitude,
+                longitude: event.coordinate.longitude,
+              }}
+              title={event.title}
+              onSelect={() => {
+                mapRef.current?.animateToRegion(
+                  {
+                    latitude: event.coordinate.latitude,
+                    longitude: event.coordinate.longitude,
+                    latitudeDelta: 0.03,
+                    longitudeDelta: 0.03,
+                  },
+                  1000 // animation duration
+                );
+                onMarkerSelect(event);
+              }}
+            >
+              <View className={`rounded-full p-1 ${color}`}>
+                <View className="rounded-full p-1 bg-white">
+                  <Text className="text-white text-lg">{emoji}</Text>
+                </View>
+              </View>
+            </Marker>
+          );
+        })}
       </MapView>
 
       <TouchableOpacity 
