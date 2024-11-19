@@ -3,16 +3,20 @@ import { SafeAreaView, StyleSheet, Text, Touchable, TouchableOpacity, View } fro
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import useLocationStore from '@/store/locationStore';
 import { useRef, useEffect } from 'react';
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { getUserCity } from "@/services/storage-service";
 
 // map component
 const Map = ({ 
   events,
+  // category,
   onMarkerSelect,
+  onPress
 }: {
   events: Event[];
+  // category: string;
   onMarkerSelect: (event: Event) => void;
+  onPress: () => void;
 }) => {
   const mapRef = useRef<MapView>(null);
   const {
@@ -73,6 +77,7 @@ const Map = ({
       // setUserCity( userCity || '' )
     }
     console.log("User City:", userCity);
+    onPress();
   };
 
   return (
@@ -86,41 +91,13 @@ const Map = ({
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-        {/* {events.map((event, index) => (
-          <Marker 
-            key={index}
-            coordinate={{
-              latitude: event.coordinate.latitude,
-              longitude: event.coordinate.longitude
-            }}
-            title={event.title}
-            onSelect={() => {
-              mapRef.current?.animateToRegion(
-                {
-                  latitude: event.coordinate.latitude,
-                  longitude: event.coordinate.longitude,
-                  latitudeDelta: 0.03, 
-                  longitudeDelta: 0.03,
-                },
-                1000 
-              );
-              onMarkerSelect(event)
-            }}
-          >
-            <View className='bg-orange-400 rounded-full p-1'>
-              <Text className="text-white text-xs font-medium">📍</Text>
-            </View>
-          </Marker>
-        ))} */}
-        {events.map((event, index) => {
-          // Map the event category to a color and emoji
+        {events?.map((event, index) => {
           const categoryEmojis = {
-            Festival: { color: 'bg-purple-500', emoji: '🎉' },
-            Holiday: { color: 'bg-green-500', emoji: '🌴' },
-            Exhibition: { color: 'bg-blue-500', emoji: '🖼️' },
-            Music: { color: 'bg-red-500', emoji: '🎶' },
-            Dance: { color: 'bg-pink-500', emoji: '💃' },
-            Workshop: { color: 'bg-yellow-500', emoji: '🛠️' },
+            Celebration: { color: '#F1573D', emoji: 'celebration' },
+            Exhibition: { color: '#5669FF', emoji: 'museum' },
+            Entertainment: { color: '#FFC300', emoji: 'stars' },
+            Social: { color: '#39C3F2', emoji: 'handshake' },
+            Community: { color: '#7ED321', emoji: 'groups' },
           };
 
           const category = event.category as keyof typeof categoryEmojis;
@@ -133,7 +110,7 @@ const Map = ({
                 latitude: event.coordinate.latitude,
                 longitude: event.coordinate.longitude,
               }}
-              title={event.title}
+              // title={event.title}
               onSelect={() => {
                 mapRef.current?.animateToRegion(
                   {
@@ -147,10 +124,8 @@ const Map = ({
                 onMarkerSelect(event);
               }}
             >
-              <View className={`rounded-full p-1 ${color}`}>
-                <View className="rounded-full p-1 bg-white">
-                  <Text className="text-white text-lg">{emoji}</Text>
-                </View>
+              <View className="rounded-full p-1 bg-white">
+                <MaterialIcons name={emoji as any} size={20} color={color} />
               </View>
             </Marker>
           );
@@ -158,11 +133,11 @@ const Map = ({
       </MapView>
 
       <TouchableOpacity 
-        className="absolute bottom-[2%] right-[4%] p-4 bg-white rounded-full"
+        className="absolute bottom-[40%] right-[4%] p-3 bg-white rounded-full"
         onPress={handleUserLocationPress}
       >
         <View className="pr-1 py-0.5">
-          <FontAwesome name="paper-plane" size={24} color="orange" />
+          <FontAwesome name="paper-plane" size={20} color="#39C3F2" />
         </View>
       </TouchableOpacity>
     </View>

@@ -7,7 +7,7 @@ import useLocationStore from '@/store/locationStore';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import { getUserCity } from '@/services/storage-service';
 
-const SearchBar = () => {
+const SearchBar = ({onPress}: {onPress: () => void}) => {
   const { setDestinationLocation, setUserLocation } = useLocationStore();
   const GOOGLE_API_KEY = Constants.expoConfig?.extra?.GOOGLE_API_KEY;
 
@@ -38,6 +38,7 @@ const SearchBar = () => {
 
             console.log("Destination:", destinationCity);
           }
+          onPress();
         }}
         onFail={error => console.error('Error:', error)}
         onNotFound={() => console.log('No results found')}
