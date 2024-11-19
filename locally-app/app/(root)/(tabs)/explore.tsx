@@ -1,4 +1,4 @@
-import { View, Keyboard, TouchableWithoutFeedback, ScrollView, Pressable, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import Map from '@/components/Map';
 import SearchBar from '@/components/SearchBar';
@@ -9,14 +9,12 @@ import { router } from 'expo-router';
 import useLocationStore from '@/store/locationStore';
 import * as Location from 'expo-location';
 import { useEventStore } from '@/store/event';
-import { useEventsByCity } from '@/services/tanstack-service';
-import { ref } from 'firebase/storage';
 import { fetchEventsByCity } from '@/services/firebase-service';
+import { setUserCity } from '@/services/storage-service';
 
 const Explore = () => {
   const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
-  const { setUserLocation } = useLocationStore();
-  const [city, setCity] = useState("")
+  const { setUserLocation, destinationCity, setDestinationLocation } = useLocationStore();
   const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
   const [isLoading, setIsLoading] = useState(false)
 
@@ -37,15 +35,26 @@ const Explore = () => {
       if (addressArray.length > 0) {
         const { name, city, region } = addressArray[0];
         const address = `${name}, ${region}`;
+        const userCity = city || ''
+        await setUserCity(userCity);
+
         setUserLocation(
           location.coords.latitude, 
           location.coords.longitude, 
           address,
-          city || 'Philadelphia'
+          userCity
         );
 
-        console.log("City:", city);
-        setCity(city || 'Philadelphia');
+        if (!destinationCity) {
+          setDestinationLocation(
+            location.coords.latitude, 
+            location.coords.longitude, 
+            address,
+            userCity
+          );
+        }
+
+        console.log("City:", userCity);
       }
     })();
   }, []);
@@ -53,21 +62,24 @@ const Explore = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       setIsLoading(true);
-      if (!city) return;
+      if (!destinationCity) {
+        setIsLoading(false);
+        return;
+      }
 
       try {
-        const eventsFromRemote = await fetchEventsByCity(city);
+        const eventsFromRemote = await fetchEventsByCity(destinationCity);
         setEvents(eventsFromRemote);
-        console.log("Fetched events:", events);
+        console.log("Fetched events for....:", destinationCity);
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.log("Error fetching events:", error);
         setIsLoading(false);
       } finally {
         setIsLoading(false);
       }
     };
     fetchEvents();
-  }, [city]);
+  }, [destinationCity]);
 
   const handleMarkerSelect = (event: Event) => {
     setCurrentSelectedEvent(event);
@@ -81,18 +93,16 @@ const Explore = () => {
           <View className="flex-1 justify-center items-center w-screen top-[350px]">
             <ActivityIndicator size={'large'} color="#003566" />
           </View>
-        ): (
+        ): events && (
           <Map
             events={events}
-            onMarkerSelect={handleMarkerSelect} 
+            onMarkerSelect={handleMarkerSelect}
           />
         )}
       </View>
 
       <View className="absolute top-[8%] left-5 right-5 z-10">
-        <SearchBar 
-          setSearchCity={(value) => setCity(value)}
-        />
+        <SearchBar />
         <ScrollView
           className='mt-6 left-5'
           horizontal  // Enables horizontal scrolling

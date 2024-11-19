@@ -1,43 +1,32 @@
 import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
-import React, {  useEffect, useState } from 'react'
+import React from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
-import { useEventsByCity } from '@/services/tanstack-service'
-import PrimaryButton from '@/components/PrimaryButton'
 import { useUserStore } from '@/store/user'
 import { Timestamp } from 'firebase/firestore'
 import { Event } from '@/types/type'
 import { useEventStore } from '@/store/event'
+import useLocationStore from '@/store/locationStore'
+import { images } from '@/constants'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
   const { events, setEvents } = useEventStore();
-
-  const [remote, setRemote] = useState(false)
-  const { data: eventList, isLoading, isError, error, isFetched, refetch } = useEventsByCity("Philadelphia", remote);
-
-  useEffect(() => {
-    if (isFetched && eventList) {
-      setEvents(eventList); 
-    }
-  }, [isFetched, eventList, setEvents]);
-
-  // const handleManualRefresh = async () => {
-  //   setRemote(true);
-  //   refetch();
-  //   setRemote(false);
-  // };
+  const { destinationCity } = useLocationStore();
 
   return (
     <SafeAreaView className='h-full w-full'>
       <ScrollView className="py-4">
-        <Header username={user?.username ?? "username"}/>
+        <Header 
+          username={user?.username ?? "username"}
+          destinationCity={destinationCity ?? "User City"}
+        />
         
         <CategoryFilter />
 
-        { eventList ? (
+        { events.length > 0 ? (
           <>
             <SeeAll 
               title="Upcoming Events"
@@ -47,7 +36,7 @@ const Metadata = () => {
               onSeeAllPress={() => router.push('./../event-list')}
             />
 
-            <EventHorizontalList events={eventList || []} />
+            <EventHorizontalList events={events || []} />
 
             <SeeAll 
               title="Recently Viewed"
@@ -58,8 +47,11 @@ const Metadata = () => {
             />
           </>
         ):(
-          <View className="flex-1 justify-center items-center w-screen h-[350px]">
-            <ActivityIndicator color="#003566" />
+          <View className="flex justify-center items-center w-full h-full">
+            <Image 
+              source={images.comingSoon}
+              className="w-80 h-80 mt-20"
+            />
           </View>
         )}
       </ScrollView>
@@ -70,7 +62,13 @@ const Metadata = () => {
 export default Metadata
 
 // Header component
-const Header = ({ username }: { username: string }) => {
+const Header = ({ 
+  username,
+  destinationCity, 
+}: { 
+  username: string
+  destinationCity: string 
+}) => {
   return (
     <View className="justify-between items-start flex-row mb-6 pl-6 pr-4">
       <View>
@@ -88,7 +86,7 @@ const Header = ({ username }: { username: string }) => {
             Current Location
           </Text>
           <Text className="text-lg font-medium text-primary-pBlue">
-            New York, US
+            {destinationCity}
           </Text>
         </View>
 

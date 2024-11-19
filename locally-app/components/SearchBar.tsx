@@ -4,12 +4,10 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import useLocationStore from '@/store/locationStore';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { getUserCity } from '@/services/storage-service';
 
-const SearchBar = ({ 
-  setSearchCity 
-}: { 
-  setSearchCity: (city: string) => void 
-}) => {
+const SearchBar = () => {
   const { setDestinationLocation, setUserLocation } = useLocationStore();
   const GOOGLE_API_KEY = Constants.expoConfig?.extra?.GOOGLE_API_KEY;
 
@@ -24,21 +22,21 @@ const SearchBar = ({
           language: 'en',
           components: 'country:us', // Restrict to US results
         }}
-        onPress={(data, details = null) => {
+        onPress={ async (data, details = null) => {
           if (details) {
-            const city = details.address_components.find((c) => 
+            const userCity = await getUserCity();
+            const destinationCity = details.address_components.find((c) => 
               c.types.includes('locality')
-            )?.long_name || ''
+            )?.long_name || userCity;
 
             setDestinationLocation(
               details.geometry.location.lat,
               details.geometry.location.lng,
               data.description,
-              city
+              destinationCity
             )
 
-            console.log("City:", city);
-            setSearchCity(city);
+            console.log("Destination:", destinationCity);
           }
         }}
         onFail={error => console.error('Error:', error)}
