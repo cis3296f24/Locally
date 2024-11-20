@@ -21,6 +21,7 @@ import painting from '@/assets/images/painting.jpg'
 import noImage from '@/assets/images/no-image.png'
 import noProfileImage from '@/assets/images/no-profile.png'
 import admitOne from '@/assets/images/admit-one.png'
+import comingSoon from '@/assets/images/coming-soon.png'
 
 export const icons = {
   calendar,
@@ -47,5 +48,6 @@ export const images = {
   painting,
   noImage,
   noProfileImage,
-  admitOne
+  admitOne,
+  comingSoon
 }

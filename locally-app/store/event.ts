@@ -8,4 +8,7 @@ export const useEventStore = create<EventStore>((set) => ({
   setEvents: (events: Event[]) => set({ events }),
   setSelectedEvent: (event: Event) => set({ selectedEvent: event }),
   clearSelectedEvent: () => set({ selectedEvent: null }),
+
+  category: "All",
+  setCategory: (category: string) => set({ category }),
 }));
