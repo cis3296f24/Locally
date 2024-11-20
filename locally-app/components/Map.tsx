@@ -97,16 +97,26 @@ const Map = ({
 
   // Animate to new region when destination changes
   useEffect(() => {
-    if (destinationLatitude && destinationLongitude && mapRef.current) {
-      const newRegion = {
-        latitude: destinationLatitude,
-        longitude: destinationLongitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      };
-      setCurrentRegion(newRegion); // Remember destination region
-      mapRef.current.animateToRegion(newRegion, 1000);
-    }
+    const updateRegion = async () => {
+      setIsLoading(true); // Start loading when region is being updated
+      if (destinationLatitude && destinationLongitude && mapRef.current) {
+        const newRegion = {
+          latitude: destinationLatitude,
+          longitude: destinationLongitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        };
+
+        mapRef.current.animateToRegion(newRegion, 1000); // Animate region change
+
+        // Once the region is changed, stop loading
+        setIsLoading(false); // Manually stop loading after the region update
+      } else {
+        setIsLoading(false); // If no destination, stop loading
+      }
+    };
+
+    updateRegion();
   }, [destinationLatitude, destinationLongitude]);
 
   const handleUserLocationPress = async () => {
@@ -119,12 +129,11 @@ const Map = ({
       longitudeDelta: 0.0421,
     };
 
+    setDestinationLocation(userLatitude, userLongitude, '', userCity || '');
+
     if (mapRef.current) {
       mapRef.current.animateToRegion(userRegion as Region, 1000);
     }
-
-    setDestinationLocation(userLatitude, userLongitude, '', userCity || '');
-    setCurrentRegion(userRegion as Region);
 
     onPress();
     setIsLoading(false);

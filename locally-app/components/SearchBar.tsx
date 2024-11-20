@@ -36,7 +36,7 @@ const SearchBar = ({onPress}: {onPress: () => void}) => {
               destinationCity
             )
             
-            console.log("Destination:", destinationCity);
+            console.log("Destination:", details.geometry.location.lat, details.geometry.location.lng, data.description);
           }
           onPress();
         }}

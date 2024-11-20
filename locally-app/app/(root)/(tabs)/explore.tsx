@@ -55,8 +55,6 @@ const Explore = () => {
             userCity
           );
         }
-
-        console.log("City:", userCity);
       }
     })();
   }, []);
