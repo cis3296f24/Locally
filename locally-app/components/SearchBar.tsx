@@ -35,7 +35,7 @@ const SearchBar = ({onPress}: {onPress: () => void}) => {
               data.description,
               destinationCity
             )
-
+            
             console.log("Destination:", destinationCity);
           }
           onPress();

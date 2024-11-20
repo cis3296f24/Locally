@@ -15,7 +15,7 @@ import { setUserCity } from '@/services/storage-service';
 const Explore = () => {
   const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
   const { setUserLocation, destinationCity, setDestinationLocation } = useLocationStore();
-  const { events, setEvents, setSelectedEvent, selectedEvent } = useEventStore();
+  const { events, setEvents, setSelectedEvent, selectedEvent, setFilter } = useEventStore();
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [eventsByCategory, setEventsByCategory] = useState<Event[]>()
@@ -61,30 +61,6 @@ const Explore = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setIsLoading(true);
-      if (!destinationCity) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const eventsFromRemote = await fetchEventsByCity(destinationCity);
-        setEvents(eventsFromRemote);
-        setEventsByCategory(eventsFromRemote);
-        console.log("All events:", eventsByCategory?.length);
-        console.log("Fetched events for....:", destinationCity);
-      } catch (error) {
-        console.log("Error fetching events:", error);
-        setIsLoading(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchEvents();
-  }, [destinationCity]);
-
   const handleMarkerSelect = (event: Event) => {
     setCurrentSelectedEvent(event);
     setSelectedEvent(event);
@@ -106,42 +82,10 @@ const Explore = () => {
 
   return (
     <View className="h-full w-full bg-transparent">
-      {/* <View className="z-0">
-        { isLoading ? (
-          <View className="flex-1 justify-center items-center w-screen top-[350px]">
-            <ActivityIndicator size={'large'} color="#003566" />
-          </View>
-        ): events && !isLoading && (
-          <Map
-            events={eventsByCategory as Event[]}
-            onMarkerSelect={handleMarkerSelect}
-            onPress={() => setCurrentSelectedEvent(null)}
-          />
-        )}
-      </View> */}
-      <View className="z-0 h-full w-full">
-        { !isLoading && eventsByCategory?.length > 0 ? (
-          <Map
-            events={eventsByCategory as Event[]}
-            onMarkerSelect={handleMarkerSelect}
-            onPress={() => setCurrentSelectedEvent(null)}
-          />
-        ) : (
-          <Map
-            events={[]}
-            onMarkerSelect={handleMarkerSelect}
-            onPress={() => setCurrentSelectedEvent(null)}
-          />
-        )
-      }
-      </View>
-
-      {/* Loading Indicator */}
-      {isLoading && (
-        <View className="absolute inset-0 flex-1 justify-center items-center bg-black/50">
-          <ActivityIndicator size="large" color="#FFFFFF" />
-        </View>
-      )}
+      <Map
+        onMarkerSelect={handleMarkerSelect}
+        onPress={() => setCurrentSelectedEvent(null)}
+      />
 
       <View className="absolute top-[8%] left-5 right-5 z-10">
         <SearchBar 
@@ -159,42 +103,42 @@ const Explore = () => {
               iconName='home'
               focusColor=''
               isSelected={selectedCategory === 'All'}
-              selecttedCategory={(value) => setSelectedCategory(value)} 
+              selecttedCategory={(value) => setFilter(value)} 
             />
             <CategoryCard 
               label="Community" 
               iconName='groups'
               focusColor='#7ED321'
               isSelected={selectedCategory === 'Community'}
-              selecttedCategory={(value) => setSelectedCategory(value)} 
+              selecttedCategory={(value) => setFilter(value)} 
             />
             <CategoryCard 
               label="Social" 
               iconName='handshake' 
               focusColor='#39C3F2'
               isSelected={selectedCategory === 'Social'}
-              selecttedCategory={(value) => setSelectedCategory(value)} 
+              selecttedCategory={(value) => setFilter(value)} 
             />
             <CategoryCard 
               label="Entertainment" 
               iconName='stars' 
               focusColor='#FFC300'
               isSelected={selectedCategory === 'Entertainment'}
-              selecttedCategory={(value) => setSelectedCategory(value)} 
+              selecttedCategory={(value) => setFilter(value)} 
             />
             <CategoryCard 
               label="Celebration" 
               iconName='celebration' 
               focusColor='#F1573D'
               isSelected={selectedCategory === 'Celebration'}
-              selecttedCategory={(value) => setSelectedCategory(value)} 
+              selecttedCategory={(value) => setFilter(value)} 
             />
             <CategoryCard 
               label="Exhibition" 
               iconName='museum' 
               focusColor='#5669FF'
               isSelected={selectedCategory === 'Exhibition'}
-              selecttedCategory={(value) => setSelectedCategory(value)} 
+              selecttedCategory={(value) => setFilter(value)} 
             />
           </View>
         </ScrollView>

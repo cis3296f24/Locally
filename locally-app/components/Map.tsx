@@ -1,20 +1,18 @@
 import { Event } from "@/types/type";
-import { SafeAreaView, StyleSheet, Text, Touchable, TouchableOpacity, View } from "react-native";
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import useLocationStore from '@/store/locationStore';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { getUserCity } from "@/services/storage-service";
+import { useEventStore } from "@/store/event";
+import { useFetch } from "@/lib/fetch";
+import { fetchEventsByCity } from "@/services/firebase-service";
 
 // map component
-const Map = ({ 
-  events,
-  // category,
-  onMarkerSelect,
+const Map = ({
+  onMarkerSelect, 
   onPress
 }: {
-  events: Event[];
-  // category: string;
   onMarkerSelect: (event: Event) => void;
   onPress: () => void;
 }) => {
@@ -23,13 +21,60 @@ const Map = ({
     userLatitude,
     userLongitude,
     userCity,
+    destinationCity,
     destinationLatitude,
     destinationLongitude,
     setDestinationLocation,
   } = useLocationStore();
 
+  const {
+    events,
+    setEvents,
+    filter
+  } = useEventStore();
+
+  const { data: fetchedEvents, refetch } = useFetch(
+    () => fetchEventsByCity(destinationCity || userCity || ''), 
+    [destinationCity],
+  );
+  const [eventList, setEventList] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentRegion, setCurrentRegion] = useState<Region | null>(null);
+
+  useEffect(() => {
+    if (fetchedEvents) {
+      setEventList(fetchedEvents);
+      setEvents(fetchedEvents);
+    } 
+  }, [fetchedEvents]);
+
+  useEffect(() => {
+    const filterEvents = async () => {
+      setIsLoading(true);
+      try {
+        if (events) {
+          const filteredEvents = await new Promise<Event[]>((resolve) => {
+            setTimeout(() => {
+              resolve(events.filter(
+                (event) => filter === "All" || event.category === filter
+              ));
+            }, 0);
+          });
+          setEventList(filteredEvents);
+        }
+      } catch (error) {
+        console.error("Error filtering events:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    filterEvents();
+  }, [filter]);
+
   // Calculate the region based on the destination or user location
-  const region = destinationLatitude && destinationLongitude
+  const initialRegion =
+    currentRegion || (destinationLatitude && destinationLongitude
     ? { //Destination
       latitude: destinationLatitude,
       longitude: destinationLongitude,
@@ -48,89 +93,106 @@ const Map = ({
         longitude: -75.1652,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      };
+      });
 
   // Animate to new region when destination changes
   useEffect(() => {
     if (destinationLatitude && destinationLongitude && mapRef.current) {
-      mapRef.current.animateToRegion({
+      const newRegion = {
         latitude: destinationLatitude,
         longitude: destinationLongitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      }, 1000); // 1000ms animation duration
+      };
+      setCurrentRegion(newRegion); // Remember destination region
+      mapRef.current.animateToRegion(newRegion, 1000);
     }
   }, [destinationLatitude, destinationLongitude]);
 
-  const handleUserLocationPress = () => {
-    setDestinationLocation(userLatitude, userLongitude, '', userCity || '');
-    if (userLatitude && userLongitude && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: userLatitude,
-          longitude: userLongitude,
-          latitudeDelta: 0.0922, // Default zoom
-          longitudeDelta: 0.0421,
-        },
-        1000 // Animation duration
-      );
-      // setUserCity( userCity || '' )
+  const handleUserLocationPress = async () => {
+    setIsLoading(true);
+
+    const userRegion = {
+      latitude: userLatitude,
+      longitude: userLongitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    };
+
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(userRegion as Region, 1000);
     }
-    console.log("User City:", userCity);
+
+    setDestinationLocation(userLatitude, userLongitude, '', userCity || '');
+    setCurrentRegion(userRegion as Region);
+
     onPress();
+    setIsLoading(false);
+  };
+
+  const handleRegionChangeComplete = (region: Region) => {
+    setCurrentRegion(region); // Remember region as the user interacts
   };
 
   return (
     <View style={styles.map}>
-      <MapView
-        ref={mapRef}
-        provider={PROVIDER_DEFAULT}
-        style={styles.map}
-        mapType="standard"
-        initialRegion={region}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-      >
-        {events?.map((event, index) => {
-          const categoryEmojis = {
-            Celebration: { color: '#F1573D', emoji: 'celebration' },
-            Exhibition: { color: '#5669FF', emoji: 'museum' },
-            Entertainment: { color: '#FFC300', emoji: 'stars' },
-            Social: { color: '#39C3F2', emoji: 'handshake' },
-            Community: { color: '#7ED321', emoji: 'groups' },
-          };
+      {isLoading ? ( 
+        <View className="flex-1 justify-center items-center w-screen h-[350px]">
+          <ActivityIndicator color="#003566" size="large" />
+        </View>
+      ) : (
+        <MapView
+          ref={mapRef}
+          provider={PROVIDER_DEFAULT}
+          style={styles.map}
+          mapType="standard"
+          initialRegion={initialRegion}
+          region={currentRegion || initialRegion}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
+          onRegionChangeComplete={handleRegionChangeComplete}
+        >
+          {eventList.map((event, index) => {
+            const categoryEmojis = {
+              Celebration: { color: '#F1573D', emoji: 'celebration' },
+              Exhibition: { color: '#5669FF', emoji: 'museum' },
+              Entertainment: { color: '#FFC300', emoji: 'stars' },
+              Social: { color: '#39C3F2', emoji: 'handshake' },
+              Community: { color: '#7ED321', emoji: 'groups' },
+            };
 
-          const category = event.category as keyof typeof categoryEmojis;
-          const { color, emoji } = categoryEmojis[category];
+            const category = event.category as keyof typeof categoryEmojis;
+            const { color, emoji } = categoryEmojis[category];
 
-          return (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: event.coordinate.latitude,
-                longitude: event.coordinate.longitude,
-              }}
-              // title={event.title}
-              onSelect={() => {
-                mapRef.current?.animateToRegion(
-                  {
-                    latitude: event.coordinate.latitude,
-                    longitude: event.coordinate.longitude,
-                    latitudeDelta: 0.03,
-                    longitudeDelta: 0.03,
-                  },
-                  1000 // animation duration
-                );
-                onMarkerSelect(event);
-              }}
-            >
-              <View className="rounded-full p-1 bg-white">
-                <MaterialIcons name={emoji as any} size={20} color={color} />
-              </View>
-            </Marker>
-          );
-        })}
-      </MapView>
+            return (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: event.coordinate.latitude,
+                  longitude: event.coordinate.longitude,
+                }}
+                // title={event.title}
+                onSelect={() => {
+                  mapRef.current?.animateToRegion(
+                    {
+                      latitude: event.coordinate.latitude,
+                      longitude: event.coordinate.longitude,
+                      latitudeDelta: 0.03,
+                      longitudeDelta: 0.03,
+                    },
+                    1000 // animation duration
+                  );
+                  onMarkerSelect(event);
+                }}
+              >
+                <View className="rounded-full p-1 bg-white">
+                  <MaterialIcons name={emoji as any} size={20} color={color} />
+                </View>
+              </Marker>
+            );
+          })}
+        </MapView>
+      )}
 
       <TouchableOpacity 
         className="absolute bottom-[40%] right-[4%] p-3 bg-white rounded-full"

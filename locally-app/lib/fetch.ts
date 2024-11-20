@@ -13,7 +13,7 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
   }
 };
 
-export const useFetch = <T>(url: string, options?: RequestInit) => {
+export const useFetch = <T>(fetchFunction: () => Promise<T>, dependencies: any[] = []) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,14 +23,14 @@ export const useFetch = <T>(url: string, options?: RequestInit) => {
     setError(null);
 
     try {
-      const result = await fetchAPI(url, options);
-      setData(result.data);
+      const result = await fetchFunction();
+      setData(result);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [url, options]);
+  }, dependencies); // Dependencies determine when to refetch
 
   useEffect(() => {
     fetchData();
