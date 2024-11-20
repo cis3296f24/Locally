@@ -8,7 +8,6 @@ import { useEventStore } from "@/store/event";
 import { useFetch } from "@/lib/fetch";
 import { fetchEventsByCity } from "@/services/firebase-service";
 
-// map component
 const Map = ({
   onMarkerSelect, 
   onPress
@@ -30,7 +29,7 @@ const Map = ({
   const {
     events,
     setEvents,
-    filter
+    category
   } = useEventStore();
 
   const { data: fetchedEvents, refetch } = useFetch(
@@ -56,7 +55,7 @@ const Map = ({
           const filteredEvents = await new Promise<Event[]>((resolve) => {
             setTimeout(() => {
               resolve(events.filter(
-                (event) => filter === "All" || event.category === filter
+                (event) => category === "All" || event.category === category
               ));
             }, 0);
           });
@@ -70,7 +69,7 @@ const Map = ({
     };
 
     filterEvents();
-  }, [filter]);
+  }, [category]);
 
   // Calculate the region based on the destination or user location
   const initialRegion =
@@ -180,7 +179,6 @@ const Map = ({
                   latitude: event.coordinate.latitude,
                   longitude: event.coordinate.longitude,
                 }}
-                // title={event.title}
                 onSelect={() => {
                   mapRef.current?.animateToRegion(
                     {

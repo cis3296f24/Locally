@@ -21,8 +21,8 @@ interface EventStore {
   setSelectedEvent: (event: Event) => void;   
   clearSelectedEvent: () => void; 
   
-  filter: string;
-  setFilter: (filter: string) => void;
+  category: string;
+  setCategory: (category: string) => void;
 }
 
 interface LocationStore {
