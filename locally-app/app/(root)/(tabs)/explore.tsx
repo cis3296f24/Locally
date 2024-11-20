@@ -65,11 +65,18 @@ const Explore = () => {
     setCategory('All');
   }
 
+  const handleMapPress = () => {
+    setCurrentSelectedEvent(null);
+    if (userCity !== destinationCity) {
+      setCategory('All');
+    }
+  }
+
   return (
     <View className="h-full w-full bg-transparent">
       <Map
         onMarkerSelect={handleMarkerSelect}
-        onPress={() => setCurrentSelectedEvent(null)}
+        onPress={handleMapPress}
       />
 
       <View className="absolute top-[8%] left-5 right-5 z-10">
