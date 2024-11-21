@@ -1,98 +1,61 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Message {
-  id: string;
-  text: string;
-  timestamp: string;
-  sender: 'user' | 'other';
-  senderAvatar?: any;
-}
+import { fetchMessagesByConversationId } from '@/services/firebase-service';
+import { Message } from '@/types/type';
+import { images } from '@/constants';
 
 interface ChatProps {
   isVisible: boolean;
   onClose: () => void;
   eventTitle: string;
   eventDate: string;
+  curretUserId?: string;
+  conversationId?: string;
 }
 
 const Chat: React.FC<ChatProps> = ({
   isVisible,
   onClose,
   eventTitle,
-  eventDate
+  eventDate,
+  curretUserId,
+  conversationId
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    setMessages([
-      {
-        id: '1',
-        text: 'Hi, I wonder about the parking situation there?',
-        timestamp: '12:05 PM',
-        sender: 'user'
-      },
-      {
-        id: '2',
-        text: 'There is street parking around',
-        timestamp: '12:15 PM',
-        sender: 'other',
-        senderAvatar: require('@/assets/images/woman1.png')
-      },
-      {
-        id: '3',
-        text: 'Alright! Thank you.',
-        timestamp: '12:20 PM',
-        sender: 'user'
-      },
-      {
-        id: '4',
-        text: "How's it going there? Is it lit?👌",
-        timestamp: '07:15 PM',
-        sender: 'user'
-      },
-      {
-        id: '5',
-        text: 'A lot of people here. Pretty fun!',
-        timestamp: '07:16 PM',
-        sender: 'other',
-        senderAvatar: require('@/assets/images/woman2.jpg')
-      },
-      {
-        id: '6',
-        text: 'Yeah. Come join us.',
-        timestamp: '07:20 PM',
-        sender: 'other',
-        senderAvatar: require('@/assets/images/woman1.png')
-      },
-      {
-        id: '7',
-        text: 'Alright! See you there.',
-        timestamp: '07:25 PM',
-        sender: 'user'
+    const fetchMessages = async () => {
+      if (!conversationId) {
+        setMessages([]);
+      } else {
+        const texts = await fetchMessagesByConversationId(conversationId);
+        setMessages(texts as Message[]);
       }
-    ]);
+    }
+
+    fetchMessages();
   }, []);
+  
 
   const sendMessage = () => {
-    if (inputText.trim()) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: inputText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sender: 'user'
-      };
+    // if (inputText.trim()) {
+    //   const newMessage: Message = {
+    //     id: Date.now().toString(),
+    //     text: inputText,
+    //     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    //     sender: 'user'
+    //   };
 
-      setMessages([...messages, newMessage]);
-      setInputText('');
+    //   setMessages([...messages, newMessage]);
+    //   setInputText('');
 
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
+    //   setTimeout(() => {
+    //     scrollViewRef.current?.scrollToEnd({ animated: true });
+    //   }, 100);
+    // }
   };
 
   return (
@@ -132,13 +95,13 @@ const Chat: React.FC<ChatProps> = ({
                   key={message.id}
                   style={{
                     flexDirection: 'row',
-                    justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                    justifyContent: message.senderId === curretUserId ? 'flex-end' : 'flex-start',
                     marginBottom: 16,
                   }}
                 >
-                  {message.sender === 'other' && message.senderAvatar && (
+                  {message.senderId !== curretUserId && message.sender && (
                     <Image
-                      source={message.senderAvatar}
+                      source={message.sender.profileImage ? { uri: message.sender.profileImage } : images.noProfileImage}
                       style={{
                         width: 28,
                         height: 28,
@@ -149,24 +112,24 @@ const Chat: React.FC<ChatProps> = ({
                   )}
                   <View
                     style={{
-                      backgroundColor: message.sender === 'user' ? '#d2ecf5' : '#fff1bf',
+                      backgroundColor: message.senderId === curretUserId ? '#d2ecf5' : '#fff1bf',
                       padding: 12,
                       borderRadius: 20,
                       maxWidth: '70%',
                     }}
                   >
                     <Text style={{
-                      color: message.sender === 'user' ? 'black' : 'black',
+                      color: message.senderId !== curretUserId ? 'black' : 'black',
                       fontSize: 15,
                     }}>
                       {message.text}
                     </Text>
                     <Text style={{
                       fontSize: 11,
-                      color: message.sender === 'user' ? '#666' : '#666',
+                      color: message.senderId !== curretUserId ? '#666' : '#666',
                       marginTop: 4,
                     }}>
-                      {message.timestamp}
+                      {"Today"}
                     </Text>
                   </View>
                 </View>

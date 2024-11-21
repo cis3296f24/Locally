@@ -178,6 +178,8 @@ const ChatScreen: React.FC = () => {
           onClose={closeChat}
           eventTitle={selectedConversation.recipient?.fullName || ''}
           eventDate="Today"
+          curretUserId={user?.id || ''}
+          conversationId={selectedConversation.id}
         />
       )}
     </SafeAreaView>

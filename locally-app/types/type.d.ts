@@ -109,7 +109,6 @@ interface Message {
   senderId: string;
   recipientId: string;
   sender?: User;
-  recipient?: User;
 }
 
 interface Conversation {

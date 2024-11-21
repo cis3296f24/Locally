@@ -365,3 +365,28 @@ export const fetchConversations = async (currentUserId: string) => {
     throw error;
   }
 };
+
+export const fetchMessagesByConversationId = async (conversationId: string) => {
+  try {
+    const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
+    const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+    const querySnapshot = await getDocs(messagesQuery);
+
+    const messages = querySnapshot.docs.map(async (doc) => {
+      const messageData = doc.data();
+      const sender = await fetchUserProfile(messageData.senderId);
+
+      return {
+        id: doc.id,
+        sender: sender,
+        ...messageData, 
+      };
+    });
+
+    return messages;
+  } catch (error) {
+    console.log("Error fetching messages:", error);
+    throw error;
+  }
+};
