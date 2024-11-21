@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchMessagesByConversationId, sendMessage } from '@/services/firebase-service';
+import { fetchEventBasedMessages, fetchMessagesByConversationId, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
 import { Message } from '@/types/type';
 import { images } from '@/constants';
 import UserProfileImage from './UserProfileImage';
@@ -14,6 +14,7 @@ interface ChatProps {
   curretUserId?: string;
   recipientId?: string;
   conversationId?: string;
+  eventId?: string;
   isVisible: boolean;
   onClose: () => void;
 }
@@ -25,6 +26,7 @@ const Chat: React.FC<ChatProps> = ({
   curretUserId,
   recipientId,
   conversationId,
+  eventId,
   isVisible,
   onClose,
 }) => {
@@ -45,6 +47,18 @@ const Chat: React.FC<ChatProps> = ({
     };
   }, [conversation]); 
 
+  useEffect(() => {
+    if (!eventId) return;
+    
+    let unsubscribe = fetchEventBasedMessages(eventId, (messages) => {
+      setMessages(messages);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [eventId]);
+
   const handleSendMessage = async () => {
     if (inputText && curretUserId && recipientId && conversation) {
       const newId = await sendMessage(curretUserId, recipientId, conversation, inputText);
@@ -55,10 +69,17 @@ const Chat: React.FC<ChatProps> = ({
         setIsNewConversation(false);
       }
     }
+
+    if (eventId && inputText && curretUserId) {
+      sendMessageToEvent(curretUserId, eventId, inputText);
+      setInputText('');
+    }
+
     console.log('Send Message');
     console.log('inputText', inputText);
     console.log('curretUserId', curretUserId);
     console.log('recipientId', recipientId);
+    console.log('eventId', eventId);
     console.log('conversationId', conversation);
   };
 
@@ -80,7 +101,9 @@ const Chat: React.FC<ChatProps> = ({
                 />
                 <View className="ml-3">
                   { date && <Text className="text-[#ff6720] text-sm">{date}</Text> }
-                  <Text className="text-base font-semibold">{title}</Text>
+                  <Text className="text-base font-semibold">
+                    {title}
+                  </Text>
                 </View>
               </View>
 
@@ -99,10 +122,8 @@ const Chat: React.FC<ChatProps> = ({
             <MessageList 
               messages={messages} 
               currentUserId={curretUserId || ''} 
-              image={image}
             />
          
-          
             {/* Input Area */}
             <View>
               <View className="flex-row p-3 mb-4 bg-white border-t border-gray-200 items-center">
@@ -138,11 +159,9 @@ export default Chat;
 const MessageList = ({ 
   messages, 
   currentUserId, 
-  image 
 } : {
   messages: Message[];
   currentUserId: string;
-  image?: string;
 }) => {
   const flatListRef = useRef<FlatList>(null);
 
@@ -155,14 +174,14 @@ const MessageList = ({
     >
       {message.senderId !== currentUserId && message.sender && (
         <UserProfileImage 
-          image={image} 
-          imageStyle="w-8 h-8 mr-2" 
+          image={message.sender.profileImage} 
+          imageStyle="w-8 h-8 mx-3" 
         />
       )}
       <View
         className={`px-4 py-3 rounded-3xl max-w-[70%] ${
           message.senderId === currentUserId
-            ? 'bg-[#d2ecf5] rounded-br-none'
+            ? 'bg-[#d2ecf5] rounded-br-none mr-2'
             : 'bg-[#fff1bf] rounded-tl-none'
         }`}
       >

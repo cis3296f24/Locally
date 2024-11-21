@@ -95,9 +95,10 @@ const ChatScreen = () => {
           renderItem={({ item }) => (
             <UserProfileImage
               image={item.profileImage}
-              name={item.fullName}
+              name={item.fullName.split(' ')[0]}
               isOnline={true}
               onPress={() => handleUserPress(item)}
+              buttonStyle='mr-8'
               textStyle='text-sm mt-2 font-semibold' 
             />
           )}
@@ -108,7 +109,7 @@ const ChatScreen = () => {
       {/* Conversations List */}
       <FlatList
         data={conversations}
-        className="flex-1 px-8"
+        className="flex-1 px-7"
         renderItem={({ item, index }) => (
           <>
             <View className="h-[1px] bg-gray-200" />

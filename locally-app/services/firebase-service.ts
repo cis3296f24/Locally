@@ -429,3 +429,66 @@ export const fetchMessagesByConversationId = (
 
   return unsubscribe; // Call this to stop listening
 };
+
+export const sendMessageToEvent = async (
+  senderId: string,
+  eventId: string, 
+  messageText: string
+) => {
+  try {
+    const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
+    
+    const message: Message = {
+      id: '', 
+      text: messageText,
+      timestamp: Timestamp.now(),
+      senderId: senderId,
+      recipientId: eventId, 
+    };
+
+    await addDoc(messagesRef, message);
+  } catch (error) {
+    console.error("Error sending message to event:", error);
+    throw error;
+  }
+};
+
+export const fetchEventBasedMessages = (
+  eventId: string,
+  onMessagesUpdated: (messages: Message[]) => void
+) => {
+  const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
+
+  const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const unsubscribe = onSnapshot(
+    messagesQuery,
+    async (querySnapshot) => {
+      const messagesWithSenders = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const messageData = doc.data();
+
+          const message = {
+            id: doc.id,
+            ...messageData,
+          } as Message;
+
+          try {
+            message.sender = await fetchUserProfile(messageData.senderId);
+          } catch (error) {
+            console.error(`Error fetching sender for message ${message.id}:`, error);
+          }
+
+          return message;
+        })
+      );
+
+      onMessagesUpdated(messagesWithSenders); // Pass the updated messages to the callback
+    },
+    (error) => {
+      console.error("Error listening to event messages:", error);
+    }
+  );
+
+  return unsubscribe;
+};
