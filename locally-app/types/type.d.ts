@@ -102,6 +102,25 @@ interface Location {
   address: string;
 }
 
+interface Message {
+  id: string;
+  text: string;
+  timestamp: Timestamp;
+  senderId: string;
+  recipientId: string;
+  sender?: User;
+}
+
+interface Conversation {
+  id: string;
+  lastMessage: string;
+  lastMessageTimestamp: Timestamp;
+  isRead?: boolean;
+  recipient?: User; 
+  participants: string[];
+  // messages: Message[];
+}
+
 export type {
   User,
   CategoryCardProps,
@@ -111,4 +130,6 @@ export type {
   Ticket,
   TicketStore,
   Location,
+  Message,
+  Conversation,
 }

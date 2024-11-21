@@ -1,219 +1,190 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Message {
-  id: string;
-  text: string;
-  timestamp: string;
-  sender: 'user' | 'other';
-  senderAvatar?: any;
-}
+import { fetchMessagesByConversationId, sendMessage } from '@/services/firebase-service';
+import { Message } from '@/types/type';
+import { images } from '@/constants';
+import UserProfileImage from './UserProfileImage';
+import { formatFirestoreTimestamp } from '@/utils/util';
 
 interface ChatProps {
+  title: string;
+  image?: string;
+  date?: string;
+  curretUserId?: string;
+  recipientId?: string;
+  conversationId?: string;
   isVisible: boolean;
   onClose: () => void;
-  eventTitle: string;
-  eventDate: string;
 }
 
 const Chat: React.FC<ChatProps> = ({
+  title,
+  image,
+  date,
+  curretUserId,
+  recipientId,
+  conversationId,
   isVisible,
   onClose,
-  eventTitle,
-  eventDate
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [conversation, setConversation] = useState(conversationId ? conversationId : 'none');
+  const [isNewConversation, setIsNewConversation] = useState(conversationId ? false : true);
 
   useEffect(() => {
-    setMessages([
-      {
-        id: '1',
-        text: 'Hi, I wonder about the parking situation there?',
-        timestamp: '12:05 PM',
-        sender: 'user'
-      },
-      {
-        id: '2',
-        text: 'There is street parking around',
-        timestamp: '12:15 PM',
-        sender: 'other',
-        senderAvatar: require('@/assets/images/woman1.png')
-      },
-      {
-        id: '3',
-        text: 'Alright! Thank you.',
-        timestamp: '12:20 PM',
-        sender: 'user'
-      },
-      {
-        id: '4',
-        text: "How's it going there? Is it lit?👌",
-        timestamp: '07:15 PM',
-        sender: 'user'
-      },
-      {
-        id: '5',
-        text: 'A lot of people here. Pretty fun!',
-        timestamp: '07:16 PM',
-        sender: 'other',
-        senderAvatar: require('@/assets/images/woman2.jpg')
-      },
-      {
-        id: '6',
-        text: 'Yeah. Come join us.',
-        timestamp: '07:20 PM',
-        sender: 'other',
-        senderAvatar: require('@/assets/images/woman1.png')
-      },
-      {
-        id: '7',
-        text: 'Alright! See you there.',
-        timestamp: '07:25 PM',
-        sender: 'user'
-      }
-    ]);
-  }, []);
+    if (!conversation) return;
+    
+    let unsubscribe = fetchMessagesByConversationId(conversation, (messages) => {
+      setMessages(messages);
+    });
 
-  const sendMessage = () => {
-    if (inputText.trim()) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: inputText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sender: 'user'
-      };
-      
-      setMessages([...messages, newMessage]);
+    return () => {
+      unsubscribe();
+    };
+  }, [conversation]); 
+
+  const handleSendMessage = async () => {
+    if (inputText && curretUserId && recipientId && conversation) {
+      const newId = await sendMessage(curretUserId, recipientId, conversation, inputText);
       setInputText('');
-      
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+
+      if (isNewConversation) {
+        setConversation(newId);
+        setIsNewConversation(false);
+      }
     }
+    console.log('Send Message');
+    console.log('inputText', inputText);
+    console.log('curretUserId', curretUserId);
+    console.log('recipientId', recipientId);
+    console.log('conversationId', conversation);
   };
 
   return (
     <Modal
       visible={isVisible}
+      transparent={true}
       animationType="slide"
-      presentationStyle="formSheet"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: 'white' }}
-      >
-        {/*Header*/}
-        <View style={{ 
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 16,
-          backgroundColor: 'white',
-          borderBottomWidth: 1,
-          borderBottomColor: '#E5E5E5'
-        }}>
-          <TouchableOpacity onPress={onClose} style={{ padding: 8 }}>
-            <Ionicons name="close" size={24} color="black" />
-          </TouchableOpacity>
-          <View style={{ marginLeft: 12, flex: 1 }}>
-            <Text style={{ fontSize: 13, color: '#ff6720' }}>{eventDate}</Text>
-            <Text style={{ fontSize: 16, fontWeight: '600' }}>{eventTitle}</Text>
-          </View>
-          <TouchableOpacity>
-            <Ionicons name="bookmark-outline" size={24} color="#083664" />
-          </TouchableOpacity>
-        </View>
-
-        {/*Chat Msg*/}
-        <ScrollView
-          ref={scrollViewRef}
-          style={{ flex: 1, backgroundColor: 'white', padding: 16 }}
-          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-        >
-          {messages.map((message) => (
-            <View
-              key={message.id}
-              style={{
-                flexDirection: 'row',
-                justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
-                marginBottom: 16,
-              }}
-            >
-              {message.sender === 'other' && message.senderAvatar && (
-                <Image
-                  source={message.senderAvatar}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 14,
-                    marginRight: 8,
-                  }}
+      <View className="flex-1 bg-black/50">
+        <View className="bg-white h-[85%] mt-auto rounded-t-3xl">
+            {/*Header*/}
+            <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
+              <View className='flex-row items-center'>
+                <UserProfileImage
+                  image={image}
+                  imageStyle="w-12 h-12"
+                  buttonStyle='mr-0'
                 />
-              )}
-              <View
-                style={{
-                  backgroundColor: message.sender === 'user' ? '#d2ecf5' : '#fff1bf',
-                  padding: 12,
-                  borderRadius: 20,
-                  maxWidth: '70%',
-                }}
-              >
-                <Text style={{ 
-                  color: message.sender === 'user' ? 'black' : 'black',
-                  fontSize: 15,
-                }}>
-                  {message.text}
-                </Text>
-                <Text style={{
-                  fontSize: 11,
-                  color: message.sender === 'user' ? '#666' : '#666',
-                  marginTop: 4,
-                }}>
-                  {message.timestamp}
-                </Text>
+                <View className="ml-3">
+                  { date && <Text className="text-[#ff6720] text-sm">{date}</Text> }
+                  <Text className="text-base font-semibold">{title}</Text>
+                </View>
+              </View>
+
+              <View>
+                <TouchableOpacity onPress={onClose} className="p-2">
+                  <Ionicons name="close" size={24} color="black" />
+                </TouchableOpacity>
               </View>
             </View>
-          ))}
-        </ScrollView>
 
-        {/* Input Area */}
-        <View style={{
-          flexDirection: 'row',
-          padding: 12,
-          backgroundColor: 'white',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E5E5',
-          alignItems: 'center',
-        }}>
-          <TouchableOpacity style={{ marginHorizontal: 8 }}>
-            <Ionicons name="add-circle-outline" size={24} color="#2196F3" />
-          </TouchableOpacity>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            className="flex-1"
+            keyboardVerticalOffset={130} 
+          >
+            <MessageList 
+              messages={messages} 
+              currentUserId={curretUserId || ''} 
+              image={image}
+            />
+         
           
-          <TextInput
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type Message"
-            style={{
-              flex: 1,
-              backgroundColor: '#F8F8F8',
-              borderRadius: 20,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              marginHorizontal: 8,
-              fontSize: 15,
-            }}
-            onSubmitEditing={sendMessage}
-          />
-          
-          <TouchableOpacity style={{ marginHorizontal: 8 }}>
-            <Ionicons name="mic-outline" size={24} color="#2196F3" />
-          </TouchableOpacity>
+            {/* Input Area */}
+            <View>
+              <View className="flex-row p-3 mb-4 bg-white border-t border-gray-200 items-center">
+
+                <TouchableOpacity style={{ marginHorizontal: 8 }}>
+                  <Ionicons name="add-circle-outline" size={27} color="#2196F3" />
+                </TouchableOpacity>
+
+                <TextInput
+                  value={inputText}
+                  onChangeText={setInputText}
+                  placeholder="Type Message"
+                  className='flex-1 bg-[#F8F8F8] rounded-3xl px-6 py-4 text-primary-pBlue'
+                />
+
+                <TouchableOpacity
+                  className='p-2'
+                  onPress={handleSendMessage}
+                >
+                  <Ionicons name="paper-plane-outline" size={27} color="#2196F3" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
 
 export default Chat;
+
+const MessageList = ({ 
+  messages, 
+  currentUserId, 
+  image 
+} : {
+  messages: Message[];
+  currentUserId: string;
+  image?: string;
+}) => {
+  const flatListRef = useRef<FlatList>(null);
+
+  const renderItem = ({ item: message }: { item: Message }) => (
+    <View
+      className={`flex-row ${message.senderId === currentUserId 
+        ? 'justify-end' 
+        : 'justify-start'} 
+        mt-6 mx-2`}
+    >
+      {message.senderId !== currentUserId && message.sender && (
+        <UserProfileImage 
+          image={image} 
+          imageStyle="w-8 h-8 mr-2" 
+        />
+      )}
+      <View
+        className={`px-4 py-3 rounded-3xl max-w-[70%] ${
+          message.senderId === currentUserId
+            ? 'bg-[#d2ecf5] rounded-br-none'
+            : 'bg-[#fff1bf] rounded-tl-none'
+        }`}
+      >
+        <Text className="text-md">
+          {message.text}
+        </Text>
+        <Text className="text-xs text-[#666] mt-1">
+          {formatFirestoreTimestamp(message.timestamp)}
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <FlatList
+      data={messages}
+      ref={flatListRef}
+      keyExtractor={(item, index) => index.toString()}
+      renderItem={renderItem}
+      onContentSizeChange={() => {
+        flatListRef?.current?.scrollToEnd({ animated: true });
+      }}
+    />
+  );
+};

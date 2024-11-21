@@ -6,7 +6,7 @@ import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton';
 import { router } from 'expo-router';
 import { useEventStore } from '@/store/event';
-import { formatAddress, formatEventDate, formatEventDateAndTime } from '@/utils/util';
+import { formatAddress, formatDate, formatEventDate, formatEventDateAndTime } from '@/utils/util';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
@@ -242,8 +242,9 @@ const EventDetailsScreen = () => {
             <Chat
                 isVisible={isChatVisible}
                 onClose={() => setIsChatVisible(false)}
-                eventTitle="Candlelight Fine Dining"
-                eventDate="01 November, 2024"
+                eventTitle={selectedEvent?.title || ''}
+                eventDate={formatDate(selectedEvent?.dateStart)}
+                image={selectedEvent?.coverImage}
             />   
         </View>
     )

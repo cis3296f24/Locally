@@ -70,7 +70,7 @@ const Header = ({
   destinationCity: string 
 }) => {
   return (
-    <View className="justify-between items-start flex-row mb-6 pl-6 pr-4">
+    <View className="justify-between items-start flex-row mb-6 pl-8 pr-4">
       <View>
         <Text className="text-md text-gray-400">
           Go Exploring,
