@@ -230,21 +230,17 @@ export const fetchTicketsByUser = async (userId: string) => {
 
 const getConversationId = async (
   userId_1: string, 
-  userId_2: string
-): Promise<string> => {
+  userId_2: string,
+  conversationId: string
+) => {
   try {
     const conversationRef = collection(Firebase_Firestore, 'conversations')
 
-    const conversationQuery = query(
-      conversationRef,
-      where('participants', 'array-contains', userId_1),
-      where('participants', 'array-contains', userId_2)
-    );
+    const conversationDocRef = doc(conversationRef, conversationId);
+    const docSnapshot = await getDoc(conversationDocRef);
 
-    const querySnapshot = await getDocs(conversationQuery);
-
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].id;
+    if (docSnapshot.exists()) {
+      return docSnapshot.id;
     }
 
     const newConversationRef = await addDoc(conversationRef, {
@@ -284,7 +280,7 @@ const updateConversation = async (conversationId: string, lastMessage: string) =
     const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId); 
     await updateDoc(conversationRef, {
       lastMessage: lastMessage,
-      timestamp: Timestamp.now(),
+      lastMessageTimestamp: Timestamp.now(),
     });
   } catch (error) {
     console.log("Error updating conversation:", error);
@@ -311,13 +307,14 @@ const updateUserConversationStatus = async (
 
 export const sendMessage = async (
   senderId: string, 
-  recipientId: string, 
+  recipientId: string,
+  conversationId: string, 
   messageText: string
-): Promise<void> => {
+) => {
   try {
-    const conversationId = await getConversationId(senderId, recipientId);
+    const currentConversationId = await getConversationId(senderId, recipientId, conversationId);
 
-    const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
+    const messagesRef = collection(Firebase_Firestore, 'conversations', currentConversationId, 'messages');
 
     const message: Message = {
       id: messagesRef.id,
@@ -328,9 +325,9 @@ export const sendMessage = async (
     };
     await addDoc(messagesRef, message);
 
-    await updateConversation(conversationId, messageText);
-    await updateUserConversationStatus(recipientId, conversationId, false);
-    await updateUserConversationStatus(senderId, conversationId, true);
+    await updateConversation(currentConversationId, messageText);
+    await updateUserConversationStatus(recipientId, currentConversationId, false);
+    await updateUserConversationStatus(senderId, currentConversationId, true);
 
   } catch (error) {
     console.log("Error sending message:", error);

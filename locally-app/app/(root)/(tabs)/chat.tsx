@@ -123,6 +123,8 @@ const ChatScreen: React.FC = () => {
           eventTitle={selectedConversation.recipient?.fullName || ''}
           curretUserId={user?.id || ''}
           conversationId={selectedConversation.id}
+          image={selectedConversation.recipient?.profileImage}
+          recipientId={selectedConversation.recipient?.id || ''}
         />
       )}
 
