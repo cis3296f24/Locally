@@ -116,7 +116,7 @@ export const fetchAllUsers = async () => {
 
     return users;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.log("Error fetching users:", error);
     throw error;
   }
 };
@@ -228,32 +228,24 @@ export const fetchTicketsByUser = async (userId: string) => {
 
 // Firebase Firestore (CHAT)
 
-const getConversationId = async (
+const createConversationId = async (
   userId_1: string, 
   userId_2: string,
-  conversationId: string
 ) => {
   try {
-    const conversationRef = collection(Firebase_Firestore, 'conversations')
-
-    const conversationDocRef = doc(conversationRef, conversationId);
-    const docSnapshot = await getDoc(conversationDocRef);
-
-    if (docSnapshot.exists()) {
-      return docSnapshot.id;
-    }
+    const conversationRef = collection(Firebase_Firestore, 'conversations');
 
     const newConversationRef = await addDoc(conversationRef, {
       participants: [userId_1, userId_2],
       dateCreated: Timestamp.now(),
       lastMessage: "",
-      lastMessageTimestamp: Timestamp.now(),                               
+      lastMessageTimestamp: Timestamp.now(),
     });
 
     const newConversationId = newConversationRef.id;
 
-    await addConversationToUser(userId_1, newConversationId);
-    await addConversationToUser(userId_2, newConversationId);
+    await addConversationToUser(userId_1, userId_2, newConversationId);
+    await addConversationToUser(userId_2, userId_1, newConversationId);
 
     return newConversationId;
   } catch (error) {
@@ -262,16 +254,20 @@ const getConversationId = async (
   }
 };
 
-const addConversationToUser = async (userId: string, conversationId: string) => {
+const addConversationToUser = async (
+  userId: string, 
+  otherUserId: string, 
+  conversationId: string
+) => {
   try {
     const userConversationsRef = collection(Firebase_Firestore, `users/${userId}/user-conversations`);
 
-    await setDoc(doc(userConversationsRef, conversationId), {
+    await setDoc(doc(userConversationsRef, otherUserId), {
       conversationId: conversationId,
-      isRead: false
+      isRead: false,
     });
   } catch (error) {
-    console.log("Error adding conversation to user:", error);
+    console.log(`Error adding conversation to user (${userId}):`, error);
   }
 };
 
@@ -289,14 +285,13 @@ const updateConversation = async (conversationId: string, lastMessage: string) =
 
 export const updateUserConversationStatus = async (
   userId: string, 
-  conversationId: string, 
+  otherUserId: string, 
   status: boolean
 ) => {
   try {
     const userConversationsRef = collection(Firebase_Firestore, `users/${userId}/user-conversations`);
-    const conversationDocRef = doc(userConversationsRef, conversationId);
+    const conversationDocRef = doc(userConversationsRef, otherUserId);
 
-    // Set 'isRead' to false for the recipient in the user-conversations subcollection
     await updateDoc(conversationDocRef, {
       isRead: status,
     });
@@ -308,11 +303,12 @@ export const updateUserConversationStatus = async (
 export const sendMessage = async (
   senderId: string, 
   recipientId: string,
-  conversationId: string, 
-  messageText: string
+  conversationId: string | null, 
+  messageText: string,
 ) => {
   try {
-    const currentConversationId = await getConversationId(senderId, recipientId, conversationId);
+    const currentConversationId = conversationId 
+      || await createConversationId(senderId, recipientId);
 
     const messagesRef = collection(Firebase_Firestore, 'conversations', currentConversationId, 'messages');
 
@@ -326,8 +322,8 @@ export const sendMessage = async (
     await addDoc(messagesRef, message);
 
     await updateConversation(currentConversationId, messageText);
-    await updateUserConversationStatus(recipientId, currentConversationId, false);
-    await updateUserConversationStatus(senderId, currentConversationId, true);
+    await updateUserConversationStatus(senderId, recipientId, true);
+    await updateUserConversationStatus(recipientId, senderId, false);
 
     return currentConversationId
   } catch (error) {
@@ -335,6 +331,29 @@ export const sendMessage = async (
     throw error;
   }
 };
+
+export const fetchConversationIdByUserIds = async (
+  senderId: string,
+  recipientId: string
+) => {
+  try {
+    const recipientDocRef = doc(
+      Firebase_Firestore, 
+      `users/${senderId}/user-conversations/${recipientId}`
+    );
+
+    const docSnapshot = await getDoc(recipientDocRef);
+
+    if (docSnapshot.exists()) {
+      return docSnapshot.data().conversationId || null;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching conversation ID:", error);
+    throw error; // Throw the error to handle upstream if needed
+  }
+}
 
 export const listenToConversations = (
   currentUserId: string,
@@ -348,7 +367,7 @@ export const listenToConversations = (
       const conversations: Conversation[] = [];
 
       for (const docSnapshot of snapshot.docs) {
-        const conversationId = docSnapshot.id;
+        const conversationId = docSnapshot.data().conversationId;
 
         const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
         const conversationSnapshot = await getDoc(conversationRef);

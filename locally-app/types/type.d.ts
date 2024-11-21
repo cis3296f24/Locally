@@ -118,7 +118,6 @@ interface Conversation {
   isRead?: boolean;
   recipient?: User; 
   participants: string[];
-  // messages: Message[];
 }
 
 export type {

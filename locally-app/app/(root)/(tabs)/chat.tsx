@@ -53,7 +53,7 @@ const ChatScreen = () => {
     setIsChatVisible(true);
 
     if (!isRead) {
-      updateUserConversationStatus(user?.id || '', conversation.id, true);
+      updateUserConversationStatus(user?.id || '', conversation.recipient?.id || '', true);
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchEventBasedMessages, fetchMessagesByConversationId, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
+import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
 import { Message } from '@/types/type';
 import { images } from '@/constants';
 import UserProfileImage from './UserProfileImage';
@@ -11,7 +11,7 @@ interface ChatProps {
   title: string;
   image?: string;
   date?: string;
-  curretUserId?: string;
+  curretUserId: string ;
   recipientId?: string;
   conversationId?: string;
   eventId?: string;
@@ -59,8 +59,18 @@ const Chat: React.FC<ChatProps> = ({
     };
   }, [eventId]);
 
+  useEffect(() => {
+    const fetchConversationByUser = async () => {
+      if (recipientId) {
+        const conversationId = await fetchConversationIdByUserIds(curretUserId, recipientId);
+        setConversation(conversationId);
+      }
+    }
+    fetchConversationByUser();
+  }, []);
+
   const handleSendMessage = async () => {
-    if (inputText && curretUserId && recipientId && conversation) {
+    if (inputText && curretUserId && recipientId) {
       const newId = await sendMessage(curretUserId, recipientId, conversation, inputText);
       setInputText('');
 
@@ -121,7 +131,7 @@ const Chat: React.FC<ChatProps> = ({
           >
             <MessageList 
               messages={messages} 
-              currentUserId={curretUserId || ''} 
+              currentUserId={curretUserId} 
             />
          
             {/* Input Area */}
