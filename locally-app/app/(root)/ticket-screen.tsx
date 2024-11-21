@@ -18,7 +18,7 @@ const TicketScreen = () => {
     };
 
     const handleKeepExploring = () => {
-        router.replace("/(tabs)/explore");
+        router.replace("/(root)/(tabs)/explore");
     };
 
     return (

@@ -1,9 +1,9 @@
-import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
-import { User, Event } from "@/types/type";
+import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
+import { User, Event, Ticket } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, query, setDoc, Timestamp, where } from "firebase/firestore";
-import { removeCurrentUser, saveCurrentUser } from "./storage-service";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
 // Firebase Authentication
 
@@ -132,3 +132,69 @@ export const fetchEventsByCity = async (city: string) => {
 
   return eventsWithOwners;
 };
+
+// Firebase Firestore (TICKETS)
+
+export const createTicket = async (
+  event: Event,
+  user: User,
+  numTickets: number,
+  total: string
+) => {
+  try {
+    const ticketRef = doc(collection(Firebase_Firestore, 'tickets'));
+
+    const newTicket: Ticket = {
+      ticketId: ticketRef.id,
+      eventName: event.title,
+      eventAddress: `${event.street}, ${event.city}, ${event.state} ${event.zipCode}`,
+      userName: user.fullName,
+      orderNumber: `#${Math.floor(Math.random() * 100000)}`,
+      date: event.dateStart,
+      time: event.timeStart,
+      numTickets: numTickets,
+      total: total,
+      eventImage: event.coverImage ?? "",
+      qrcode: `Event: ${event.title}, Name: ${user.fullName}, Total: ${total}, Number of Tickets: ${numTickets}`,
+
+      eventId: event.id,
+      userId: user.id,
+    };
+
+    const ticketId = newTicket.ticketId;
+    console.log('Ticket created with Firestore-generated ID:', ticketId);
+
+    await setDoc(ticketRef, newTicket);
+
+    const eventTicketRef = doc(Firebase_Firestore, `events/${event.id}/ticket-purchase`, ticketId);
+    await setDoc(eventTicketRef, newTicket);
+
+    // Add ticket to the user's 'ticket-purchase' subcollection
+    const userTicketRef = doc(Firebase_Firestore, `users/${user.id}/ticket-purchase`, ticketId);
+    await setDoc(userTicketRef, newTicket);
+
+    console.log('Ticket created successfully and added to event and user subcollections!');
+
+    const ticketDoc = await getDoc(ticketRef);
+
+    if (ticketDoc.exists()) {
+      return ticketDoc.data() as Ticket;
+    } else {
+      throw new Error('Ticket not found');
+    }
+  } catch (error) {
+    console.error('Error creating ticket:', error);
+    throw new Error('Error creating ticket. Please try again.');
+  }
+}
+
+export const fetchTicketsByUser = async (userId: string) => {
+  const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
+  const querySnapshot = await getDocs(userTicketsRef);
+
+  const tickets = querySnapshot.docs.map((doc) => {
+    return doc.data() as Ticket;
+  });
+
+  return tickets;
+}

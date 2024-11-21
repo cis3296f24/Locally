@@ -33,3 +33,28 @@ export const removeCurrentUser = async () => {
     console.error('Error removing object', error);
   }
 };
+
+export const setUserCity = async (city: string) => {
+  try {
+    await AsyncStorage.setItem('city', city);
+    console.log('City stored successfully!', city);
+  } catch (error) {
+    console.log('Error storing city', error);
+  }
+}
+
+export const getUserCity = async () => {
+  try {
+    const storedCity = await AsyncStorage.getItem('city');
+    if (storedCity !== null) {
+      // console.log('Retrieved city:', storedCity);
+      return storedCity;
+    } else {
+      return "Philadelphia";
+      console.log('No city found');
+    }
+  } catch (error) {
+    return "Philadelphia";
+    console.log('Error retrieving city', error);
+  }
+}

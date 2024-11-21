@@ -21,15 +21,20 @@ interface CardPopProps {
 }
 
 interface Ticket {
+  ticketId: string;
   eventName: string;
   eventAddress: string;
   userName: string;
   orderNumber: string;
-  date: string;
+  date: Timestamp;
   time: string;
   numTickets: number;
-  total: number;
-  eventImage: ImageSourcePropType | undefined;
+  total: string;
+  eventImage?: string;
+  qrcode: string;
+
+  eventId: string;
+  userId: string;
 }
 
 // CardPop.tsx
@@ -53,7 +58,7 @@ interface Event {
   dateStart: Timestamp;
   dateEnd?: Timestamp;
   price?: number;
-  timeStart?: string;
+  timeStart: string;
   timeEnd?: string;
 
   // organizer
@@ -97,17 +102,6 @@ interface Location {
   address: string;
 }
 
-interface LocationStore {
-  userLatitude: number | null;
-  userLongitude: number | null;
-  userAddress: string | null;
-  destinationLatitude: number | null;
-  destinationLongitude: number | null;
-  destinationAddress: string | null;
-  setUserLocation: (latitude: number, longitude: number, address: string) => void;
-  setDestinationLocation: (latitude: number, longitude: number, address: string) => void;
-}
-
 export type {
   User,
   CategoryCardProps,
@@ -117,5 +111,4 @@ export type {
   Ticket,
   TicketStore,
   Location,
-  LocationStore
 }
