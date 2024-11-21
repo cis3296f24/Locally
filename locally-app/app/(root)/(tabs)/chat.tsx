@@ -5,12 +5,12 @@ import ChatModal from '@/components/Chat';
 import { images } from '@/constants';
 import UserProfileImage from '@/components/UserProfileImage';
 import { Conversation, Message, User } from '@/types/type';
-import { fetchAllUsers, listenToConversations } from '@/services/firebase-service';
+import { fetchAllUsers, listenToConversations, updateUserConversationStatus } from '@/services/firebase-service';
 import { useUserStore } from '@/store/user';
 import { formatFirestoreTimestamp } from '@/utils/util';
 
 
-const ChatScreen: React.FC = () => {
+const ChatScreen = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -45,9 +45,16 @@ const ChatScreen: React.FC = () => {
     setIsChatVisible(true);
   };
 
-  const handleConversationPress = (conversation: Conversation) => {
+  const handleConversationPress = (
+    conversation: Conversation,
+    isRead: boolean
+  ) => {
     setSelectedConversation(conversation);
     setIsChatVisible(true);
+
+    if (!isRead) {
+      updateUserConversationStatus(user?.id || '', conversation.id, true);
+    }
   };
 
   const closeChat = () => {
@@ -64,7 +71,7 @@ const ChatScreen: React.FC = () => {
             Let's Connect,
           </Text>
           <Text className="text-2xl font-semibold text-primary-pBlue">
-            Alexis
+            {user?.username}
           </Text>
         </View>
 
@@ -107,7 +114,7 @@ const ChatScreen: React.FC = () => {
             <View className="h-[1px] bg-gray-200" />
             <ConversationItem
               conversation={item}
-              onPress={() => handleConversationPress(item)}
+              onPress={(value) => handleConversationPress(item, value)}
             />
           </>
         )}
@@ -148,11 +155,11 @@ const ConversationItem = ({
   onPress 
 } : {
   conversation: Conversation;
-  onPress: () => void;
+  onPress: (isRead: boolean) => void;
 }) => {
   return (
     <TouchableOpacity 
-      onPress={onPress}
+      onPress={() => onPress(conversation.isRead || false)}
       className="flex-row items-center py-3"
     >
       <UserProfileImage
@@ -161,15 +168,21 @@ const ConversationItem = ({
         buttonStyle='mr-0'
       />
       <View className="flex-1 ml-3 gap-1">
-        <Text className="font-semibold text-base">{conversation.recipient?.fullName}</Text>
-        <Text className="text-gray-500">{conversation.lastMessage}</Text>
+        <Text className="font-bold text-lg">
+          {conversation.recipient?.fullName}
+        </Text>
+        <Text className={`text-sm ${conversation.isRead ? "text-gray-500" : "font-semibold"}`}>
+          {conversation.lastMessage}
+        </Text>
       </View>
       <View className="items-end gap-2">
-        <Text className="text-gray-500 text-sm">
+        <Text className="text-sm text-gray-500">
           {formatFirestoreTimestamp(conversation.lastMessageTimestamp)}
         </Text>
-        {conversation.isRead && (
+        {conversation.isRead ? (
           <Ionicons name="checkmark-done" size={16} color="#2196F3" />
+        ):(
+          <Ionicons name="mail" size={10} color="#2196F3" />
         )}
       </View>
     </TouchableOpacity>

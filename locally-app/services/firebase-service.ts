@@ -287,7 +287,7 @@ const updateConversation = async (conversationId: string, lastMessage: string) =
   }
 };
 
-const updateUserConversationStatus = async (
+export const updateUserConversationStatus = async (
   userId: string, 
   conversationId: string, 
   status: boolean
@@ -360,7 +360,7 @@ export const listenToConversations = (
           const recipientId = participants.find((id: string) => id !== currentUserId);
           const recipientProfile = recipientId ? await fetchUserProfile(recipientId) : undefined;
 
-          const isRead = docSnapshot.data()?.isRead || true;
+          const isRead = docSnapshot.data()?.isRead;
 
           const conversation: Conversation = {
             id: conversationId,
