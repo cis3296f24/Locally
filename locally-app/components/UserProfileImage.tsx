@@ -12,7 +12,7 @@ const UserProfileImage = ({
   buttonStyle = "items-center mr-4",
   onPress
 } : {
-  image: string,
+  image?: string,
   name?: string,
   isOnline?: boolean,
   imageStyle?: string,
@@ -20,7 +20,9 @@ const UserProfileImage = ({
   buttonStyle?: string,
   onPress: () => void
 }) => {
-  const imageSource = image ? image : images.noProfileImage
+  const imageSource = image 
+    ? { uri: image } 
+    : images.noProfileImage
 
   return (
     <TouchableOpacity

@@ -4,98 +4,106 @@ import { Ionicons } from '@expo/vector-icons';
 import ChatModal from '@/components/Chat';
 import { images } from '@/constants';
 import UserProfileImage from '@/components/UserProfileImage';
-import { Timestamp } from 'firebase/firestore';
-import { User } from '@/types/type';
-
-interface UserChat {
-  id: string;
-  name: string;
-  avatar: any;
-  isOnline?: boolean;
-}
+import { Conversation, Message, User } from '@/types/type';
+import { fetchConversations } from '@/services/firebase-service';
+import { useUserStore } from '@/store/user';
 
 
 const ChatScreen: React.FC = () => {
-  const [selectedConversation, setSelectedConversation] = useState<ConversationItem | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
-  const [users, setUsers] = useState<UserChat[]>([]);
-  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  const { user } = useUserStore();
 
   useEffect(() => {
-    // Initialize your dummy data here
-    setUsers([
-      {
-        id: '1',
-        name: 'Alice',
-        avatar: images.woman1,
-        isOnline: true,
-      },
-      {
-        id: '2',
-        name: 'Bob',
-        avatar: images.man2,
-        isOnline: false,
-      },
-      {
-        id: '3',
-        name: "Charlie",
-        avatar: images.woman3,
-        isOnline: true,
-      },
-      {
-        id: '4',
-        name: "Dave",
-        avatar: images.man1,
-        isOnline: false,        
-      },
-      {
-        id: '5',
-        name: "Eve",
-        avatar: images.woman4,
-        isOnline: true,
-      },
-      {
-        id: '6',
-        name: 'George',
-        avatar: images.dog,
-        isOnline: false,
-      }
-    ]);
+    const fetchUserConversations = async () => {
+      const conversations = await fetchConversations(user?.id || '');
+      setConversations(conversations);
 
-    setConversations([
-      {
-        id: '1',
-        name: 'Charlie',
-        avatar: images.woman3,
-        lastMessage: 'Hey, how are you?',
-        timestamp: '10:30 AM',
-        isRead: true,
-      },
-      {
-        id: '2',
-        name: 'Dave',
-        avatar: images.man1,
-        lastMessage: "Let's catch up later.",
-        timestamp: 'Yesterday',
-        isRead: false,
-      },
-      {
-        id: '3',
-        name: 'Eve',
-        avatar: images.woman4,
-        lastMessage: 'Did you see the concert at the park?',
-        timestamp: '2 days ago',
-        isRead: true,
-      },
-    ]);
+      console.log('Conversations:', conversations);
+    }
+
+    fetchUserConversations();
+
+    console.log('User:', user);
   }, []);
 
+  // useEffect(() => {
+  //   // Initialize your dummy data here
+  //   setUsers([
+  //     {
+  //       id: '1',
+  //       name: 'Alice',
+  //       avatar: images.woman1,
+  //       isOnline: true,
+  //     },
+  //     {
+  //       id: '2',
+  //       name: 'Bob',
+  //       avatar: images.man2,
+  //       isOnline: false,
+  //     },
+  //     {
+  //       id: '3',
+  //       name: "Charlie",
+  //       avatar: images.woman3,
+  //       isOnline: true,
+  //     },
+  //     {
+  //       id: '4',
+  //       name: "Dave",
+  //       avatar: images.man1,
+  //       isOnline: false,        
+  //     },
+  //     {
+  //       id: '5',
+  //       name: "Eve",
+  //       avatar: images.woman4,
+  //       isOnline: true,
+  //     },
+  //     {
+  //       id: '6',
+  //       name: 'George',
+  //       avatar: images.dog,
+  //       isOnline: false,
+  //     }
+  //   ]);
+
+  //   setConversations([
+  //     {
+  //       id: '1',
+  //       name: 'Charlie',
+  //       avatar: images.woman3,
+  //       lastMessage: 'Hey, how are you?',
+  //       timestamp: '10:30 AM',
+  //       isRead: true,
+  //     },
+  //     {
+  //       id: '2',
+  //       name: 'Dave',
+  //       avatar: images.man1,
+  //       lastMessage: "Let's catch up later.",
+  //       timestamp: 'Yesterday',
+  //       isRead: false,
+  //     },
+  //     {
+  //       id: '3',
+  //       name: 'Eve',
+  //       avatar: images.woman4,
+  //       lastMessage: 'Did you see the concert at the park?',
+  //       timestamp: '2 days ago',
+  //       isRead: true,
+  //     },
+  //   ]);
+  // }, []);
+
   // Function to handle user press
-  const handleUserPress = (user: UserChat): void => {
-    console.log('User pressed:', user.name);
+  const handleUserPress = (user: User): void => {
+    console.log('User pressed:', user.fullName);
   };
 
-  const handleConversationPress = (conversation: ConversationItem): void => {
+  const handleConversationPress = (conversation: Conversation): void => {
     setSelectedConversation(conversation);
     setIsChatVisible(true);
   };
@@ -130,16 +138,16 @@ const ChatScreen: React.FC = () => {
       {/* Users List */}
       <View className="h-32">
         <FlatList
-          data={users}
+          data={conversations}
           horizontal
           showsHorizontalScrollIndicator={false}
           className="px-4"
           renderItem={({ item }) => (
             <UserProfileImage
-              image={item.avatar}
-              name={item.name}
-              isOnline={item.isOnline}
-              onPress={() => handleUserPress(item)}
+              image={item.recipient?.profileImage}
+              name={item.recipient?.fullName}
+              isOnline={true}
+              onPress={() => handleUserPress(item.recipient as User)}
               textStyle='text-sm mt-2 font-semibold' 
             />
           )}
@@ -168,7 +176,7 @@ const ChatScreen: React.FC = () => {
         <ChatModal
           isVisible={isChatVisible}
           onClose={closeChat}
-          eventTitle={selectedConversation.name || ''}
+          eventTitle={selectedConversation.recipient?.fullName || ''}
           eventDate="Today"
         />
       )}
@@ -177,25 +185,6 @@ const ChatScreen: React.FC = () => {
 };
 
 export default ChatScreen;
-
-interface Conversation {
-  id: string;
-  name?: string;
-  avatar?: any;
-  lastMessage?: string;
-  timestamp?: Timestamp;
-  isRead?: boolean;
-
-  messages: Message[];
-}
-
-interface Message {
-  text: string;
-  timestamp: string;
-  senderId: string;
-  
-  sender?: User;
-}
 
 const ConversationItem = ({ 
   conversation, 
@@ -210,7 +199,7 @@ const ConversationItem = ({
       className="flex-row items-center py-3"
     >
       <UserProfileImage
-        image={conversation.avatar || images.noProfileImage}
+        image={conversation.recipient?.profileImage}
         imageStyle="w-16 h-16"
         buttonStyle='mr-0'
         onPress={() => {}}
