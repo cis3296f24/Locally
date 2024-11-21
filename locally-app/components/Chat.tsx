@@ -1,70 +1,65 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchMessagesByConversationId, sendMessage } from '@/services/firebase-service';
 import { Message } from '@/types/type';
 import { images } from '@/constants';
 import UserProfileImage from './UserProfileImage';
+import { formatFirestoreTimestamp } from '@/utils/util';
 
 interface ChatProps {
-  isVisible: boolean;
-  onClose: () => void;
-  eventTitle: string;
+  title: string;
   image?: string;
-  eventDate?: string;
+  date?: string;
   curretUserId?: string;
   recipientId?: string;
   conversationId?: string;
+  isVisible: boolean;
+  onClose: () => void;
 }
 
 const Chat: React.FC<ChatProps> = ({
-  isVisible,
-  onClose,
-  eventTitle,
+  title,
   image,
-  eventDate,
+  date,
   curretUserId,
   recipientId,
-  conversationId
+  conversationId,
+  isVisible,
+  onClose,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [conversation, setConversation] = useState(conversationId ? conversationId : 'none');
+  const [isNewConversation, setIsNewConversation] = useState(conversationId ? false : true);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversation) return;
     
-    let unsubscribe = fetchMessagesByConversationId(conversationId, (messages) => {
+    let unsubscribe = fetchMessagesByConversationId(conversation, (messages) => {
       setMessages(messages);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [conversationId]); 
+  }, [conversation]); 
 
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
-    // Clean up the listeners
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
-  const handleSendMessage = () => {
-    if (inputText && curretUserId && recipientId && conversationId) {
-      sendMessage(curretUserId, recipientId, conversationId, inputText);
+  const handleSendMessage = async () => {
+    if (inputText && curretUserId && recipientId && conversation) {
+      const newId = await sendMessage(curretUserId, recipientId, conversation, inputText);
       setInputText('');
+
+      if (isNewConversation) {
+        setConversation(newId);
+        setIsNewConversation(false);
+      }
     }
+    console.log('Send Message');
+    console.log('inputText', inputText);
+    console.log('curretUserId', curretUserId);
+    console.log('recipientId', recipientId);
+    console.log('conversationId', conversation);
   };
 
   return (
@@ -75,11 +70,6 @@ const Chat: React.FC<ChatProps> = ({
     >
       <View className="flex-1 bg-black/50">
         <View className="bg-white h-[85%] mt-auto rounded-t-3xl">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
-          >
-          
             {/*Header*/}
             <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
               <View className='flex-row items-center'>
@@ -89,8 +79,8 @@ const Chat: React.FC<ChatProps> = ({
                   buttonStyle='mr-0'
                 />
                 <View className="ml-3">
-                  { eventDate && <Text className="text-[#ff6720] text-sm">{eventDate}</Text> }
-                  <Text className="text-base font-semibold">{eventTitle}</Text>
+                  { date && <Text className="text-[#ff6720] text-sm">{date}</Text> }
+                  <Text className="text-base font-semibold">{title}</Text>
                 </View>
               </View>
 
@@ -101,52 +91,21 @@ const Chat: React.FC<ChatProps> = ({
               </View>
             </View>
 
-            {/*Chat Msg*/}
-            <ScrollView
-              ref={scrollViewRef}
-              className="flex-1 bg-white p-4"
-              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-            >
-              {messages.map((message) => (
-                <View
-                  key={message.id}
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: message.senderId === curretUserId ? 'flex-end' : 'flex-start',
-                    marginBottom: 16,
-                  }}
-                >
-                  {message.senderId !== curretUserId && message.sender && (
-                    <UserProfileImage
-                      image={image}
-                      imageStyle="w-8 h-8 mr-2"
-                      buttonStyle='mr-0'
-                    />
-                  )}
-                  <View 
-                    className={`px-4 py-3 rounded-3xl max-w-[70%] ${message.senderId === curretUserId 
-                      ? 'bg-[#d2ecf5] rounded-br-none' 
-                      : 'bg-[#fff1bf] rounded-tl-none'}`}
-                  >
-                    <Text className='text-md'>
-                      {message.text}
-                    </Text>
-                    <Text style={{
-                      fontSize: 11,
-                      color: message.senderId !== curretUserId ? '#666' : '#666',
-                      marginTop: 4,
-                    }}>
-                      {"Today"}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-            </KeyboardAvoidingView>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            className="flex-1"
+            keyboardVerticalOffset={130} 
+          >
+            <MessageList 
+              messages={messages} 
+              currentUserId={curretUserId || ''} 
+              image={image}
+            />
+         
           
             {/* Input Area */}
-            <View className={`mb-4 ${isKeyboardVisible ? "flex-1" : ""}`}>
-              <View className="flex-row p-3 bg-white border-t border-gray-200 items-center">
+            <View>
+              <View className="flex-row p-3 mb-4 bg-white border-t border-gray-200 items-center">
 
                 <TouchableOpacity style={{ marginHorizontal: 8 }}>
                   <Ionicons name="add-circle-outline" size={27} color="#2196F3" />
@@ -167,6 +126,7 @@ const Chat: React.FC<ChatProps> = ({
                 </TouchableOpacity>
               </View>
             </View>
+          </KeyboardAvoidingView>
         </View>
       </View>
     </Modal>
@@ -174,3 +134,57 @@ const Chat: React.FC<ChatProps> = ({
 };
 
 export default Chat;
+
+const MessageList = ({ 
+  messages, 
+  currentUserId, 
+  image 
+} : {
+  messages: Message[];
+  currentUserId: string;
+  image?: string;
+}) => {
+  const flatListRef = useRef<FlatList>(null);
+
+  const renderItem = ({ item: message }: { item: Message }) => (
+    <View
+      className={`flex-row ${message.senderId === currentUserId 
+        ? 'justify-end' 
+        : 'justify-start'} 
+        mt-6 mx-2`}
+    >
+      {message.senderId !== currentUserId && message.sender && (
+        <UserProfileImage 
+          image={image} 
+          imageStyle="w-8 h-8 mr-2" 
+        />
+      )}
+      <View
+        className={`px-4 py-3 rounded-3xl max-w-[70%] ${
+          message.senderId === currentUserId
+            ? 'bg-[#d2ecf5] rounded-br-none'
+            : 'bg-[#fff1bf] rounded-tl-none'
+        }`}
+      >
+        <Text className="text-md">
+          {message.text}
+        </Text>
+        <Text className="text-xs text-[#666] mt-1">
+          {formatFirestoreTimestamp(message.timestamp)}
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <FlatList
+      data={messages}
+      ref={flatListRef}
+      keyExtractor={(item, index) => index.toString()}
+      renderItem={renderItem}
+      onContentSizeChange={() => {
+        flatListRef?.current?.scrollToEnd({ animated: true });
+      }}
+    />
+  );
+};

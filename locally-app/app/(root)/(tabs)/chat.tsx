@@ -40,7 +40,6 @@ const ChatScreen: React.FC = () => {
     fetchUsers();
   }, [conversations]);
 
-  // Function to handle user press
   const handleUserPress = (user: User) => {
     setSelectedUser(user);
     setIsChatVisible(true);
@@ -120,7 +119,7 @@ const ChatScreen: React.FC = () => {
         <ChatModal
           isVisible={isChatVisible}
           onClose={closeChat}
-          eventTitle={selectedConversation.recipient?.fullName || ''}
+          title={selectedConversation.recipient?.fullName || ''}
           curretUserId={user?.id || ''}
           conversationId={selectedConversation.id}
           image={selectedConversation.recipient?.profileImage}
@@ -132,9 +131,10 @@ const ChatScreen: React.FC = () => {
         <ChatModal
           isVisible={isChatVisible}
           onClose={closeChat}
-          eventTitle={selectedUser.fullName}
+          title={selectedUser.fullName}
           curretUserId={user?.id || ''}
           image={selectedUser.profileImage}
+          recipientId={selectedUser.id}
         />
       )}
     </SafeAreaView>

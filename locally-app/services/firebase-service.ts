@@ -329,6 +329,7 @@ export const sendMessage = async (
     await updateUserConversationStatus(recipientId, currentConversationId, false);
     await updateUserConversationStatus(senderId, currentConversationId, true);
 
+    return currentConversationId
   } catch (error) {
     console.log("Error sending message:", error);
     throw error;
@@ -373,6 +374,12 @@ export const listenToConversations = (
           conversations.push(conversation);
         }
       }
+      
+      conversations.sort((a, b) => {
+        const aTime = a.lastMessageTimestamp.toDate().getTime();
+        const bTime = b.lastMessageTimestamp.toDate().getTime();
+        return bTime - aTime; // Descending order
+      });
 
       onConversationsUpdated(conversations);
     },
