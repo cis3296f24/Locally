@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
@@ -366,27 +366,74 @@ export const fetchConversations = async (currentUserId: string) => {
   }
 };
 
-export const fetchMessagesByConversationId = async (conversationId: string) => {
-  try {
-    const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
-    const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+// export const fetchMessagesByConversationId = async (conversationId: string): Promise<Message[]> => {
+//   try {
+//     const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
+//     const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
 
-    const querySnapshot = await getDocs(messagesQuery);
+//     const querySnapshot = await getDocs(messagesQuery);
 
-    const messages = querySnapshot.docs.map(async (doc) => {
-      const messageData = doc.data();
-      const sender = await fetchUserProfile(messageData.senderId);
+//     const messagesWithSenders = await Promise.all(
+//       querySnapshot.docs.map(async (doc) => {
+//         const messageData = doc.data();
 
-      return {
-        id: doc.id,
-        sender: sender,
-        ...messageData, 
-      };
-    });
+//         const message = {
+//           id: doc.id,
+//           ...messageData
+//         } as Message;
 
-    return messages;
-  } catch (error) {
-    console.log("Error fetching messages:", error);
-    throw error;
-  }
+//         try {
+//           message.sender = await fetchUserProfile(messageData.senderId);
+//         } catch (error) {
+//           console.error(`Error fetching sender for message ${message.id}:`, error);
+//         }
+        
+//         return message;
+//       })
+//     );
+
+//     return messagesWithSenders;
+//   } catch (error) {
+//     console.log("Error fetching messages:", error);
+//     throw error;
+//   }
+// };
+
+export const fetchMessagesByConversationId = (
+  conversationId: string,
+  onMessagesUpdated: (messages: Message[]) => void
+) => {
+  const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
+  const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const unsubscribe = onSnapshot(
+    messagesQuery,
+    async (querySnapshot) => {
+      const messagesWithSenders = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const messageData = doc.data();
+
+          const message = {
+            id: doc.id,
+            ...messageData
+          } as Message;
+
+          try {
+            message.sender = await fetchUserProfile(messageData.senderId);
+          } catch (error) {
+            console.error(`Error fetching sender for message ${message.id}:`, error);
+          }
+          
+          return message;
+        })
+      );
+
+      onMessagesUpdated(messagesWithSenders);
+    },
+    (error) => {
+      console.error("Error listening to messages:", error);
+    }
+  );
+
+  return unsubscribe; // Call this to stop listening
 };

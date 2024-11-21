@@ -27,17 +27,25 @@ const Chat: React.FC<ChatProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    let unsubscribe: () => void;
+
     const fetchMessages = async () => {
-      if (!conversationId) {
-        setMessages([]);
-      } else {
-        const texts = await fetchMessagesByConversationId(conversationId);
-        setMessages(texts as Message[]);
+      if (conversationId) {
+        unsubscribe = fetchMessagesByConversationId(conversationId, (messages) => {
+          setMessages(messages);
+        });
       }
-    }
+    };
 
     fetchMessages();
-  }, []);
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [conversationId]); 
+
   
 
   const sendMessage = () => {
