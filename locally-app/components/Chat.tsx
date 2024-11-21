@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchMessagesByConversationId } from '@/services/firebase-service';
 import { Message } from '@/types/type';
 import { images } from '@/constants';
+import UserProfileImage from './UserProfileImage';
 
 interface ChatProps {
   isVisible: boolean;
   onClose: () => void;
   eventTitle: string;
-  eventDate: string;
+  image?: string;
+  eventDate?: string;
   curretUserId?: string;
   conversationId?: string;
 }
@@ -18,6 +20,7 @@ const Chat: React.FC<ChatProps> = ({
   isVisible,
   onClose,
   eventTitle,
+  image,
   eventDate,
   curretUserId,
   conversationId
@@ -27,22 +30,14 @@ const Chat: React.FC<ChatProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    let unsubscribe: () => void;
-
-    const fetchMessages = async () => {
-      if (conversationId) {
-        unsubscribe = fetchMessagesByConversationId(conversationId, (messages) => {
-          setMessages(messages);
-        });
-      }
-    };
-
-    fetchMessages();
+    if (!conversationId) return;
+    
+    let unsubscribe = fetchMessagesByConversationId(conversationId, (messages) => {
+      setMessages(messages);
+    });
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribe();
     };
   }, [conversationId]); 
 
@@ -79,17 +74,24 @@ const Chat: React.FC<ChatProps> = ({
             className="flex-1"
           >
             {/*Header*/}
-            <View className="flex-row items-center p-4 border-b border-gray-200">
-              <TouchableOpacity onPress={onClose} className="p-2">
-                <Ionicons name="close" size={24} color="black" />
-              </TouchableOpacity>
-              <View className="ml-3 flex-1">
-                <Text className="text-[#ff6720] text-sm">{eventDate}</Text>
-                <Text className="text-base font-semibold">{eventTitle}</Text>
+            <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
+              <View className='flex-row items-center'>
+                <UserProfileImage
+                  image={image}
+                  imageStyle="w-12 h-12"
+                  buttonStyle='mr-0'
+                />
+                <View className="ml-3">
+                  { eventDate && <Text className="text-[#ff6720] text-sm">{eventDate}</Text> }
+                  <Text className="text-base font-semibold">{eventTitle}</Text>
+                </View>
               </View>
-              <TouchableOpacity>
-                <Ionicons name="bookmark-outline" size={24} color="#083664" />
-              </TouchableOpacity>
+
+              <View>
+                <TouchableOpacity onPress={onClose} className="p-2">
+                  <Ionicons name="close" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/*Chat Msg*/}

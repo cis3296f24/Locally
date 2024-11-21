@@ -96,6 +96,32 @@ export const fetchUserProfile = async (userId: string) => {
   return userSnapshot.data() as User;
 }
 
+export const fetchAllUsers = async () => {
+  try {
+    const currentUser = Firebase_Auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error("No authenticated user found.");
+    }
+
+    const usersRef = collection(Firebase_Firestore, "users");
+    const usersSnapshot = await getDocs(usersRef);
+
+    const users: User[] = usersSnapshot.docs.map((doc) => {
+      return {
+        id: doc.id,
+        ...doc.data(),
+      } as User;
+    }).filter((user) => user.id !== currentUser.uid);
+
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
+};
+
+
 // Firebase Firestore (EVENTS)
 
 export const fetchEventsByCity = async (city: string) => {
@@ -198,7 +224,6 @@ export const fetchTicketsByUser = async (userId: string) => {
 
   return tickets;
 }
-
 
 
 // Firebase Firestore (CHAT)
@@ -313,91 +338,54 @@ export const sendMessage = async (
   }
 };
 
-export const fetchConversations = async (currentUserId: string) => {
-  try {
-    const userConversationsRef = collection(Firebase_Firestore, `users/${currentUserId}/user-conversations`);
-    const userConversationsSnapshot = await getDocs(userConversationsRef);
+export const listenToConversations = (
+  currentUserId: string,
+  onConversationsUpdated: (conversations: Conversation[]) => void
+) => {
+  const userConversationsRef = collection(Firebase_Firestore, `users/${currentUserId}/user-conversations`);
 
-    const conversations: Conversation[] = [];
+  const unsubscribe = onSnapshot(
+    userConversationsRef,
+    async (snapshot) => {
+      const conversations: Conversation[] = [];
 
-    for (const docSnapshot of userConversationsSnapshot.docs) {
-      const conversationId = docSnapshot.id;
+      for (const docSnapshot of snapshot.docs) {
+        const conversationId = docSnapshot.id;
 
-      const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
-      const conversationSnapshot = await getDoc(conversationRef);
+        const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
+        const conversationSnapshot = await getDoc(conversationRef);
 
-      if (conversationSnapshot.exists()) {
-        const conversationData = conversationSnapshot.data();
-        const participants = conversationData.participants;
+        if (conversationSnapshot.exists()) {
+          const conversationData = conversationSnapshot.data();
+          const participants = conversationData.participants;
 
-        // Determine the recipient (who is not the current user)
-        const recipientId = participants.find((id: string) => id !== currentUserId);
-        const recipientProfile = recipientId ? await fetchUserProfile(recipientId) : undefined;
+          const recipientId = participants.find((id: string) => id !== currentUserId);
+          const recipientProfile = recipientId ? await fetchUserProfile(recipientId) : undefined;
 
-        // Fetch the latest message from the 'messages' subcollection
-        // const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
-        // const messagesSnapshot = await getDocs(messagesRef);
-        // const messages: Message[] = messagesSnapshot.docs.map(doc => doc.data() as Message);
+          const isRead = docSnapshot.data()?.isRead || true;
 
-        // Get the 'isRead' status from the 'user-conversations' subcollection for this user
-        const userConversationDoc = doc(Firebase_Firestore, `users/${currentUserId}/user-conversations`, conversationId);
-        const userConversationSnapshot = await getDoc(userConversationDoc);
-        const isRead = userConversationSnapshot.exists() ? userConversationSnapshot.data()?.isRead : true;
+          const conversation: Conversation = {
+            id: conversationId,
+            lastMessage: conversationData.lastMessage || '',
+            lastMessageTimestamp: conversationData.lastMessageTimestamp || Timestamp.now(),
+            isRead: isRead,
+            participants: participants,
+            recipient: recipientProfile,
+          };
 
-        // Construct the Conversation object
-        const conversation: Conversation = {
-          id: conversationId,
-          lastMessage: conversationData.lastMessage || '',
-          lastMessageTimestamp: conversationData.lastMessageTimestamp || Timestamp.now(),
-          isRead: isRead,
-          participants: participants,
-          // messages: messages,
-          recipient: recipientProfile,
-        };
-
-        conversations.push(conversation);
+          conversations.push(conversation);
+        }
       }
+
+      onConversationsUpdated(conversations);
+    },
+    (error) => {
+      console.error("Error listening to conversations:", error);
     }
+  );
 
-    return conversations;
-  } catch (error) {
-    console.log("Error fetching conversations:", error);
-    throw error;
-  }
+  return unsubscribe; // Return unsubscribe function to stop the listener when needed
 };
-
-// export const fetchMessagesByConversationId = async (conversationId: string): Promise<Message[]> => {
-//   try {
-//     const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
-//     const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
-
-//     const querySnapshot = await getDocs(messagesQuery);
-
-//     const messagesWithSenders = await Promise.all(
-//       querySnapshot.docs.map(async (doc) => {
-//         const messageData = doc.data();
-
-//         const message = {
-//           id: doc.id,
-//           ...messageData
-//         } as Message;
-
-//         try {
-//           message.sender = await fetchUserProfile(messageData.senderId);
-//         } catch (error) {
-//           console.error(`Error fetching sender for message ${message.id}:`, error);
-//         }
-        
-//         return message;
-//       })
-//     );
-
-//     return messagesWithSenders;
-//   } catch (error) {
-//     console.log("Error fetching messages:", error);
-//     throw error;
-//   }
-// };
 
 export const fetchMessagesByConversationId = (
   conversationId: string,

@@ -5,112 +5,56 @@ import ChatModal from '@/components/Chat';
 import { images } from '@/constants';
 import UserProfileImage from '@/components/UserProfileImage';
 import { Conversation, Message, User } from '@/types/type';
-import { fetchConversations } from '@/services/firebase-service';
+import { fetchAllUsers, listenToConversations } from '@/services/firebase-service';
 import { useUserStore } from '@/store/user';
+import { formatFirestoreTimestamp } from '@/utils/util';
 
 
 const ChatScreen: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const { user } = useUserStore();
 
   useEffect(() => {
-    const fetchUserConversations = async () => {
-      const conversations = await fetchConversations(user?.id || '');
-      setConversations(conversations);
+    if (!user?.id) return;
 
-      console.log('Conversations:', conversations);
-    }
+    const unsubscribe = listenToConversations(user.id, (updatedConversations) => {
+      setConversations(updatedConversations); 
+    });
 
-    fetchUserConversations();
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.id, conversations]);
 
-    console.log('User:', user);
-  }, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await fetchAllUsers();
+      setAllUsers(users);
+    };
 
-  // useEffect(() => {
-  //   // Initialize your dummy data here
-  //   setUsers([
-  //     {
-  //       id: '1',
-  //       name: 'Alice',
-  //       avatar: images.woman1,
-  //       isOnline: true,
-  //     },
-  //     {
-  //       id: '2',
-  //       name: 'Bob',
-  //       avatar: images.man2,
-  //       isOnline: false,
-  //     },
-  //     {
-  //       id: '3',
-  //       name: "Charlie",
-  //       avatar: images.woman3,
-  //       isOnline: true,
-  //     },
-  //     {
-  //       id: '4',
-  //       name: "Dave",
-  //       avatar: images.man1,
-  //       isOnline: false,        
-  //     },
-  //     {
-  //       id: '5',
-  //       name: "Eve",
-  //       avatar: images.woman4,
-  //       isOnline: true,
-  //     },
-  //     {
-  //       id: '6',
-  //       name: 'George',
-  //       avatar: images.dog,
-  //       isOnline: false,
-  //     }
-  //   ]);
-
-  //   setConversations([
-  //     {
-  //       id: '1',
-  //       name: 'Charlie',
-  //       avatar: images.woman3,
-  //       lastMessage: 'Hey, how are you?',
-  //       timestamp: '10:30 AM',
-  //       isRead: true,
-  //     },
-  //     {
-  //       id: '2',
-  //       name: 'Dave',
-  //       avatar: images.man1,
-  //       lastMessage: "Let's catch up later.",
-  //       timestamp: 'Yesterday',
-  //       isRead: false,
-  //     },
-  //     {
-  //       id: '3',
-  //       name: 'Eve',
-  //       avatar: images.woman4,
-  //       lastMessage: 'Did you see the concert at the park?',
-  //       timestamp: '2 days ago',
-  //       isRead: true,
-  //     },
-  //   ]);
-  // }, []);
+    fetchUsers();
+  }, [conversations]);
 
   // Function to handle user press
-  const handleUserPress = (user: User): void => {
-    console.log('User pressed:', user.fullName);
+  const handleUserPress = (user: User) => {
+    setSelectedUser(user);
+    setIsChatVisible(true);
   };
 
-  const handleConversationPress = (conversation: Conversation): void => {
+  const handleConversationPress = (conversation: Conversation) => {
     setSelectedConversation(conversation);
     setIsChatVisible(true);
   };
 
-  const closeChat = (): void => {
+  const closeChat = () => {
     setIsChatVisible(false);
     setSelectedConversation(null);
+    setSelectedUser(null);
   };
 
   return (
@@ -138,16 +82,16 @@ const ChatScreen: React.FC = () => {
       {/* Users List */}
       <View className="h-32">
         <FlatList
-          data={conversations}
+          data={allUsers}
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="px-4"
+          className="px-8"
           renderItem={({ item }) => (
             <UserProfileImage
-              image={item.recipient?.profileImage}
-              name={item.recipient?.fullName}
+              image={item.profileImage}
+              name={item.fullName}
               isOnline={true}
-              onPress={() => handleUserPress(item.recipient as User)}
+              onPress={() => handleUserPress(item)}
               textStyle='text-sm mt-2 font-semibold' 
             />
           )}
@@ -158,7 +102,7 @@ const ChatScreen: React.FC = () => {
       {/* Conversations List */}
       <FlatList
         data={conversations}
-        className="flex-1 px-6"
+        className="flex-1 px-8"
         renderItem={({ item, index }) => (
           <>
             <View className="h-[1px] bg-gray-200" />
@@ -177,9 +121,18 @@ const ChatScreen: React.FC = () => {
           isVisible={isChatVisible}
           onClose={closeChat}
           eventTitle={selectedConversation.recipient?.fullName || ''}
-          eventDate="Today"
           curretUserId={user?.id || ''}
           conversationId={selectedConversation.id}
+        />
+      )}
+
+      {selectedUser && (
+        <ChatModal
+          isVisible={isChatVisible}
+          onClose={closeChat}
+          eventTitle={selectedUser.fullName}
+          curretUserId={user?.id || ''}
+          image={selectedUser.profileImage}
         />
       )}
     </SafeAreaView>
@@ -204,14 +157,15 @@ const ConversationItem = ({
         image={conversation.recipient?.profileImage}
         imageStyle="w-16 h-16"
         buttonStyle='mr-0'
-        onPress={() => {}}
       />
-      <View className="flex-1 ml-3">
-        <Text className="font-semibold text-base">{conversation.name}</Text>
+      <View className="flex-1 ml-3 gap-1">
+        <Text className="font-semibold text-base">{conversation.recipient?.fullName}</Text>
         <Text className="text-gray-500">{conversation.lastMessage}</Text>
       </View>
-      <View className="items-end">
-        <Text className="text-gray-500 text-sm">{conversation.timestamp}</Text>
+      <View className="items-end gap-2">
+        <Text className="text-gray-500 text-sm">
+          {formatFirestoreTimestamp(conversation.lastMessageTimestamp)}
+        </Text>
         {conversation.isRead && (
           <Ionicons name="checkmark-done" size={16} color="#2196F3" />
         )}

@@ -18,7 +18,7 @@ const UserProfileImage = ({
   imageStyle?: string,
   textStyle?: string,
   buttonStyle?: string,
-  onPress: () => void
+  onPress?: () => void
 }) => {
   const imageSource = image 
     ? { uri: image } 
