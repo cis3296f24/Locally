@@ -89,14 +89,14 @@ const Explore = () => {
       </View>
 
       {currentSelectedEvent && (
-        <TouchableOpacity 
-          className="absolute bottom-8 left-0 right-0 z-1 items-center"
-          onPress={() => {
-            router.push('./../event-details');
-          }}
-        >
-          <CardPop event={currentSelectedEvent} />
-        </TouchableOpacity>
+        <View className="absolute bottom-8 left-0 right-0 z-1 items-center">
+          <CardPop 
+            event={currentSelectedEvent}
+            onClick={() => {
+              router.push('./../event-details');
+            }}
+          />
+        </View>
       )}
     </View>
   );

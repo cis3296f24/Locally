@@ -18,6 +18,7 @@ interface CardPopProps {
   event: Event;
   additionalStyling?: string;
   style?: string;
+  onClick?: () => void;
 }
 
 interface Ticket {

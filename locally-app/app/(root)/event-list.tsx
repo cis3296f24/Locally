@@ -5,10 +5,16 @@ import CardPop from '@/components/CardPop'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import { Event } from '@/types/type'
 
 const EventList = () => {
 
   const { events, setSelectedEvent } = useEventStore()
+
+  const handleOnCardClick = (event: Event) => {
+    setSelectedEvent(event)
+    router.push("/(root)/event-details")
+  }
 
   return (
     <SafeAreaView className='h-full w-full'>
@@ -23,13 +29,14 @@ const EventList = () => {
         </TouchableOpacity>
 
         <FlatList
-          data={events}
+          data={events.sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <CardPop
               event={item}
               additionalStyling="w-full mb-4"
-              style="bg-white p-3 rounded-2xl shadow-none w-[340px] flex-row items-center" 
+              style="bg-white p-3 rounded-2xl shadow-none w-[340px] flex-row items-center"
+              onClick={() => handleOnCardClick(item)} 
             />
           )} 
         />
