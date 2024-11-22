@@ -80,7 +80,7 @@ npm install
 
 In order to install the project's dependancies.
 
-## Configure Environment Variables
+### Configure Environment Variables
 - In the root of the locally-app directory, create a .env file
 - Copy and paste the following keys into the .env file:
 ``` 
