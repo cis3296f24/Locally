@@ -1,34 +1,79 @@
 import { Event } from "@/types/type";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import useLocationStore from '@/store/locationStore';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { useEventStore } from "@/store/event";
+import { useFetch } from "@/lib/fetch";
+import { fetchEventsByCity } from "@/services/firebase-service";
 
-// map component
-const Map = ({ 
-  events,
-  onMarkerSelect 
+const Map = ({
+  onMarkerSelect, 
+  onPress
 }: {
-  events: Event[];
   onMarkerSelect: (event: Event) => void;
+  onPress: () => void;
 }) => {
   const mapRef = useRef<MapView>(null);
   const {
     userLatitude,
     userLongitude,
+    userCity,
+    destinationCity,
     destinationLatitude,
     destinationLongitude,
+    setDestinationLocation,
   } = useLocationStore();
 
-  console.log('Map component received locations:', {
-    userLatitude,
-    userLongitude,
-    destinationLatitude,
-    destinationLongitude,
-  });
+  const {
+    events,
+    setEvents,
+    category
+  } = useEventStore();
+
+  const { data: fetchedEvents, refetch } = useFetch(
+    () => fetchEventsByCity(destinationCity || userCity || ''), 
+    [destinationCity],
+  );
+  const [eventList, setEventList] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentRegion, setCurrentRegion] = useState<Region | null>(null);
+
+  useEffect(() => {
+    if (fetchedEvents) {
+      setEventList(fetchedEvents);
+      setEvents(fetchedEvents);
+    } 
+  }, [fetchedEvents]);
+
+  useEffect(() => {
+    const filterEvents = async () => {
+      setIsLoading(true);
+      try {
+        if (events) {
+          const filteredEvents = await new Promise<Event[]>((resolve) => {
+            setTimeout(() => {
+              resolve(events.filter(
+                (event) => category === "All" || event.category === category
+              ));
+            }, 0);
+          });
+          setEventList(filteredEvents);
+        }
+      } catch (error) {
+        console.error("Error filtering events:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    filterEvents();
+  }, [category]);
 
   // Calculate the region based on the destination or user location
-  const region = destinationLatitude && destinationLongitude
+  const initialRegion =
+    currentRegion || (destinationLatitude && destinationLongitude
     ? { //Destination
       latitude: destinationLatitude,
       longitude: destinationLongitude,
@@ -47,57 +92,124 @@ const Map = ({
         longitude: -75.1652,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      };
+      });
 
   // Animate to new region when destination changes
   useEffect(() => {
-    if (destinationLatitude && destinationLongitude && mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: destinationLatitude,
-        longitude: destinationLongitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      }, 1000); // 1000ms animation duration
-    }
+    const updateRegion = async () => {
+      setIsLoading(true); // Start loading when region is being updated
+      if (destinationLatitude && destinationLongitude && mapRef.current) {
+        const newRegion = {
+          latitude: destinationLatitude,
+          longitude: destinationLongitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        };
+
+        mapRef.current.animateToRegion(newRegion, 1000); // Animate region change
+
+        // Once the region is changed, stop loading
+        setIsLoading(false); // Manually stop loading after the region update
+      } else {
+        setIsLoading(false); // If no destination, stop loading
+      }
+    };
+
+    updateRegion();
   }, [destinationLatitude, destinationLongitude]);
 
+  const handleUserLocationPress = async () => {
+    setIsLoading(true);
+
+    const userRegion = {
+      latitude: userLatitude,
+      longitude: userLongitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    };
+
+    setDestinationLocation(userLatitude, userLongitude, '', userCity || '');
+
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(userRegion as Region, 1000);
+    }
+
+    onPress();
+    setIsLoading(false);
+  };
+
+  const handleRegionChangeComplete = (region: Region) => {
+    setCurrentRegion(region); // Remember region as the user interacts
+  };
+
   return (
-    <MapView
-      ref={mapRef}
-      provider={PROVIDER_DEFAULT}
-      style={styles.map}
-      mapType="standard"
-      initialRegion={region}
-      showsUserLocation={true}
-      showsMyLocationButton={true}
-    >
-      {events.map((event, index) => (
-        <Marker 
-          key={index}
-          coordinate={{
-            latitude: event.coordinate.latitude,
-            longitude: event.coordinate.longitude
-          }}
-          title={event.title}
-          onSelect={() => {
-            mapRef.current?.animateToRegion(
-              {
-                latitude: event.coordinate.latitude,
-                longitude: event.coordinate.longitude,
-                latitudeDelta: 0.03,  // Set appropriate zoom level
-                longitudeDelta: 0.03,
-              },
-              1000 // Animation duration in milliseconds
-            );
-            onMarkerSelect(event)
-          }}
+    <View style={styles.map}>
+      {isLoading ? ( 
+        <View className="flex-1 justify-center items-center w-screen h-[350px]">
+          <ActivityIndicator color="#003566" size="large" />
+        </View>
+      ) : (
+        <MapView
+          ref={mapRef}
+          provider={PROVIDER_DEFAULT}
+          style={styles.map}
+          mapType="standard"
+          initialRegion={initialRegion}
+          region={currentRegion || initialRegion}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
+          onRegionChangeComplete={handleRegionChangeComplete}
         >
-          <View className='bg-orange-400 rounded-full p-1'>
-            <Text className="text-white text-xs font-medium">📍</Text>
-          </View>
-        </Marker>
-      ))}
-    </MapView>
+          {eventList.map((event, index) => {
+            const categoryEmojis = {
+              Celebration: { color: '#F1573D', emoji: 'celebration' },
+              Exhibition: { color: '#5669FF', emoji: 'museum' },
+              Entertainment: { color: '#FFC300', emoji: 'stars' },
+              Social: { color: '#39C3F2', emoji: 'handshake' },
+              Community: { color: '#7ED321', emoji: 'groups' },
+            };
+
+            const category = event.category as keyof typeof categoryEmojis;
+            const { color, emoji } = categoryEmojis[category];
+
+            return (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: event.coordinate.latitude,
+                  longitude: event.coordinate.longitude,
+                }}
+                onSelect={() => {
+                  mapRef.current?.animateToRegion(
+                    {
+                      latitude: event.coordinate.latitude,
+                      longitude: event.coordinate.longitude,
+                      latitudeDelta: 0.03,
+                      longitudeDelta: 0.03,
+                    },
+                    1000 // animation duration
+                  );
+                  onMarkerSelect(event);
+                }}
+              >
+                <View className="rounded-full p-1 bg-white">
+                  <MaterialIcons name={emoji as any} size={20} color={color} />
+                </View>
+              </Marker>
+            );
+          })}
+        </MapView>
+      )}
+
+      <TouchableOpacity 
+        className="absolute bottom-[40%] right-[4%] p-3 bg-white rounded-full"
+        onPress={handleUserLocationPress}
+      >
+        <View className="pr-1 py-0.5">
+          <FontAwesome name="paper-plane" size={20} color="#39C3F2" />
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -120,191 +232,3 @@ const styles = StyleSheet.create({
 
 export default Map;
 
-// export default Map
-
-// // if google map were to work, this would be the custom theme of the map to match the mockup
-
-// const mapJson = [
-//     {
-//       "stylers": [
-//         {
-//           "color": "#f5ecff"
-//         }
-//       ]
-//     },
-//     {
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#dedede"
-//         }
-//       ]
-//     },
-//     {
-//       "elementType": "labels.icon",
-//       "stylers": [
-//         {
-//           "visibility": "off"
-//         }
-//       ]
-//     },
-//     {
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#616161"
-//         }
-//       ]
-//     },
-//     {
-//       "elementType": "labels.text.stroke",
-//       "stylers": [
-//         {
-//           "color": "#f5f5f5"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "administrative.land_parcel",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#bdbdbd"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "landscape",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#ebebeb"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "poi",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#e6e6e6"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "poi",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#757575"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "poi.park",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#ebebeb"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "poi.park",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#9e9e9e"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "road",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#ffffff"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "road.arterial",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#757575"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "road.highway",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#dadada"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "road.highway",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#616161"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "road.local",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#9e9e9e"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "transit.line",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#e5e5e5"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "transit.station",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#eeeeee"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "water",
-//       "stylers": [
-//         {
-//           "color": "#ffffff"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "water",
-//       "elementType": "geometry",
-//       "stylers": [
-//         {
-//           "color": "#f6f6f6"
-//         }
-//       ]
-//     },
-//     {
-//       "featureType": "water",
-//       "elementType": "labels.text.fill",
-//       "stylers": [
-//         {
-//           "color": "#9e9e9e"
-//         }
-//       ]
-//     }
-//   ]

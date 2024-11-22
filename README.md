@@ -80,17 +80,19 @@ npm install
 
 In order to install the project's dependancies.
 
-## Google Maps Setup
-Get API Key:
-- Visit [Google Cloud Console](https://console.cloud.google.com/)
-- Create/select a project
-- Enable: Maps SDK (Android & iOS) and Places API
-- Create API key in Credentials
 ### Configure Environment Variables
-- In the root of the locally-app directory, create a .env file
-- Add your API key:
+1. In the root of the locally-app directory, create a .env file
+2. Access the Secure Document [here](https://docs.google.com/document/d/1bepWv1b0VqB63SfvTeV4UX-UDuomuCF0q9mVa0vVFEE/edit?pli=1&tab=t.0)
+- To access the document, ensure you are signed in with your TUmail account.
+- Copy and paste the keys found in the secure document into the .env file. The .env file should include entries similar to the following:
 ``` 
-GOOGLE_API_KEY=your_api_key_here
+GOOGLE_API_KEY=your_google_api_key
+
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+STRIPE_SECRET_KEY=your_stripe_secret_key
+
+EXPO_PUBLIC_SERVER_URL=https://locally.com/
 ```
 
 ### Start the Development Server

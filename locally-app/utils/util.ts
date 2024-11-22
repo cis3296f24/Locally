@@ -40,3 +40,32 @@ export const formatAddress = (
 ): string => {
   return `${street}, ${city}, ${state} ${zipCode}`;
 };
+
+export function formatFirestoreTimestamp(timestamp: Timestamp): string {
+  const now = new Date();
+  const time = timestamp.toDate();
+  const diffMs = now.getTime() - time.getTime();
+
+  const oneSecondMs = 1000;
+  const oneMinuteMs = 60 * oneSecondMs;
+  const oneHourMs = 60 * oneMinuteMs;
+  const oneDayMs = 24 * oneHourMs;
+
+  if (diffMs < oneMinuteMs) {
+    return `Just now`;
+  } else if (diffMs < oneHourMs) {
+    const minutesAgo = Math.floor(diffMs / oneMinuteMs);
+    return `${minutesAgo}m ago`;
+  } else if (diffMs < oneDayMs) {
+    const hoursAgo = Math.floor(diffMs / oneHourMs);
+    return `${hoursAgo}h ago`;
+  } else if (diffMs < 2 * oneDayMs) {
+    return "yesterday";
+  } else {
+    return time.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+}

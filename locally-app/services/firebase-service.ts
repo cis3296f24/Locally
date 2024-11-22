@@ -1,9 +1,9 @@
-import { Firebase_Auth, Firebase_Firestore } from "@/configs/firebase";
-import { User, Event } from "@/types/type";
+import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
+import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, query, setDoc, Timestamp, where } from "firebase/firestore";
-import { removeCurrentUser, saveCurrentUser } from "./storage-service";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
 // Firebase Authentication
 
@@ -96,6 +96,32 @@ export const fetchUserProfile = async (userId: string) => {
   return userSnapshot.data() as User;
 }
 
+export const fetchAllUsers = async () => {
+  try {
+    const currentUser = Firebase_Auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error("No authenticated user found.");
+    }
+
+    const usersRef = collection(Firebase_Firestore, "users");
+    const usersSnapshot = await getDocs(usersRef);
+
+    const users: User[] = usersSnapshot.docs.map((doc) => {
+      return {
+        id: doc.id,
+        ...doc.data(),
+      } as User;
+    }).filter((user) => user.id !== currentUser.uid);
+
+    return users;
+  } catch (error) {
+    console.log("Error fetching users:", error);
+    throw error;
+  }
+};
+
+
 // Firebase Firestore (EVENTS)
 
 export const fetchEventsByCity = async (city: string) => {
@@ -131,4 +157,357 @@ export const fetchEventsByCity = async (city: string) => {
   );
 
   return eventsWithOwners;
+};
+
+// Firebase Firestore (TICKETS)
+
+export const createTicket = async (
+  event: Event,
+  user: User,
+  numTickets: number,
+  total: string
+) => {
+  try {
+    const ticketRef = doc(collection(Firebase_Firestore, 'tickets'));
+
+    const newTicket: Ticket = {
+      ticketId: ticketRef.id,
+      eventName: event.title,
+      eventAddress: `${event.street}, ${event.city}, ${event.state} ${event.zipCode}`,
+      userName: user.fullName,
+      orderNumber: `#${Math.floor(Math.random() * 100000)}`,
+      date: event.dateStart,
+      time: event.timeStart,
+      numTickets: numTickets,
+      total: total,
+      eventImage: event.coverImage ?? "",
+      qrcode: `Event: ${event.title}, Name: ${user.fullName}, Total: ${total}, Number of Tickets: ${numTickets}`,
+
+      eventId: event.id,
+      userId: user.id,
+    };
+
+    const ticketId = newTicket.ticketId;
+    console.log('Ticket created with Firestore-generated ID:', ticketId);
+
+    await setDoc(ticketRef, newTicket);
+
+    const eventTicketRef = doc(Firebase_Firestore, `events/${event.id}/ticket-purchase`, ticketId);
+    await setDoc(eventTicketRef, newTicket);
+
+    // Add ticket to the user's 'ticket-purchase' subcollection
+    const userTicketRef = doc(Firebase_Firestore, `users/${user.id}/ticket-purchase`, ticketId);
+    await setDoc(userTicketRef, newTicket);
+
+    console.log('Ticket created successfully and added to event and user subcollections!');
+
+    const ticketDoc = await getDoc(ticketRef);
+
+    if (ticketDoc.exists()) {
+      return ticketDoc.data() as Ticket;
+    } else {
+      throw new Error('Ticket not found');
+    }
+  } catch (error) {
+    console.error('Error creating ticket:', error);
+    throw new Error('Error creating ticket. Please try again.');
+  }
+}
+
+export const fetchTicketsByUser = async (userId: string) => {
+  const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
+  const querySnapshot = await getDocs(userTicketsRef);
+
+  const tickets = querySnapshot.docs.map((doc) => {
+    return doc.data() as Ticket;
+  });
+
+  return tickets;
+}
+
+
+// Firebase Firestore (CHAT)
+
+const createConversationId = async (
+  userId_1: string, 
+  userId_2: string,
+) => {
+  try {
+    const conversationRef = collection(Firebase_Firestore, 'conversations');
+
+    const newConversationRef = await addDoc(conversationRef, {
+      participants: [userId_1, userId_2],
+      dateCreated: Timestamp.now(),
+      lastMessage: "",
+      lastMessageTimestamp: Timestamp.now(),
+    });
+
+    const newConversationId = newConversationRef.id;
+
+    await addConversationToUser(userId_1, userId_2, newConversationId);
+    await addConversationToUser(userId_2, userId_1, newConversationId);
+
+    return newConversationId;
+  } catch (error) {
+    console.log("Error getting/creating conversation:", error);
+    throw error; 
+  }
+};
+
+const addConversationToUser = async (
+  userId: string, 
+  otherUserId: string, 
+  conversationId: string
+) => {
+  try {
+    const userConversationsRef = collection(Firebase_Firestore, `users/${userId}/user-conversations`);
+
+    await setDoc(doc(userConversationsRef, otherUserId), {
+      conversationId: conversationId,
+      isRead: false,
+    });
+  } catch (error) {
+    console.log(`Error adding conversation to user (${userId}):`, error);
+  }
+};
+
+const updateConversation = async (conversationId: string, lastMessage: string) => {
+  try {
+    const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId); 
+    await updateDoc(conversationRef, {
+      lastMessage: lastMessage,
+      lastMessageTimestamp: Timestamp.now(),
+    });
+  } catch (error) {
+    console.log("Error updating conversation:", error);
+  }
+};
+
+export const updateUserConversationStatus = async (
+  userId: string, 
+  otherUserId: string, 
+  status: boolean
+) => {
+  try {
+    const userConversationsRef = collection(Firebase_Firestore, `users/${userId}/user-conversations`);
+    const conversationDocRef = doc(userConversationsRef, otherUserId);
+
+    await updateDoc(conversationDocRef, {
+      isRead: status,
+    });
+  } catch (error) {
+    console.log("Error updating user conversation status:", error);
+  }
+};
+
+export const sendMessage = async (
+  senderId: string, 
+  recipientId: string,
+  conversationId: string | null, 
+  messageText: string,
+) => {
+  try {
+    const currentConversationId = conversationId 
+      || await createConversationId(senderId, recipientId);
+
+    const messagesRef = collection(Firebase_Firestore, 'conversations', currentConversationId, 'messages');
+
+    const message: Message = {
+      id: messagesRef.id,
+      text: messageText,
+      timestamp: Timestamp.now(),
+      senderId: senderId,
+      recipientId: recipientId,
+    };
+    await addDoc(messagesRef, message);
+
+    await updateConversation(currentConversationId, messageText);
+    await updateUserConversationStatus(senderId, recipientId, true);
+    await updateUserConversationStatus(recipientId, senderId, false);
+
+    return currentConversationId
+  } catch (error) {
+    console.log("Error sending message:", error);
+    throw error;
+  }
+};
+
+export const fetchConversationIdByUserIds = async (
+  senderId: string,
+  recipientId: string
+) => {
+  try {
+    const recipientDocRef = doc(
+      Firebase_Firestore, 
+      `users/${senderId}/user-conversations/${recipientId}`
+    );
+
+    const docSnapshot = await getDoc(recipientDocRef);
+
+    if (docSnapshot.exists()) {
+      return docSnapshot.data().conversationId || null;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching conversation ID:", error);
+    throw error; // Throw the error to handle upstream if needed
+  }
+}
+
+export const listenToConversations = (
+  currentUserId: string,
+  onConversationsUpdated: (conversations: Conversation[]) => void
+) => {
+  const userConversationsRef = collection(Firebase_Firestore, `users/${currentUserId}/user-conversations`);
+
+  const unsubscribe = onSnapshot(
+    userConversationsRef,
+    async (snapshot) => {
+      const conversations: Conversation[] = [];
+
+      for (const docSnapshot of snapshot.docs) {
+        const conversationId = docSnapshot.data().conversationId;
+
+        const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
+        const conversationSnapshot = await getDoc(conversationRef);
+
+        if (conversationSnapshot.exists()) {
+          const conversationData = conversationSnapshot.data();
+          const participants = conversationData.participants;
+
+          const recipientId = participants.find((id: string) => id !== currentUserId);
+          const recipientProfile = recipientId ? await fetchUserProfile(recipientId) : undefined;
+
+          const isRead = docSnapshot.data()?.isRead;
+
+          const conversation: Conversation = {
+            id: conversationId,
+            lastMessage: conversationData.lastMessage || '',
+            lastMessageTimestamp: conversationData.lastMessageTimestamp || Timestamp.now(),
+            isRead: isRead,
+            participants: participants,
+            recipient: recipientProfile,
+          };
+
+          conversations.push(conversation);
+        }
+      }
+      
+      conversations.sort((a, b) => {
+        const aTime = a.lastMessageTimestamp.toDate().getTime();
+        const bTime = b.lastMessageTimestamp.toDate().getTime();
+        return bTime - aTime; // Descending order
+      });
+
+      onConversationsUpdated(conversations);
+    },
+    (error) => {
+      console.error("Error listening to conversations:", error);
+    }
+  );
+
+  return unsubscribe; // Return unsubscribe function to stop the listener when needed
+};
+
+export const fetchMessagesByConversationId = (
+  conversationId: string,
+  onMessagesUpdated: (messages: Message[]) => void
+) => {
+  const messagesRef = collection(Firebase_Firestore, 'conversations', conversationId, 'messages');
+  const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const unsubscribe = onSnapshot(
+    messagesQuery,
+    async (querySnapshot) => {
+      const messagesWithSenders = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const messageData = doc.data();
+
+          const message = {
+            id: doc.id,
+            ...messageData
+          } as Message;
+
+          try {
+            message.sender = await fetchUserProfile(messageData.senderId);
+          } catch (error) {
+            console.error(`Error fetching sender for message ${message.id}:`, error);
+          }
+          
+          return message;
+        })
+      );
+
+      onMessagesUpdated(messagesWithSenders);
+    },
+    (error) => {
+      console.error("Error listening to messages:", error);
+    }
+  );
+
+  return unsubscribe; // Call this to stop listening
+};
+
+export const sendMessageToEvent = async (
+  senderId: string,
+  eventId: string, 
+  messageText: string
+) => {
+  try {
+    const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
+    
+    const message: Message = {
+      id: '', 
+      text: messageText,
+      timestamp: Timestamp.now(),
+      senderId: senderId,
+      recipientId: eventId, 
+    };
+
+    await addDoc(messagesRef, message);
+  } catch (error) {
+    console.error("Error sending message to event:", error);
+    throw error;
+  }
+};
+
+export const fetchEventBasedMessages = (
+  eventId: string,
+  onMessagesUpdated: (messages: Message[]) => void
+) => {
+  const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
+
+  const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const unsubscribe = onSnapshot(
+    messagesQuery,
+    async (querySnapshot) => {
+      const messagesWithSenders = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const messageData = doc.data();
+
+          const message = {
+            id: doc.id,
+            ...messageData,
+          } as Message;
+
+          try {
+            message.sender = await fetchUserProfile(messageData.senderId);
+          } catch (error) {
+            console.error(`Error fetching sender for message ${message.id}:`, error);
+          }
+
+          return message;
+        })
+      );
+
+      onMessagesUpdated(messagesWithSenders); // Pass the updated messages to the callback
+    },
+    (error) => {
+      console.error("Error listening to event messages:", error);
+    }
+  );
+
+  return unsubscribe;
 };

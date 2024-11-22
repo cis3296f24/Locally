@@ -3,7 +3,6 @@ import { View, Text, Image } from 'react-native';
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const TabsLayout = () => {
@@ -48,17 +47,17 @@ const TabsLayout = () => {
       />
 
       <Tabs.Screen
-        name="luis"
+        name="chat"
         options={{
-          title: 'Luis',
+          title: 'Chat',
           headerShown: false,
-          tabBarIcon: ({ color, focused }) =>
+          tabBarIcon: ({color, focused}) => 
             focused ? (
-              <FontAwesome6 name="l" size={24} color={color} />
+              <MaterialCommunityIcons name="chat" size={24} color={color} />
             ) : (
-              <FontAwesome6 name="user" size={24} color={color} />
-            ),
-        }}
+              <MaterialCommunityIcons name="chat-outline" size={24} color={color} />
+            ), 
+        }} 
       />
 
       <Tabs.Screen

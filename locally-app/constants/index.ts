@@ -20,6 +20,12 @@ import barcode from '@/assets/images/barcode.png'
 import painting from '@/assets/images/painting.jpg'
 import noImage from '@/assets/images/no-image.png'
 import noProfileImage from '@/assets/images/no-profile.png'
+import admitOne from '@/assets/images/admit-one.png'
+import comingSoon from '@/assets/images/coming-soon.png'
+import man1 from '@/assets/images/man1.jpg'
+import man2 from '@/assets/images/man2.jpg'
+import woman4 from '@/assets/images/woman4.jpg'
+import woman5 from '@/assets/images/woman5.jpg'
 
 export const icons = {
   calendar,
@@ -45,5 +51,11 @@ export const images = {
   barcode,
   painting,
   noImage,
-  noProfileImage
+  noProfileImage,
+  admitOne,
+  comingSoon,
+  man1,
+  man2,
+  woman4,
+  woman5
 }
