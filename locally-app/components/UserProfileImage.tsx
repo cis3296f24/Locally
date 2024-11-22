@@ -9,7 +9,7 @@ const UserProfileImage = ({
   isOnline = false,
   imageStyle = "w-20 h-20",
   textStyle = "text-sm mt-1 font-bold",
-  buttonStyle = "items-center mr-4",
+  buttonStyle = "items-center",
   onPress
 } : {
   image?: string,
@@ -29,7 +29,7 @@ const UserProfileImage = ({
       onPress={onPress}
       className={buttonStyle}
     >
-      <View className="relative">
+      <View className="relative items-center justify-center">
         <Image
           source={imageSource}
           className={`${imageStyle} rounded-full`}
@@ -39,7 +39,13 @@ const UserProfileImage = ({
         )}
       </View>
       
-      { name && <Text className={textStyle}>{name}</Text> }
+      { name &&  
+        <View className='justify-center, items-center'>
+          <Text className={`${textStyle}`}>
+            {name}
+          </Text>
+        </View>
+      }
 
     </TouchableOpacity>
   );

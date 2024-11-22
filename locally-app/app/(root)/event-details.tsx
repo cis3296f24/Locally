@@ -10,9 +10,11 @@ import { formatAddress, formatDate, formatEventDate, formatEventDateAndTime } fr
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
+import { useUserStore } from '@/store/user';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
+    const { user } = useUserStore();
 
     const imageSource = selectedEvent?.coverImage
         ? { uri: selectedEvent.coverImage }
@@ -242,9 +244,11 @@ const EventDetailsScreen = () => {
             <Chat
                 isVisible={isChatVisible}
                 onClose={() => setIsChatVisible(false)}
-                eventTitle={selectedEvent?.title || ''}
-                eventDate={formatDate(selectedEvent?.dateStart)}
+                title={selectedEvent?.title || 'something'}
+                date={formatDate(selectedEvent?.dateStart)}
                 image={selectedEvent?.coverImage}
+                curretUserId={user?.id || ''}
+                eventId={selectedEvent?.id || ''}   
             />   
         </View>
     )
