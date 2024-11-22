@@ -80,17 +80,17 @@ npm install
 
 In order to install the project's dependancies.
 
-## Google Maps Setup
-Get API Key:
-- Visit [Google Cloud Console](https://console.cloud.google.com/)
-- Create/select a project
-- Enable: Maps SDK (Android & iOS) and Places API
-- Create API key in Credentials
-### Configure Environment Variables
+## Configure Environment Variables
 - In the root of the locally-app directory, create a .env file
-- Add your API key:
+- Copy and paste the following keys into the .env file:
 ``` 
-GOOGLE_API_KEY=your_api_key_here
+GOOGLE_API_KEY=AIzaSyBKMLhQGT462H0-TJjSeyrO-YV3hPCUpIY
+
+STRIPE_PUBLISHABLE_KEY=pk_test_51Q78Qt2LxvcbX1SF730tdyEI9eKKL5RIip7jYtxSqJBrEA8e63X0jJmGwGkqrkXsHE2xp4HhpsFACOE5OpgzZrcq00aWwaF4QO
+
+STRIPE_SECRET_KEY=sk_test_51Q78Qt2LxvcbX1SFSVckr23AQDmHvQfPNQp9jjMTYz4BihZDoK8305ojans5NTQGSzhpIND5TmLVmVUXIv4by9PH00vMwid57D
+
+EXPO_PUBLIC_SERVER_URL=https://locally.com/
 ```
 
 ### Start the Development Server
