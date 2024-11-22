@@ -81,14 +81,16 @@ npm install
 In order to install the project's dependancies.
 
 ### Configure Environment Variables
-- In the root of the locally-app directory, create a .env file
-- Copy and paste the following keys into the .env file:
+1. In the root of the locally-app directory, create a .env file
+2. Access the Secure Document [here](https://docs.google.com/document/d/1bepWv1b0VqB63SfvTeV4UX-UDuomuCF0q9mVa0vVFEE/edit?pli=1&tab=t.0)
+- To access the document, ensure you are signed in with your TUmail account.
+- Copy and paste the keys found in the secure document into the .env file. The .env file should include entries similar to the following:
 ``` 
-GOOGLE_API_KEY=AIzaSyBKMLhQGT462H0-TJjSeyrO-YV3hPCUpIY
+GOOGLE_API_KEY=your_google_api_key
 
-STRIPE_PUBLISHABLE_KEY=pk_test_51Q78Qt2LxvcbX1SF730tdyEI9eKKL5RIip7jYtxSqJBrEA8e63X0jJmGwGkqrkXsHE2xp4HhpsFACOE5OpgzZrcq00aWwaF4QO
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 
-STRIPE_SECRET_KEY=sk_test_51Q78Qt2LxvcbX1SFSVckr23AQDmHvQfPNQp9jjMTYz4BihZDoK8305ojans5NTQGSzhpIND5TmLVmVUXIv4by9PH00vMwid57D
+STRIPE_SECRET_KEY=your_stripe_secret_key
 
 EXPO_PUBLIC_SERVER_URL=https://locally.com/
 ```
