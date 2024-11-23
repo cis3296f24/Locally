@@ -6,7 +6,7 @@ const SeeAll = ({
   title,
   seeAllColor = 'text-gray-500',
   arrowColor = '#6B7280',
-  styling,
+  styling = 'pl-8 pr-6',
   onSeeAllPress
 }: {
   title: string,
@@ -16,7 +16,7 @@ const SeeAll = ({
   onSeeAllPress: () => void
 }) => {
   return (
-    <View className={`flex-row items-center justify-between pl-8 pr-6 ${styling}`}>
+    <View className={`flex-row items-center justify-between ${styling}`}>
       <Text className="text-lg font-semibold color-primary-pBlue">
         {title}
       </Text>

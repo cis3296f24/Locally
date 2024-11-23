@@ -95,6 +95,7 @@ const Explore = () => {
             onClick={() => {
               router.push('./../event-details');
             }}
+            styling='w-[80%]'
           />
         </View>
       )}

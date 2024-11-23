@@ -16,8 +16,8 @@ interface CategoryCardProps { // use this to define the types for the arguments
 
 interface CardPopProps {
   event: Event;
-  additionalStyling?: string;
-  style?: string;
+  styling?: string;
+  imageSize?: string;
   onClick?: () => void;
 }
 

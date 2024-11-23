@@ -61,9 +61,9 @@ const TabsLayout = () => {
       />
 
       <Tabs.Screen
-        name="maxwell"
+        name="profile"
         options={{
-          title: 'Max',
+          title: 'Profile',
           headerShown: false,
           tabBarIcon: ({ color, focused }) =>
             focused ? (
