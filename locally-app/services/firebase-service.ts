@@ -124,6 +124,53 @@ export const fetchAllUsers = async () => {
 
 // Firebase Firestore (EVENTS)
 
+export const fetchEventsByCityWithListener = (
+  city: string,
+  onEventsUpdated: (events: Event[]) => void
+) => {
+  const eventsCollectionRef = collection(Firebase_Firestore, "events");
+  console.log("Fetching events for city:", city)
+
+  const cityQuery = query(
+    eventsCollectionRef,
+    where("city", "==", city)
+  );
+
+  const unsubscribe = onSnapshot(
+    cityQuery,
+    async (querySnapshot) => {
+      const eventsWithOwners = await Promise.all(
+        querySnapshot.docs
+          .filter((doc) => {
+            return doc.data().dateStart.toDate() >= new Date();
+          })
+          .map(async (doc) => {
+            const event = {
+              id: doc.id,
+              ...doc.data(),
+            } as Event;
+
+            try {
+              event.owner = await fetchUserProfile(event.ownerId);
+            } catch (error) {
+              console.error(`Error fetching owner for event ${event.id}:`, error);
+            }
+
+            return event;
+          })
+      );
+
+      onEventsUpdated(eventsWithOwners); // Pass the updated events to the callback
+    },
+    (error) => {
+      console.error("Error listening to events:", error);
+    }
+  );
+
+  return unsubscribe;
+};
+
+
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
 

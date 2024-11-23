@@ -6,7 +6,12 @@ import sparkles from '@/assets/icons/sparkles.png';
 import marker from '@/assets/icons/marker.png';
 import bookmark from '@/assets/icons/bookmark.png';
 import bookmarkFilled from '@/assets/icons/bookmark-filled.png';
+import celebrationSm from '@/assets/icons/celebration-sm.png';
+import celebrationMd from '@/assets/icons/celebration-md.png';
+import celebrationLg from '@/assets/icons/celebration-lg.png';
+import entertainmentMd from '@/assets/icons/entertain-md.png';
 
+import splash from '@/assets/images/splash.png';
 import dog from '@/assets/images/dog.png';
 import concert from '@/assets/images/concert.jpg';
 import organizer from '@/assets/images/organizer.jpg';
@@ -35,7 +40,11 @@ export const icons = {
   sparkles,
   marker,
   bookmark,
-  bookmarkFilled
+  bookmarkFilled,
+  celebrationSm,
+  celebrationMd,
+  celebrationLg,
+  entertainmentMd
 }
 
 export const images = {
@@ -57,5 +66,6 @@ export const images = {
   man1,
   man2,
   woman4,
-  woman5
+  woman5,
+  splash
 }

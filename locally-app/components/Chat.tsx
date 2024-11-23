@@ -3,7 +3,6 @@ import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvo
 import { Ionicons } from '@expo/vector-icons';
 import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
 import { Message } from '@/types/type';
-import { images } from '@/constants';
 import UserProfileImage from './UserProfileImage';
 import { formatFirestoreTimestamp } from '@/utils/util';
 

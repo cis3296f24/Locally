@@ -28,7 +28,7 @@ const EventDetailsScreen = () => {
         ? { uri: selectedEvent.owner.profileImage }
         : images.noProfileImage;
 
-    const isLongText = selectedEvent?.description ? selectedEvent.description.length > 200 : false;
+    const isLongText = selectedEvent?.description ? selectedEvent.description.length > 150 : false;
     const [isExpanded, setIsExpanded] = useState(false);
 
     const [isChatVisible, setIsChatVisible] = useState(false);
