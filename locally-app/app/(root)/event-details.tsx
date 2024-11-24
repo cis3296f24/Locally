@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { images } from '@/constants'
@@ -12,11 +12,12 @@ import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
 import UserProfileImage from '@/components/UserProfileImage';
-import { fetchUserProfileById } from '@/services/firebase-service';
+import { fetchUserProfileById, followUser, unfollowUser } from '@/services/firebase-service';
+import { User } from '@/types/type';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
-    const { user, setSelectedUser } = useUserStore();
+    const { user, selectedUser, setSelectedUser } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const displayedText = isExpanded || (selectedEvent?.description && selectedEvent.description.length <= 200)
@@ -31,9 +32,7 @@ const EventDetailsScreen = () => {
     const eventLocation = selectedEvent?.locationName;
     const eventAddress = formatAddress(selectedEvent?.street, selectedEvent?.city, selectedEvent?.state, selectedEvent?.zipCode);
 
-    const ownerImageSource = selectedEvent?.owner?.profileImage
-        ? selectedEvent.owner.profileImage
-        : images.noProfileImage;
+    console.log("Is Foloowing", selectedUser?.isFollowing);
 
     const [isChatVisible, setIsChatVisible] = useState(false);
 
@@ -50,11 +49,20 @@ const EventDetailsScreen = () => {
     };
 
     const handleOrganizerImageClick = async () => {
-        if (selectedEvent?.owner?.id) {
-            const organizer = await fetchUserProfileById(selectedEvent.owner.id);
-            setSelectedUser(organizer);
-            console.log(organizer);
+        if (selectedUser?.id !== user?.id) {
             router.push("/(root)/user-profile");
+        } else {
+            router.push("/(root)/(tabs)/profile");
+        }
+    }
+
+    const  handleFollowClick = async () => {
+        if (user?.id && selectedUser?.id && !selectedUser?.isFollowing) {
+            await followUser(user.id, selectedUser.id);
+        } 
+      
+        if (user?.id && selectedUser?.id && selectedUser?.isFollowing) {
+            await unfollowUser(user.id, selectedUser.id);
         }
     }
     
@@ -170,14 +178,28 @@ const EventDetailsScreen = () => {
                             subtitle={eventAddress}
                         />
                         <InfoRow
-                            image={selectedEvent?.owner?.profileImage}
+                            image={selectedUser?.profileImage}
                             isImage={true}
-                            title={selectedEvent?.owner?.fullName || 'Organizer Name'}
+                            title={selectedUser?.fullName || 'Organizer Name'}
                             subtitle="Organizer"
                             rightElement={
-                                <TouchableOpacity style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 16, backgroundColor: '#003566' }}>
-                                    <Text style={{ fontSize: 14, color: 'white', marginTop: 2 }}>Follow</Text>
+                                <TouchableOpacity
+                                    onPress={handleFollowClick}
+                                    className={`px-4 py-1.5 rounded-full ${
+                                        selectedUser?.isFollowing
+                                        ? 'bg-white border-0.5 border-primary-pBlue'
+                                        : 'bg-primary-pBlue'
+                                    }`}
+                                    >
+                                    <Text
+                                        className={`${
+                                        selectedUser?.isFollowing ? 'text-primary-pBlue' : 'text-white'
+                                        } text-sm font-semibold`}
+                                    >
+                                        {selectedUser?.isFollowing ? 'Following' : 'Follow'}
+                                    </Text>
                                 </TouchableOpacity>
+
                             }
                         />
 

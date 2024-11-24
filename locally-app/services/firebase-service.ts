@@ -148,10 +148,26 @@ export const fetchAllUsers = async () => {
 export const followUser = async (currentUserId: string, otherUserId: string) => {
   try {
     const currentUserFollowingRef = collection(Firebase_Firestore, `users/${currentUserId}/following`);
-    await setDoc(doc(currentUserFollowingRef, otherUserId), {});
+    setDoc(doc(currentUserFollowingRef, otherUserId), {});
 
     const otherUserFollowersRef = collection(Firebase_Firestore, `users/${otherUserId}/followers`);
-    await setDoc(doc(otherUserFollowersRef, currentUserId), {});
+    setDoc(doc(otherUserFollowersRef, currentUserId), {});
+
+    fetchUserProfileById(currentUserId)
+      .then((currentUser) => {
+        useUserStore.getState().setUser(currentUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
+    
+    fetchUserProfileById(otherUserId)
+      .then((otherUser) => {
+        useUserStore.getState().setSelectedUser(otherUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
 
     console.log("User followed successfully!");
   } catch (error) {
@@ -163,10 +179,26 @@ export const followUser = async (currentUserId: string, otherUserId: string) => 
 export const unfollowUser = async (currentUserId: string, otherUserId: string) => {
   try {
     const currentUserFollowingRef = doc(Firebase_Firestore, `users/${currentUserId}/following`, otherUserId);
-    await deleteDoc(currentUserFollowingRef);
+    deleteDoc(currentUserFollowingRef);
 
     const otherUserFollowersRef = doc(Firebase_Firestore, `users/${otherUserId}/followers`, currentUserId);
-    await deleteDoc(otherUserFollowersRef);
+    deleteDoc(otherUserFollowersRef);
+
+    fetchUserProfileById(currentUserId)
+      .then((currentUser) => {
+        useUserStore.getState().setUser(currentUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
+
+    fetchUserProfileById(otherUserId)
+      .then((otherUser) => {
+        useUserStore.getState().setSelectedUser(otherUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
 
     console.log("User unfollowed successfully!");
   } catch (error) {
@@ -204,11 +236,11 @@ export const fetchEventsByCityWithListener = (
               ...doc.data(),
             } as Event;
 
-            try {
-              event.owner = await fetchUserProfileById(event.ownerId);
-            } catch (error) {
-              console.error(`Error fetching owner for event ${event.id}:`, error);
-            }
+            // try {
+            //   event.owner = await fetchUserProfileById(event.ownerId);
+            // } catch (error) {
+            //   console.error(`Error fetching owner for event ${event.id}:`, error);
+            // }
 
             return event;
           })
@@ -223,7 +255,6 @@ export const fetchEventsByCityWithListener = (
 
   return unsubscribe;
 };
-
 
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
@@ -244,13 +275,6 @@ export const fetchEventsByCity = async (city: string) => {
           id: doc.id,
           ...doc.data(),
         } as Event;
-
-        try {
-          event.owner = await fetchUserProfileById(event.ownerId);
-          // console.log(event.owner.fullName);
-        } catch (error) {
-          console.error(`Error fetching owner for event ${event.id}:`, error);
-        }
 
         return event;
       }

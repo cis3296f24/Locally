@@ -6,12 +6,16 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Event } from '@/types/type'
+import { fetchUserProfileById } from '@/services/firebase-service'
+import { useUserStore } from '@/store/user'
 
 const EventList = () => {
 
   const { events, listTitle, setSelectedEvent } = useEventStore()
 
-  const handleOnCardClick = (event: Event) => {
+  const handleOnCardClick = async (event: Event) => {
+    const owner = await fetchUserProfileById(event.ownerId);
+    useUserStore.getState().setSelectedUser(owner);
     setSelectedEvent(event)
     router.push("/(root)/event-details")
   }

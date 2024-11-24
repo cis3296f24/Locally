@@ -8,17 +8,15 @@ import { formatEventDate } from '@/utils/util';
 import SeeAll from '@/components/SeeAll';
 import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
-import { AntDesign, FontAwesome6, Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
+import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setEvents, setListTitle } = useEventStore();
-  const { user, selectedUser, clearSelectedUser } = useUserStore();
+  const { user, selectedUser, setUser, setSelectedUser, clearSelectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [follow, setFollow] = useState(selectedUser?.isFollowing);
-
-  console.log("isFollowing", follow);
+  const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
 
   const handleSeeAllClick = (title: string) => {
     setListTitle(title)
@@ -26,20 +24,19 @@ const UserProfile = () => {
   }
 
   const handleHambugerClick = () => {
-    clearSelectedUser();
     router.back();
   }
 
   const handleFollowClick = async () => {
-    if (user?.id && selectedUser?.id && !follow) {
+    if (user?.id && selectedUser?.id && !isfollowing) {
       await followUser(user.id, selectedUser.id);
     } 
 
-    if (user?.id && selectedUser?.id && follow) {
+    if (user?.id && selectedUser?.id && isfollowing) {
       await unfollowUser(user.id, selectedUser.id);
     }
 
-    setFollow(!follow);
+    setIsFollowing(!isfollowing);
   }
 
   const useralt = {
@@ -249,13 +246,13 @@ const UserProfile = () => {
                 {/* New Button */}
                 <View className='flex-1 justify-center items-end'>
                   <TouchableOpacity 
-                    className={`${follow 
+                    className={`${isfollowing 
                       ? "bg-white border-secondary-sBlue border" 
                       : "bg-secondary-sBlue" } gap-1 px-6 py-2 rounded-full flex-row items-center`
                     }
                     onPress={handleFollowClick}
                   >
-                    {follow ? (
+                    {isfollowing ? (
                       <>
                         <MaterialCommunityIcons name="account-check-outline" size={20} color="#39C3F2" />
                         <Text className="text-secondary-sBlue font-medium text-lg">Following</Text>
