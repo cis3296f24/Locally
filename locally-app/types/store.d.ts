@@ -12,6 +12,10 @@ interface UserStore {
   user: User | null;
   setUser: (user: User) => void;
   clearUser: () => void;
+
+  selectedUser: User | null;
+  setSelectedUser: (user: User) => void;
+  clearSelectedUser: () => void;
 }
 
 interface EventStore {
@@ -21,6 +25,8 @@ interface EventStore {
   setSelectedEvent: (event: Event) => void;   
   clearSelectedEvent: () => void; 
   
+  listTitle: string;
+  setListTitle: (title: string) => void;
   category: string;
   setCategory: (category: string) => void;
 }

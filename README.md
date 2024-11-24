@@ -74,7 +74,7 @@ npm install -g expo-cli
 3. From the root directory, run the commands
 
 ```
-cd .\locally-app\
+cd locally-app
 npm install
 ```
 

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
+import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, fetchUserProfile, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
 import { Message } from '@/types/type';
-import { images } from '@/constants';
 import UserProfileImage from './UserProfileImage';
 import { formatFirestoreTimestamp } from '@/utils/util';
+import { useUserStore } from '@/store/user';
+import { router } from 'expo-router';
 
 interface ChatProps {
   title: string;
@@ -131,14 +132,17 @@ const Chat: React.FC<ChatProps> = ({
           >
             <MessageList 
               messages={messages} 
-              currentUserId={curretUserId} 
+              currentUserId={curretUserId}
+              onClickUserImage={onClose} 
             />
          
             {/* Input Area */}
             <View>
               <View className="flex-row p-3 mb-4 bg-white border-t border-gray-200 items-center">
 
-                <TouchableOpacity style={{ marginHorizontal: 8 }}>
+                <TouchableOpacity 
+                  style={{ marginHorizontal: 8 }}
+                >
                   <Ionicons name="add-circle-outline" size={27} color="#2196F3" />
                 </TouchableOpacity>
 
@@ -168,12 +172,23 @@ export default Chat;
 
 const MessageList = ({ 
   messages, 
-  currentUserId, 
+  currentUserId,
+  onClickUserImage, 
 } : {
   messages: Message[];
   currentUserId: string;
+  onClickUserImage?: () => void;
 }) => {
   const flatListRef = useRef<FlatList>(null);
+  const { setSelectedUser } = useUserStore();
+
+  const handleUserImagePress = async (userId: string) => {
+    const user = await fetchUserProfile(userId);
+    setSelectedUser(user);
+    onClickUserImage && onClickUserImage();
+    console.log("User", user);
+    router.push('/(root)/user-profile');
+  }
 
   const renderItem = ({ item: message }: { item: Message }) => (
     <View
@@ -185,7 +200,8 @@ const MessageList = ({
       {message.senderId !== currentUserId && message.sender && (
         <UserProfileImage 
           image={message.sender.profileImage} 
-          imageStyle="w-8 h-8 mx-3" 
+          imageStyle="w-8 h-8 mx-3"
+          onPress={() => handleUserImagePress(message.senderId)} 
         />
       )}
       <View

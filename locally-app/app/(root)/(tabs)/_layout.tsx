@@ -1,8 +1,7 @@
 import 'react-native-get-random-values';
-import { View, Text, Image } from 'react-native';
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
 
 const TabsLayout = () => {
@@ -61,13 +60,13 @@ const TabsLayout = () => {
       />
 
       <Tabs.Screen
-        name="maxwell"
+        name="profile"
         options={{
-          title: 'Max',
+          title: 'Profile',
           headerShown: false,
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              <AntDesign name="rocket1" size={24} color={color} />
+              <FontAwesome name="user" size={24} color={color} />
             ) : (
               <AntDesign name="user" size={24} color={color} />
             ),

@@ -4,7 +4,6 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import useLocationStore from '@/store/locationStore';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import { getUserCity } from '@/services/storage-service';
 
 const SearchBar = ({onPress}: {onPress: () => void}) => {
@@ -36,7 +35,7 @@ const SearchBar = ({onPress}: {onPress: () => void}) => {
               destinationCity
             )
             
-            console.log("Destination:", details.geometry.location.lat, details.geometry.location.lng, data.description);
+            console.log("Destination:", details.geometry);
           }
           onPress();
         }}

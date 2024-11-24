@@ -1,13 +1,19 @@
 import { Timestamp } from "firebase/firestore";
 
-export const formatEventDate = (timestamp?: Timestamp) => {
-  const date = timestamp?.toDate();
+export const formatEventDate = (timestamp?: Timestamp, standardTime = false) => {
+  if (!timestamp) return ''; // Handle undefined or null timestamp gracefully
 
-  const day = String(date?.getDate()).padStart(2, '0'); 
-  const month = date?.toLocaleString('default', { month: 'long' });
-  const year = date?.getFullYear();
+  const date = timestamp.toDate(); // Convert Firestore Timestamp to JavaScript Date object
 
-  return `${day} ${month}, ${year}`;
+  const day = String(date.getDate()).padStart(2, '0'); // Ensure day is two digits
+  const monthShort = date.toLocaleString('default', { month: 'short' }); // Abbreviated month name (e.g., Jan, Feb)
+  const monthLong = date.toLocaleString('default', { month: 'long' }); // Full month name (e.g., January)
+  const year = date.getFullYear(); // Get the full year
+
+  // Format based on the standardTime flag
+  return standardTime
+    ? `${monthShort} ${day}, ${year}` // MMM DD, YYYY
+    : `${day} ${monthLong}, ${year}`; // DD Month, YYYY
 };
 
 export const formatDate = (dateStart?: Timestamp) => {

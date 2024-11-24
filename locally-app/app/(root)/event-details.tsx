@@ -11,10 +11,17 @@ import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
+import UserProfileImage from '@/components/UserProfileImage';
+import { fetchUserProfile } from '@/services/firebase-service';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
-    const { user } = useUserStore();
+    const { user, setSelectedUser } = useUserStore();
+
+    const [isExpanded, setIsExpanded] = useState(false);
+    const displayedText = isExpanded || (selectedEvent?.description && selectedEvent.description.length <= 200)
+      ? selectedEvent?.description
+      : `${selectedEvent?.description.slice(0, 200)}...`;
 
     const imageSource = selectedEvent?.coverImage
         ? { uri: selectedEvent.coverImage }
@@ -25,11 +32,8 @@ const EventDetailsScreen = () => {
     const eventAddress = formatAddress(selectedEvent?.street, selectedEvent?.city, selectedEvent?.state, selectedEvent?.zipCode);
 
     const ownerImageSource = selectedEvent?.owner?.profileImage
-        ? { uri: selectedEvent.owner.profileImage }
+        ? selectedEvent.owner.profileImage
         : images.noProfileImage;
-
-    const isLongText = selectedEvent?.description ? selectedEvent.description.length > 200 : false;
-    const [isExpanded, setIsExpanded] = useState(false);
 
     const [isChatVisible, setIsChatVisible] = useState(false);
 
@@ -44,18 +48,36 @@ const EventDetailsScreen = () => {
     const handleGoBack = () => {
         router.back(); 
     };
+
+    const handleOrganizerImageClick = async () => {
+        if (selectedEvent?.owner?.id) {
+            const organizer = await fetchUserProfile(selectedEvent.owner.id);
+            setSelectedUser(organizer);
+            console.log(organizer);
+            router.push("/(root)/user-profile");
+        }
+    }
     
-    const InfoRow = ({ icon, title, subtitle, rightElement, isImage = false}: any) => {
-        
+    const InfoRow = ({ 
+        icon, title, subtitle, rightElement, image
+    }: {
+        icon?: any,
+        title: string,
+        subtitle: string,
+        rightElement?: React.ReactNode,
+        image?: string
+    } ) => {
         return (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
                 <View style={{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
-                    {isImage ? (
-                        <Image
-                            source={icon.uri ? { uri: icon.uri } : icon} 
-                            style={{ width: 40, height: 40, borderRadius: 50 }}
+                    {image && (
+                        <UserProfileImage 
+                            image={image} 
+                            imageStyle="w-12 h-12 items-center justify-center"
+                            onPress={handleOrganizerImageClick}
                         />
-                    ) : (
+                    )}
+                    {icon && (
                         <Ionicons name={icon} size={30} color="#003566" />
                     )}
                 </View>
@@ -143,12 +165,11 @@ const EventDetailsScreen = () => {
                             subtitle={eventInterval}
                         />
                         <InfoRow icon="location"
-                            title={eventLocation}
+                            title={eventLocation || 'Location Name'}
                             subtitle={eventAddress}
                         />
                         <InfoRow
-                            isImage={true} 
-                            icon={ownerImageSource}
+                            image={ownerImageSource}
                             title={selectedEvent?.owner?.fullName || 'Organizer Name'}
                             subtitle="Organizer"
                             rightElement={
@@ -162,16 +183,17 @@ const EventDetailsScreen = () => {
 
                         <View style={{ marginBottom: 24 }}>
                             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>About Event</Text>
-                            <Text style={{ fontSize: 14, lineHeight: 20 }} numberOfLines={isExpanded ? undefined : 3 }>
-                                {selectedEvent?.description}
-                            </Text>
-                            { isLongText && (
-                                <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-                                    <Text style={{ color: '#003566', marginTop: 4 }}>
-                                        {isExpanded ? ' Read Less...' : ' Read More...'}
+                            <Text className="text-gray-600">
+                                {displayedText}
+                                {selectedEvent?.description && selectedEvent.description.length > 200 && (
+                                    <Text 
+                                        className="text-blue-500 font-medium"
+                                        onPress={() => setIsExpanded(!isExpanded)}
+                                    >
+                                        {isExpanded ? " Show Less" : " Read More"}
                                     </Text>
-                                </TouchableOpacity>
-                            )}
+                                )}
+                            </Text>
                         </View>
 
 
