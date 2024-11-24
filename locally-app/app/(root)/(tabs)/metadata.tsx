@@ -13,8 +13,13 @@ import { images } from '@/constants'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
-  const { events, setEvents } = useEventStore();
+  const { events, setEvents, setListTitle } = useEventStore();
   const { destinationCity } = useLocationStore();
+
+  const handleSeeAllClick = (title: string) => {
+    setListTitle(title)
+    router.push('/(root)/event-list')
+  }
 
   return (
     <SafeAreaView className='h-full w-full'>
@@ -32,8 +37,8 @@ const Metadata = () => {
               title="Upcoming Events"
               seeAllColor='text-secondary-sBlue'
               arrowColor='#39C3F2'
-              styling='mt-6 mb-3'
-              onSeeAllPress={() => router.push('./../event-list')}
+              styling='mt-6 mb-3 ml-8 mr-4'
+              onSeeAllPress={(value) => handleSeeAllClick(value)}
             />
 
             <EventHorizontalList events={events || []} />
@@ -42,7 +47,7 @@ const Metadata = () => {
               title="Recently Viewed"
               seeAllColor='text-secondary-sBlue'
               arrowColor='#39C3F2'
-              styling='mt-6'
+              styling='mt-6 ml-8 mr-4'
               onSeeAllPress={() => {}}
             />
           </>

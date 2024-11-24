@@ -8,24 +8,24 @@ import { formatEventDate } from '@/utils/util';
 import SeeAll from '@/components/SeeAll';
 import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome6, Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
+import { useUserStore } from '@/store/user';
 
-const Profile = () => {
+const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setEvents, setListTitle } = useEventStore();
+  const { selectedUser, clearSelectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [follow, setFollow] = useState(false);
 
   const handleSeeAllClick = (title: string) => {
     setListTitle(title)
     router.push('/(root)/event-list')
   }
 
-  const handleHambugerClick = async () => {
-    const isSignedOut = await signOutUser()
-    if (isSignedOut) {
-      console.log('User signed out successfully')
-      router.replace('/(auth)/login')
-    }
+  const handleHambugerClick = () => {
+    clearSelectedUser();
+    router.back();
   }
 
   const user = {
@@ -196,8 +196,8 @@ const Profile = () => {
                 <View className="items-center flex-1"></View>
 
                 <UserProfileImage 
-                  image="https://firebasestorage.googleapis.com/v0/b/locally-c61ed.firebasestorage.app/o/david.png?alt=media&token=564cb2c7-0e8c-4124-b97b-4a6ce696fcc6"
-                  name={user.name}
+                  image={selectedUser?.profileImage}
+                  name={selectedUser?.fullName}
                   isSubscribed={true}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
@@ -210,7 +210,7 @@ const Profile = () => {
                   <TouchableOpacity 
                     onPress={handleHambugerClick} 
                   >
-                    <Ionicons name="reorder-three-outline" size={36} color="#003566" />
+                    <Ionicons name="close" size={36} color="#003566" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -227,26 +227,38 @@ const Profile = () => {
                 </View>
               </View>
 
-              <View className="flex-row justify-center items-center gap-8 px-20">
+              <View className="flex-row justify-center items-center gap-8 px-16">
                 {/* New Button */}
                 <View className='flex-1 justify-center items-end'>
                   <TouchableOpacity 
-                    className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                    onPress={() => {}}
+                    className={`${follow 
+                      ? "bg-white border-secondary-sBlue border" 
+                      : "bg-secondary-sBlue" } gap-1 px-6 py-2 rounded-full flex-row items-center`
+                    }
+                    onPress={() => {setFollow(!follow)}}
                   >
-                    <Ionicons name="add" size={24} color="white" />
-                    <Text className="text-white font-medium text-lg">New</Text>
+                    {follow ? (
+                      <>
+                        <MaterialCommunityIcons name="account-check-outline" size={20} color="#39C3F2" />
+                        <Text className="text-secondary-sBlue font-medium text-lg">Following</Text>
+                      </>
+                    ): (
+                      <>
+                        <AntDesign name="adduser" size={20} color="white" />
+                        <Text className="text-white font-medium text-lg">Follow</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
 
                 {/* Edit Button */}
                 <View className='flex-1 justify-center items-center'>
                   <TouchableOpacity 
-                    className="border border-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+                    className="border border-secondary-sBlue gap-2 px-6 py-2 rounded-full flex-row items-center"
                     onPress={() => {}}
                   >
-                    <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
-                    <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
+                    <Ionicons name="chatbubble-outline" size={20} color="#39C3F2" />
+                    <Text className="text-secondary-sBlue font-medium text-lg">Message</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -275,4 +287,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default UserProfile

@@ -13,7 +13,7 @@ const SeeAll = ({
   seeAllColor?: string,
   arrowColor?: string,
   styling?: string,
-  onSeeAllPress: () => void
+  onSeeAllPress: (title: string) => void
 }) => {
   return (
     <View className={`flex-row items-center justify-between ${styling}`}>
@@ -21,7 +21,7 @@ const SeeAll = ({
         {title}
       </Text>
       
-      <TouchableOpacity onPress={onSeeAllPress}>
+      <TouchableOpacity onPress={() => onSeeAllPress(title)}>
         <View className='flex-row gap-1 items-center'>
           <Text className={`font-medium ${seeAllColor}`}>
             See All
