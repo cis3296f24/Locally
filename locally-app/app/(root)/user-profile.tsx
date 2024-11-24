@@ -16,7 +16,9 @@ const UserProfile = () => {
   const { events, setEvents, setListTitle } = useEventStore();
   const { user, selectedUser, clearSelectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [follow, setFollow] = useState(false);
+  const [follow, setFollow] = useState(selectedUser?.isFollowing);
+
+  console.log("isFollowing", follow);
 
   const handleSeeAllClick = (title: string) => {
     setListTitle(title)
@@ -229,12 +231,16 @@ const UserProfile = () => {
 
               <View className="flex-row">
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{useralt.following}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">
+                    {selectedUser?.followingIds?.length}
+                  </Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{useralt.followers}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">
+                    {selectedUser?.followersIds?.length}
+                  </Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>
               </View>

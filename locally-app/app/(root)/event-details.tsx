@@ -12,7 +12,7 @@ import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
 import UserProfileImage from '@/components/UserProfileImage';
-import { fetchUserProfile } from '@/services/firebase-service';
+import { fetchUserProfileById } from '@/services/firebase-service';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
@@ -51,7 +51,7 @@ const EventDetailsScreen = () => {
 
     const handleOrganizerImageClick = async () => {
         if (selectedEvent?.owner?.id) {
-            const organizer = await fetchUserProfile(selectedEvent.owner.id);
+            const organizer = await fetchUserProfileById(selectedEvent.owner.id);
             setSelectedUser(organizer);
             console.log(organizer);
             router.push("/(root)/user-profile");

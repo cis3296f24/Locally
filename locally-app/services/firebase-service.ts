@@ -45,7 +45,7 @@ export const signInUser = async ({
 }) => {
   try {
     const userCredential = await signInWithEmailAndPassword(Firebase_Auth, email, password);
-    const user = await fetchUserProfile(userCredential.user.uid);
+    const user = await fetchUserProfileById(userCredential.user.uid);
     
     useUserStore.getState().setUser(user);
 
@@ -85,15 +85,37 @@ export const updateUserProfile = async (userData: User) => {
   }
 }
 
-export const fetchUserProfile = async (userId: string) => {
-  const userRef = doc(Firebase_Firestore, 'users', userId);
-  const userSnapshot = await getDoc(userRef);
+export const fetchUserProfileById = async (userId: string) => {
+  try {
+    const userRef = doc(Firebase_Firestore, 'users', userId);
+    const userSnapshot = await getDoc(userRef);
 
-  if (!userSnapshot.exists()) {
-    throw new Error('User not found');
+    if (!userSnapshot.exists()) {
+      throw new Error('User not found');
+    }
+
+    const userData = userSnapshot.data();
+
+    const followingRef = collection(Firebase_Firestore, `users/${userId}/following`);
+    const followingSnapshot = await getDocs(followingRef);
+    const followingIds = followingSnapshot.docs.map((doc) => doc.id);
+
+    const followersRef = collection(Firebase_Firestore, `users/${userId}/followers`);
+    const followersSnapshot = await getDocs(followersRef);
+    const followersIds = followersSnapshot.docs.map((doc) => doc.id);
+
+    const isFollowing = followersIds.includes(useUserStore.getState().user?.id ?? '');
+
+    return {
+      ...userData,
+      followingIds,
+      followersIds,
+      isFollowing,
+    } as User;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    throw error;
   }
-
-  return userSnapshot.data() as User;
 }
 
 export const fetchAllUsers = async () => {
@@ -183,7 +205,7 @@ export const fetchEventsByCityWithListener = (
             } as Event;
 
             try {
-              event.owner = await fetchUserProfile(event.ownerId);
+              event.owner = await fetchUserProfileById(event.ownerId);
             } catch (error) {
               console.error(`Error fetching owner for event ${event.id}:`, error);
             }
@@ -224,7 +246,7 @@ export const fetchEventsByCity = async (city: string) => {
         } as Event;
 
         try {
-          event.owner = await fetchUserProfile(event.ownerId);
+          event.owner = await fetchUserProfileById(event.ownerId);
           // console.log(event.owner.fullName);
         } catch (error) {
           console.error(`Error fetching owner for event ${event.id}:`, error);
@@ -456,7 +478,7 @@ export const listenToConversations = (
           const participants = conversationData.participants;
 
           const recipientId = participants.find((id: string) => id !== currentUserId);
-          const recipientProfile = recipientId ? await fetchUserProfile(recipientId) : undefined;
+          const recipientProfile = recipientId ? await fetchUserProfileById(recipientId) : undefined;
 
           const isRead = docSnapshot.data()?.isRead;
 
@@ -509,7 +531,7 @@ export const fetchMessagesByConversationId = (
           } as Message;
 
           try {
-            message.sender = await fetchUserProfile(messageData.senderId);
+            message.sender = await fetchUserProfileById(messageData.senderId);
           } catch (error) {
             console.error(`Error fetching sender for message ${message.id}:`, error);
           }
@@ -572,7 +594,7 @@ export const fetchEventBasedMessages = (
           } as Message;
 
           try {
-            message.sender = await fetchUserProfile(messageData.senderId);
+            message.sender = await fetchUserProfileById(messageData.senderId);
           } catch (error) {
             console.error(`Error fetching sender for message ${message.id}:`, error);
           }

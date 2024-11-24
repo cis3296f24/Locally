@@ -8,6 +8,10 @@ interface User {
   isSubscribed: boolean = false;
   profileImage: string = "";
 
+  // optional
+  followingIds?: string[];
+  followersIds?: string[];
+  isFollowing?: boolean;
   bio?: string;
   bookmarkedEvents?: Event[];
   hostedEvents?: Event[];

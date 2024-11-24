@@ -219,12 +219,16 @@ const Profile = () => {
 
               <View className="flex-row">
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{userAlt.following}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">
+                    {user?.followingIds?.length}
+                  </Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{userAlt.followers}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">
+                    {user?.followersIds?.length}
+                  </Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>
               </View>
