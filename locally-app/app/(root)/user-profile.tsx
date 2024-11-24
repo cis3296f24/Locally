@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList } from 'react-native'
 import React, { useState } from 'react'
-import { signOutUser } from '@/services/firebase-service'
+import { followUser, signOutUser, unfollowUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { images } from '@/constants';
@@ -14,7 +14,7 @@ import { useUserStore } from '@/store/user';
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setEvents, setListTitle } = useEventStore();
-  const { selectedUser, clearSelectedUser } = useUserStore();
+  const { user, selectedUser, clearSelectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [follow, setFollow] = useState(false);
 
@@ -28,7 +28,19 @@ const UserProfile = () => {
     router.back();
   }
 
-  const user = {
+  const handleFollowClick = async () => {
+    if (user?.id && selectedUser?.id && !follow) {
+      await followUser(user.id, selectedUser.id);
+    } 
+
+    if (user?.id && selectedUser?.id && follow) {
+      await unfollowUser(user.id, selectedUser.id);
+    }
+
+    setFollow(!follow);
+  }
+
+  const useralt = {
     name: "David Rose",
     following: 350,
     followers: 346,
@@ -146,9 +158,9 @@ const UserProfile = () => {
     </View>
   );
 
-  const displayedText = isExpanded || user.bio.length <= 200 
-      ? user.bio 
-      : `${user.bio.slice(0, 200)}...`;
+  const displayedText = isExpanded || useralt.bio.length <= 200 
+      ? useralt.bio 
+      : `${useralt.bio.slice(0, 200)}...`;
 
   const renderBioTab = () => (
     <View className='bg-white mt-8 gap-2 px-4'>
@@ -157,7 +169,7 @@ const UserProfile = () => {
       </Text>
       <Text className="text-gray-600">
         {displayedText}
-        {user.bio.length > 200 && (
+        {useralt.bio.length > 200 && (
           <Text 
             className="text-blue-500 font-medium py-0"
             onPress={() => setIsExpanded(!isExpanded)}
@@ -217,12 +229,12 @@ const UserProfile = () => {
 
               <View className="flex-row">
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{user.following}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">{useralt.following}</Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{user.followers}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">{useralt.followers}</Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>
               </View>
@@ -235,7 +247,7 @@ const UserProfile = () => {
                       ? "bg-white border-secondary-sBlue border" 
                       : "bg-secondary-sBlue" } gap-1 px-6 py-2 rounded-full flex-row items-center`
                     }
-                    onPress={() => {setFollow(!follow)}}
+                    onPress={handleFollowClick}
                   >
                     {follow ? (
                       <>

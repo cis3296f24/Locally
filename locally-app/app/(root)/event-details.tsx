@@ -59,21 +59,22 @@ const EventDetailsScreen = () => {
     }
     
     const InfoRow = ({ 
-        icon, title, subtitle, rightElement, image
+        icon, title, subtitle, rightElement, image, isImage = false
     }: {
         icon?: any,
         title: string,
         subtitle: string,
         rightElement?: React.ReactNode,
-        image?: string
+        image?: string,
+        isImage?: boolean
     } ) => {
         return (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
                 <View style={{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
-                    {image && (
+                    {isImage && (
                         <UserProfileImage 
                             image={image} 
-                            imageStyle="w-12 h-12 items-center justify-center"
+                            imageStyle="w-10 h-10 items-center justify-center"
                             onPress={handleOrganizerImageClick}
                         />
                     )}
@@ -169,7 +170,8 @@ const EventDetailsScreen = () => {
                             subtitle={eventAddress}
                         />
                         <InfoRow
-                            image={ownerImageSource}
+                            image={selectedEvent?.owner?.profileImage}
+                            isImage={true}
                             title={selectedEvent?.owner?.fullName || 'Organizer Name'}
                             subtitle="Organizer"
                             rightElement={

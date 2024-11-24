@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
@@ -117,6 +117,38 @@ export const fetchAllUsers = async () => {
     return users;
   } catch (error) {
     console.log("Error fetching users:", error);
+    throw error;
+  }
+};
+
+// Firebase Firestore (FOLLOWERS/FOLLOWING)
+
+export const followUser = async (currentUserId: string, otherUserId: string) => {
+  try {
+    const currentUserFollowingRef = collection(Firebase_Firestore, `users/${currentUserId}/following`);
+    await setDoc(doc(currentUserFollowingRef, otherUserId), {});
+
+    const otherUserFollowersRef = collection(Firebase_Firestore, `users/${otherUserId}/followers`);
+    await setDoc(doc(otherUserFollowersRef, currentUserId), {});
+
+    console.log("User followed successfully!");
+  } catch (error) {
+    console.error("Error following user:", error);
+    throw error;
+  }
+};
+
+export const unfollowUser = async (currentUserId: string, otherUserId: string) => {
+  try {
+    const currentUserFollowingRef = doc(Firebase_Firestore, `users/${currentUserId}/following`, otherUserId);
+    await deleteDoc(currentUserFollowingRef);
+
+    const otherUserFollowersRef = doc(Firebase_Firestore, `users/${otherUserId}/followers`, currentUserId);
+    await deleteDoc(otherUserFollowersRef);
+
+    console.log("User unfollowed successfully!");
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
     throw error;
   }
 };
