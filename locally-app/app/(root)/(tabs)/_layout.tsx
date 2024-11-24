@@ -1,8 +1,7 @@
 import 'react-native-get-random-values';
-import { View, Text, Image } from 'react-native';
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { FontAwesome6, AntDesign, MaterialCommunityIcons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
 
 const TabsLayout = () => {

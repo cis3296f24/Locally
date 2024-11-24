@@ -7,6 +7,10 @@ interface User {
   username?: string = null;
   isSubscribed: boolean = false;
   profileImage: string = "";
+
+  bio?: string;
+  bookmarkedEvents?: Event[];
+  hostedEvents?: Event[];
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments

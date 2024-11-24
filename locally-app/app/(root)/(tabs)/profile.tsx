@@ -9,11 +9,13 @@ import SeeAll from '@/components/SeeAll';
 import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
 import { Ionicons } from '@expo/vector-icons';
+import { useUserStore } from '@/store/user';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setEvents, setListTitle } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { user } = useUserStore();
 
   const handleSeeAllClick = (title: string) => {
     setListTitle(title)
@@ -28,7 +30,7 @@ const Profile = () => {
     }
   }
 
-  const user = {
+  const userAlt = {
     name: "David Rose",
     following: 350,
     followers: 346,
@@ -146,9 +148,9 @@ const Profile = () => {
     </View>
   );
 
-  const displayedText = isExpanded || user.bio.length <= 200 
-      ? user.bio 
-      : `${user.bio.slice(0, 200)}...`;
+  const displayedText = isExpanded || userAlt.bio.length <= 200 
+      ? userAlt.bio 
+      : `${userAlt.bio.slice(0, 200)}...`;
 
   const renderBioTab = () => (
     <View className='bg-white mt-8 gap-2 px-4'>
@@ -157,7 +159,7 @@ const Profile = () => {
       </Text>
       <Text className="text-gray-600">
         {displayedText}
-        {user.bio.length > 200 && (
+        {userAlt.bio.length > 200 && (
           <Text 
             className="text-blue-500 font-medium py-0"
             onPress={() => setIsExpanded(!isExpanded)}
@@ -196,8 +198,8 @@ const Profile = () => {
                 <View className="items-center flex-1"></View>
 
                 <UserProfileImage 
-                  image="https://firebasestorage.googleapis.com/v0/b/locally-c61ed.firebasestorage.app/o/david.png?alt=media&token=564cb2c7-0e8c-4124-b97b-4a6ce696fcc6"
-                  name={user.name}
+                  image={user?.profileImage}
+                  name={user?.fullName}
                   isSubscribed={true}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
@@ -217,12 +219,12 @@ const Profile = () => {
 
               <View className="flex-row">
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{user.following}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">{userAlt.following}</Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{user.followers}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">{userAlt.followers}</Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>
               </View>
