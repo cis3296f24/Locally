@@ -40,7 +40,13 @@ export default {
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      ["expo-router", {"origin": "https://locally.com/"}]
+      ["expo-router", {"origin": "https://locally.com/"}],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

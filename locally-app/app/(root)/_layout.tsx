@@ -10,6 +10,7 @@ const CoreLayout = () => {
       <Stack.Screen name="event-list" options={{ headerShown: false }} />
       <Stack.Screen name="ticket-list" options={{ headerShown: false }} />
       <Stack.Screen name="user-profile" options={{ headerShown: false }} />
+      <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
     </Stack>
   );
 };

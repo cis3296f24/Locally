@@ -3,7 +3,8 @@ import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
+import * as FileSystem from 'expo-file-system';
 
 // Firebase Authentication
 
@@ -22,7 +23,7 @@ export const signUpUser = async ({
       id: userCredential.user.uid,
       email,
       fullName,
-      username: fullName.split(' ')[0].toLowerCase(),
+      username: fullName.split(' ')[0].toLowerCase().slice(0, 16),
       isSubscribed: false,
       profileImage: "",
     }
@@ -65,6 +66,37 @@ export const signOutUser = async () => {
     return false
   }
 }
+
+// Firebase Storage
+
+export const uploadImage = async (fileUri: string, userId: string) => {
+  try {
+    const { uri } = await FileSystem.getInfoAsync(fileUri)
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => {
+        resolve(xhr.response);
+      };
+      xhr.onerror = (e) => {
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
+    console.log('Blob', blob)
+
+    const fileName = fileUri.split('/').pop();
+    const storageRef = ref(Firebase_Storage, `profile_images/${userId}/${fileName}`);
+    await uploadBytes(storageRef, blob as Blob);
+
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw new Error('Error uploading image. Please try again.');
+  }
+};
 
 // Firebase Firestore (USER)
 

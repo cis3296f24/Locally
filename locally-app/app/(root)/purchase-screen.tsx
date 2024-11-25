@@ -94,7 +94,7 @@ const PurchaseScreen = () => {
           <View className="pb-5 items-center">
             <CardPop
               event={event}
-              style="bg-white p-2 rounded-2xl shadow-md w-[375px] flex-row items-center"
+              imageSize="h-[100px] w-[100px]"
             />
           </View>
 

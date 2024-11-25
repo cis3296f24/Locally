@@ -8,6 +8,7 @@ const UserProfileImage = ({
   name,
   isOnline = false,
   isSubscribed = false,
+  isDisabled = false,
   imageStyle = "w-20 h-20",
   dotStyle = "bottom-0 right-0 w-4 h-4",
   textStyle = "text-sm mt-1 font-bold",
@@ -18,6 +19,7 @@ const UserProfileImage = ({
   name?: string,
   isOnline?: boolean,
   isSubscribed?: boolean,
+  isDisabled?: boolean,
   imageStyle?: string,
   dotStyle?: string,
   textStyle?: string,
@@ -32,6 +34,7 @@ const UserProfileImage = ({
     <TouchableOpacity
       onPress={onPress}
       className={buttonStyle}
+      disabled={isDisabled}
     >
       <View className="relative items-center justify-center">
         <Image

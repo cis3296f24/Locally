@@ -157,9 +157,9 @@ const UserProfile = () => {
     </View>
   );
 
-  const displayedText = isExpanded || useralt.bio.length <= 200 
-      ? useralt.bio 
-      : `${useralt.bio.slice(0, 200)}...`;
+  const displayedText = isExpanded || !selectedUser?.bio || selectedUser.bio.length <= 200 
+    ? selectedUser?.bio 
+    : `${selectedUser?.bio.slice(0, 200)}...`;
 
   const renderBioTab = () => (
     <View className='bg-white mt-8 gap-2 px-4'>
@@ -167,13 +167,13 @@ const UserProfile = () => {
         About Me
       </Text>
       <Text className="text-gray-600">
-        {displayedText}
-        {useralt.bio.length > 200 && (
+        {displayedText || "Something about me..."}
+        {selectedUser?.bio && selectedUser.bio.length > 200 && (
           <Text 
-            className="text-blue-500 font-medium py-0"
+            className="text-secondary-sBlue font-semibold py-0"
             onPress={() => setIsExpanded(!isExpanded)}
           >
-            {isExpanded ? " Show Less" : " Read More"}
+            {isExpanded ? "  Show Less" : " Read More"}
           </Text>
         )}
       </Text>
@@ -208,13 +208,13 @@ const UserProfile = () => {
 
                 <UserProfileImage 
                   image={selectedUser?.profileImage}
-                  name={selectedUser?.fullName}
+                  name={selectedUser?.username}
                   isSubscribed={true}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
                   textStyle="text-2xl mt-2 font-bold text-primary-pBlue"
                   buttonStyle="items-center"
-                  onPress={() => signOutUser()}
+                  onPress={() => {}}
                 />
 
                 <View className="flex-1 items-end h-full">
