@@ -9,12 +9,12 @@ interface User {
   profileImage: string = "";
 
   // optional
-  followingIds?: string[];
-  followersIds?: string[];
+  followingCount: number;
+  followersCount: number;
   isFollowing?: boolean;
   bio?: string;
-  bookmarkedEvents?: Event[];
-  hostedEvents?: Event[];
+  // bookmarkedEvents?: Event[];
+  // hostedEvents?: Event[];
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments
@@ -89,7 +89,7 @@ type PrimaryButtonProps = {
   onPress: () => void;
   icon?: any;
   bgColor?: string;
-  textcolor?: string;
+  textStyle?: string;
   iconBgColor?: string;
   iconColor?: string;
   iconVisible?: boolean;

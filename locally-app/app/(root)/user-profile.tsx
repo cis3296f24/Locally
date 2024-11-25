@@ -229,14 +229,14 @@ const UserProfile = () => {
               <View className="flex-row">
                 <View className="items-center px-6">
                   <Text className="text-lg font-semibold text-primary-pBlue">
-                    {selectedUser?.followingIds?.length}
+                    {selectedUser?.followingCount}
                   </Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
                   <Text className="text-lg font-semibold text-primary-pBlue">
-                    {selectedUser?.followersIds?.length}
+                    {selectedUser?.followersCount}
                   </Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>

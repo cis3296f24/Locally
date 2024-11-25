@@ -5,14 +5,18 @@ import PrimaryButton from './PrimaryButton';
 import { fetchAPI } from '@/lib/fetch';
 
 const Payment = ({
+  title="pay now",
   name,
   email,
   amount,
+  textStyle,
   onPaymentStatus
 }: {
+  title?: string,
   name?: string,
   email?: string,
   amount?: string,
+  textStyle?: string,
   onPaymentStatus: (status: 'success' | 'failure') => void;
 }) => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -109,10 +113,11 @@ const Payment = ({
   return (
     <View>
       <PrimaryButton
-        text="pay now"
+        text={title}
         onPress={didTapCheckoutButton}
         bgColor="bg-[#003566]"
         iconBgColor="bg-[#39C3F2]"
+        textStyle={textStyle}
       />
     </View>
   );

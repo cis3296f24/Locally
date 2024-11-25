@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc, getCountFromServer } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
@@ -26,6 +26,8 @@ export const signUpUser = async ({
       username: fullName.split(' ')[0].toLowerCase().slice(0, 16),
       isSubscribed: false,
       profileImage: "",
+      followingCount: 0,
+      followersCount: 0
     }
 
     await updateUserProfile(user);
@@ -129,10 +131,10 @@ export const fetchUserProfileById = async (userId: string) => {
     const userData = userSnapshot.data();
 
     const followingRef = collection(Firebase_Firestore, `users/${userId}/following`);
-    const followingSnapshot = await getDocs(followingRef);
-    const followingIds = followingSnapshot.docs.map((doc) => doc.id);
+    const followingCount = (await getCountFromServer(followingRef)).data().count;
 
     const followersRef = collection(Firebase_Firestore, `users/${userId}/followers`);
+    const followersCount = (await getCountFromServer(followersRef)).data().count;
     const followersSnapshot = await getDocs(followersRef);
     const followersIds = followersSnapshot.docs.map((doc) => doc.id);
 
@@ -140,10 +142,10 @@ export const fetchUserProfileById = async (userId: string) => {
 
     return {
       ...userData,
-      followingIds,
-      followersIds,
+      followingCount,
+      followersCount,
       isFollowing,
-    } as User;
+    } as unknown as User;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     throw error;
