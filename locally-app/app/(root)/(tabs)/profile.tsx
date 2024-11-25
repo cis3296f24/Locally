@@ -23,11 +23,7 @@ const Profile = () => {
   }
 
   const handleHambugerClick = async () => {
-    const isSignedOut = await signOutUser()
-    if (isSignedOut) {
-      console.log('User signed out successfully')
-      router.replace('/(auth)/login')
-    }
+    router.push('/(root)/edit-profile')
   }
 
   const userAlt = {
@@ -148,9 +144,9 @@ const Profile = () => {
     </View>
   );
 
-  const displayedText = isExpanded || userAlt.bio.length <= 200 
-      ? userAlt.bio 
-      : `${userAlt.bio.slice(0, 200)}...`;
+  const displayedText = isExpanded || !user?.bio || user.bio.length <= 200 
+    ? user?.bio 
+    : `${user?.bio.slice(0, 200)}...`;
 
   const renderBioTab = () => (
     <View className='bg-white mt-8 gap-2 px-4'>
@@ -158,13 +154,13 @@ const Profile = () => {
         About Me
       </Text>
       <Text className="text-gray-600">
-        {displayedText}
-        {userAlt.bio.length > 200 && (
+        {displayedText || "Something about me..."}
+        {user?.bio && user.bio.length > 200 && (
           <Text 
-            className="text-blue-500 font-medium py-0"
+            className="text-secondary-sBlue font-semibold py-0"
             onPress={() => setIsExpanded(!isExpanded)}
           >
-            {isExpanded ? " Show Less" : " Read More"}
+            {isExpanded ? "  Show Less" : " Read More"}
           </Text>
         )}
       </Text>
@@ -199,13 +195,13 @@ const Profile = () => {
 
                 <UserProfileImage 
                   image={user?.profileImage}
-                  name={user?.fullName}
+                  name={user?.username}
                   isSubscribed={true}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
                   textStyle="text-2xl mt-2 font-bold text-primary-pBlue"
                   buttonStyle="items-center"
-                  onPress={() => signOutUser()}
+                  onPress={() => {}}
                 />
 
                 <View className="flex-1 items-end h-full">
@@ -219,12 +215,16 @@ const Profile = () => {
 
               <View className="flex-row">
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{userAlt.following}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">
+                    {user?.followingIds?.length}
+                  </Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
-                  <Text className="text-lg font-semibold text-primary-pBlue">{userAlt.followers}</Text>
+                  <Text className="text-lg font-semibold text-primary-pBlue">
+                    {user?.followersIds?.length}
+                  </Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>
               </View>

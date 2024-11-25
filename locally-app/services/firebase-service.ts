@@ -1,9 +1,10 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
+import * as FileSystem from 'expo-file-system';
 
 // Firebase Authentication
 
@@ -22,7 +23,7 @@ export const signUpUser = async ({
       id: userCredential.user.uid,
       email,
       fullName,
-      username: fullName.split(' ')[0].toLowerCase(),
+      username: fullName.split(' ')[0].toLowerCase().slice(0, 16),
       isSubscribed: false,
       profileImage: "",
     }
@@ -45,7 +46,7 @@ export const signInUser = async ({
 }) => {
   try {
     const userCredential = await signInWithEmailAndPassword(Firebase_Auth, email, password);
-    const user = await fetchUserProfile(userCredential.user.uid);
+    const user = await fetchUserProfileById(userCredential.user.uid);
     
     useUserStore.getState().setUser(user);
 
@@ -66,6 +67,37 @@ export const signOutUser = async () => {
   }
 }
 
+// Firebase Storage
+
+export const uploadImage = async (fileUri: string, userId: string) => {
+  try {
+    const { uri } = await FileSystem.getInfoAsync(fileUri)
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => {
+        resolve(xhr.response);
+      };
+      xhr.onerror = (e) => {
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
+    console.log('Blob', blob)
+
+    const fileName = fileUri.split('/').pop();
+    const storageRef = ref(Firebase_Storage, `profile_images/${userId}/${fileName}`);
+    await uploadBytes(storageRef, blob as Blob);
+
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw new Error('Error uploading image. Please try again.');
+  }
+};
+
 // Firebase Firestore (USER)
 
 export const updateUserProfile = async (userData: User) => {
@@ -85,15 +117,37 @@ export const updateUserProfile = async (userData: User) => {
   }
 }
 
-export const fetchUserProfile = async (userId: string) => {
-  const userRef = doc(Firebase_Firestore, 'users', userId);
-  const userSnapshot = await getDoc(userRef);
+export const fetchUserProfileById = async (userId: string) => {
+  try {
+    const userRef = doc(Firebase_Firestore, 'users', userId);
+    const userSnapshot = await getDoc(userRef);
 
-  if (!userSnapshot.exists()) {
-    throw new Error('User not found');
+    if (!userSnapshot.exists()) {
+      throw new Error('User not found');
+    }
+
+    const userData = userSnapshot.data();
+
+    const followingRef = collection(Firebase_Firestore, `users/${userId}/following`);
+    const followingSnapshot = await getDocs(followingRef);
+    const followingIds = followingSnapshot.docs.map((doc) => doc.id);
+
+    const followersRef = collection(Firebase_Firestore, `users/${userId}/followers`);
+    const followersSnapshot = await getDocs(followersRef);
+    const followersIds = followersSnapshot.docs.map((doc) => doc.id);
+
+    const isFollowing = followersIds.includes(useUserStore.getState().user?.id ?? '');
+
+    return {
+      ...userData,
+      followingIds,
+      followersIds,
+      isFollowing,
+    } as User;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    throw error;
   }
-
-  return userSnapshot.data() as User;
 }
 
 export const fetchAllUsers = async () => {
@@ -117,6 +171,70 @@ export const fetchAllUsers = async () => {
     return users;
   } catch (error) {
     console.log("Error fetching users:", error);
+    throw error;
+  }
+};
+
+// Firebase Firestore (FOLLOWERS/FOLLOWING)
+
+export const followUser = async (currentUserId: string, otherUserId: string) => {
+  try {
+    const currentUserFollowingRef = collection(Firebase_Firestore, `users/${currentUserId}/following`);
+    setDoc(doc(currentUserFollowingRef, otherUserId), {});
+
+    const otherUserFollowersRef = collection(Firebase_Firestore, `users/${otherUserId}/followers`);
+    setDoc(doc(otherUserFollowersRef, currentUserId), {});
+
+    fetchUserProfileById(currentUserId)
+      .then((currentUser) => {
+        useUserStore.getState().setUser(currentUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
+    
+    fetchUserProfileById(otherUserId)
+      .then((otherUser) => {
+        useUserStore.getState().setSelectedUser(otherUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
+
+    console.log("User followed successfully!");
+  } catch (error) {
+    console.error("Error following user:", error);
+    throw error;
+  }
+};
+
+export const unfollowUser = async (currentUserId: string, otherUserId: string) => {
+  try {
+    const currentUserFollowingRef = doc(Firebase_Firestore, `users/${currentUserId}/following`, otherUserId);
+    deleteDoc(currentUserFollowingRef);
+
+    const otherUserFollowersRef = doc(Firebase_Firestore, `users/${otherUserId}/followers`, currentUserId);
+    deleteDoc(otherUserFollowersRef);
+
+    fetchUserProfileById(currentUserId)
+      .then((currentUser) => {
+        useUserStore.getState().setUser(currentUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
+
+    fetchUserProfileById(otherUserId)
+      .then((otherUser) => {
+        useUserStore.getState().setSelectedUser(otherUser);
+      })
+      .catch((error) => {
+        console.error("Error fetching or updating user profile:", error);
+      });
+
+    console.log("User unfollowed successfully!");
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
     throw error;
   }
 };
@@ -150,11 +268,11 @@ export const fetchEventsByCityWithListener = (
               ...doc.data(),
             } as Event;
 
-            try {
-              event.owner = await fetchUserProfile(event.ownerId);
-            } catch (error) {
-              console.error(`Error fetching owner for event ${event.id}:`, error);
-            }
+            // try {
+            //   event.owner = await fetchUserProfileById(event.ownerId);
+            // } catch (error) {
+            //   console.error(`Error fetching owner for event ${event.id}:`, error);
+            // }
 
             return event;
           })
@@ -169,7 +287,6 @@ export const fetchEventsByCityWithListener = (
 
   return unsubscribe;
 };
-
 
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
@@ -190,13 +307,6 @@ export const fetchEventsByCity = async (city: string) => {
           id: doc.id,
           ...doc.data(),
         } as Event;
-
-        try {
-          event.owner = await fetchUserProfile(event.ownerId);
-          // console.log(event.owner.fullName);
-        } catch (error) {
-          console.error(`Error fetching owner for event ${event.id}:`, error);
-        }
 
         return event;
       }
@@ -424,7 +534,7 @@ export const listenToConversations = (
           const participants = conversationData.participants;
 
           const recipientId = participants.find((id: string) => id !== currentUserId);
-          const recipientProfile = recipientId ? await fetchUserProfile(recipientId) : undefined;
+          const recipientProfile = recipientId ? await fetchUserProfileById(recipientId) : undefined;
 
           const isRead = docSnapshot.data()?.isRead;
 
@@ -477,7 +587,7 @@ export const fetchMessagesByConversationId = (
           } as Message;
 
           try {
-            message.sender = await fetchUserProfile(messageData.senderId);
+            message.sender = await fetchUserProfileById(messageData.senderId);
           } catch (error) {
             console.error(`Error fetching sender for message ${message.id}:`, error);
           }
@@ -540,7 +650,7 @@ export const fetchEventBasedMessages = (
           } as Message;
 
           try {
-            message.sender = await fetchUserProfile(messageData.senderId);
+            message.sender = await fetchUserProfileById(messageData.senderId);
           } catch (error) {
             console.error(`Error fetching sender for message ${message.id}:`, error);
           }

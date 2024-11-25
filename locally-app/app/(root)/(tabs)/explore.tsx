@@ -10,6 +10,8 @@ import useLocationStore from '@/store/locationStore';
 import * as Location from 'expo-location';
 import { useEventStore } from '@/store/event';
 import { getUserCity, setUserCity } from '@/services/storage-service';
+import { fetchUserProfileById } from '@/services/firebase-service';
+import { useUserStore } from '@/store/user';
 
 const Explore = () => {
   const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
@@ -72,6 +74,13 @@ const Explore = () => {
     }
   }
 
+  const handleEventPress = async (event: Event) => {
+    const owner = await fetchUserProfileById(event.ownerId);
+    useUserStore.getState().setSelectedUser(owner);
+    setSelectedEvent(event);
+    router.push('/(root)/event-details')
+  }
+
   return (
     <View className="h-full w-full bg-transparent">
       <Map
@@ -92,9 +101,7 @@ const Explore = () => {
         <View className="absolute bottom-8 left-0 right-0 z-1 items-center">
           <CardPop 
             event={currentSelectedEvent}
-            onClick={() => {
-              router.push('./../event-details');
-            }}
+            onClick={() => handleEventPress(currentSelectedEvent)}
             styling='max-w-[85%]'
           />
         </View>

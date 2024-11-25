@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, fetchUserProfile, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
+import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, fetchUserProfileById, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
 import { Message } from '@/types/type';
 import UserProfileImage from './UserProfileImage';
 import { formatFirestoreTimestamp } from '@/utils/util';
@@ -183,7 +183,7 @@ const MessageList = ({
   const { setSelectedUser } = useUserStore();
 
   const handleUserImagePress = async (userId: string) => {
-    const user = await fetchUserProfile(userId);
+    const user = await fetchUserProfileById(userId);
     setSelectedUser(user);
     onClickUserImage && onClickUserImage();
     console.log("User", user);

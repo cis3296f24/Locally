@@ -6,10 +6,11 @@ import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
 import { useUserStore } from '@/store/user'
 import { Timestamp } from 'firebase/firestore'
-import { Event } from '@/types/type'
+import { Event, User } from '@/types/type'
 import { useEventStore } from '@/store/event'
 import useLocationStore from '@/store/locationStore'
 import { images } from '@/constants'
+import { fetchUserProfileById } from '@/services/firebase-service'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
@@ -172,9 +173,11 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
 
   const { setSelectedEvent } = useEventStore();
 
-  const handleEventPress = (event: Event) => {
+  const handleEventPress = async (event: Event) => {
+    const owner = await fetchUserProfileById(event.ownerId);
+    useUserStore.getState().setSelectedUser(owner);
     setSelectedEvent(event);
-    router.push('./../event-details')
+    router.push('/(root)/event-details')
   }
 
   return (
