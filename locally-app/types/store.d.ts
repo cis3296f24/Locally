@@ -1,11 +1,14 @@
 import { Event, Ticket, User } from "./type";
 
 interface TicketStore {
-  ticket: Ticket | null;
-  showHeader: boolean;
-  setTicket: (ticket: Ticket) => void;
-  setShowHeader: (show: boolean) => void;
-  clearTicket: () => void;
+  ticketList: Ticket[];
+  selectedTicket: Ticket | null;
+  showHeaderTitle: boolean;
+  setTicketList: (tickets: Ticket[]) => void;
+  setSelectedTicket: (ticket: Ticket) => void;
+  setShowHeaderTitle: (showHeader: boolean) => void;
+  clearTicketList: () => void;
+  clearSelectedTicket: () => void;
 }
 
 interface UserStore {

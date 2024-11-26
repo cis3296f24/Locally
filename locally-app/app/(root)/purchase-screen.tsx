@@ -19,7 +19,7 @@ import { createTicket } from "@/services/firebase-service";
 import Constants from 'expo-constants';
 
 const PurchaseScreen = () => {
-  const { setTicket, setShowHeader } = useTicketStore();
+  const { setSelectedTicket, setShowHeaderTitle } = useTicketStore();
   const { selectedEvent } = useEventStore();
   const { user } = useUserStore();
 
@@ -42,12 +42,12 @@ const PurchaseScreen = () => {
       (subTotal * 1.07).toFixed(2)
     )
 
-    setTicket(ticket);
+    setSelectedTicket(ticket);
   }
 
   const handleSeeTicket = () => {
     setPaymentConfirmed(false);
-    setShowHeader(false);
+    setShowHeaderTitle(false);
     router.replace({
       pathname: "/(root)/ticket-screen", 
       params: { showHeader: "true" }      

@@ -1,10 +1,11 @@
 import { Firebase_Auth } from "@/configs/firebase";
-import { fetchUserProfileById } from "@/services/firebase-service";
+import { fetchTicketsByUser, fetchUserProfileById } from "@/services/firebase-service";
 import { useUserStore } from "@/store/user";
 import 'react-native-get-random-values';
 import { Redirect } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
+import { useTicketStore } from "@/store/ticket";
 
 export default function Index() {
 
@@ -16,6 +17,8 @@ export default function Index() {
       if (user) {
         const currentuser = await fetchUserProfileById(user.uid);
         useUserStore.getState().setUser(currentuser);
+        const ticketList = await fetchTicketsByUser(user.uid);
+        useTicketStore.getState().setTicketList(ticketList);
         setIsLoggedIn(true);
       } else {
         setIsLoggedIn(false);

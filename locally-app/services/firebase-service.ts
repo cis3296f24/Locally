@@ -352,11 +352,11 @@ export const createTicket = async (
     await setDoc(ticketRef, newTicket);
 
     const eventTicketRef = doc(Firebase_Firestore, `events/${event.id}/ticket-purchase`, ticketId);
-    await setDoc(eventTicketRef, newTicket);
+    await setDoc(eventTicketRef, { });
 
     // Add ticket to the user's 'ticket-purchase' subcollection
     const userTicketRef = doc(Firebase_Firestore, `users/${user.id}/ticket-purchase`, ticketId);
-    await setDoc(userTicketRef, newTicket);
+    await setDoc(userTicketRef, { });
 
     console.log('Ticket created successfully and added to event and user subcollections!');
 
@@ -373,16 +373,33 @@ export const createTicket = async (
   }
 }
 
+// export const fetchTicketsByUser = async (userId: string) => {
+//   const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
+//   const querySnapshot = await getDocs(userTicketsRef);
+
+//   const tickets = querySnapshot.docs.map((doc) => {
+//     return doc.data() as Ticket;
+//   });
+
+//   return tickets;
+// }
+
 export const fetchTicketsByUser = async (userId: string) => {
   const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
+  
   const querySnapshot = await getDocs(userTicketsRef);
+  const ticketIds = querySnapshot.docs.map((doc) => doc.id);
 
-  const tickets = querySnapshot.docs.map((doc) => {
-    return doc.data() as Ticket;
-  });
+  const tickets = await Promise.all(
+    ticketIds.map(async (ticketId) => {
+      const ticketDocRef = doc(Firebase_Firestore, `tickets`, ticketId);
+      const ticketDoc = await getDoc(ticketDocRef);
+      return { ticketId: ticketDoc.id, ...ticketDoc.data() } as Ticket; 
+    })
+  );
 
   return tickets;
-}
+};
 
 
 // Firebase Firestore (CHAT)

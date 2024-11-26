@@ -11,7 +11,7 @@ import { useTicketStore } from "@/store/ticket";
 
 const TicketScreen = () => {
 
-    const { ticket, showHeader } = useTicketStore();
+    const { selectedTicket, showHeaderTitle } = useTicketStore();
 
     const handleGoBack = () => {
         router.back(); // Goes back to the previous page
@@ -25,7 +25,7 @@ const TicketScreen = () => {
         // View ticket Back button
         <View className="flex-1 bg-[#c7effc]">
             <View className="flex-1 flex-col mt-16 top-[20px] bg-[#c7effc]">
-                { showHeader && (
+                { showHeaderTitle && (
                     <TouchableOpacity onPress={handleGoBack}>
                         <View className="flex-row gap-2 pl-3 pb-16 items-center ml-5">
                             <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
@@ -35,9 +35,9 @@ const TicketScreen = () => {
                 )}
                 
                 {/* Ticket Component */}
-                { ticket ? (
+                { selectedTicket ? (
                     <View className="mt-16">
-                        <TicketCard ticket = {ticket}/>
+                        <TicketCard ticket = {selectedTicket}/>
                     </View>
                 ) : (
                     <Text>No ticket available</Text>

@@ -10,12 +10,14 @@ import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
+import { useTicketStore } from '@/store/ticket';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setEvents, setListTitle } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const { user } = useUserStore();
+  const { ticketList } = useTicketStore();
 
   const handleSeeAllClick = (title: string) => {
     setListTitle(title)
@@ -24,6 +26,10 @@ const Profile = () => {
 
   const handleHambugerClick = async () => {
     router.push('/(root)/edit-profile')
+  }
+
+  const handleTicketClick = async () => {
+    router.push('/(root)/ticket-list')
   }
 
   const userAlt = {
@@ -243,13 +249,18 @@ const Profile = () => {
 
                 {/* Edit Button */}
                 <View className='flex-1 justify-center items-center'>
-                  <TouchableOpacity 
-                    className="border border-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                    onPress={() => {}}
-                  >
-                    <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
-                    <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
-                  </TouchableOpacity>
+                  <View className="relative">
+                    <TouchableOpacity 
+                      className="border border-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+                      onPress={handleTicketClick}
+                    >
+                      <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
+                      <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
+                    </TouchableOpacity>
+                    <View className="absolute -top-2 -right-2 bg-primary-pBlue w-6 h-6 rounded-full justify-center items-center">
+                      <Text className="text-white text-sm font-bold">{ticketList.length}</Text>
+                    </View>
+                  </View>
                 </View>
               </View>
 
