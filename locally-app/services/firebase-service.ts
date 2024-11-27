@@ -244,45 +244,45 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
 
 // Firebase Firestore (EVENTS)
 
-export const fetchEventsByCityWithListener = (
-  city: string,
-  onEventsUpdated: (events: Event[]) => void
-) => {
-  const eventsCollectionRef = collection(Firebase_Firestore, "events");
-  console.log("Fetching events for city:", city)
+// export const fetchEventsByCityWithListener = (
+//   city: string,
+//   onEventsUpdated: (events: Event[]) => void
+// ) => {
+//   const eventsCollectionRef = collection(Firebase_Firestore, "events");
+//   console.log("Fetching events for city:", city)
 
-  const cityQuery = query(
-    eventsCollectionRef,
-    where("city", "==", city)
-  );
+//   const cityQuery = query(
+//     eventsCollectionRef,
+//     where("city", "==", city)
+//   );
 
-  const unsubscribe = onSnapshot(
-    cityQuery,
-    async (querySnapshot) => {
-      const eventsWithOwners = await Promise.all(
-        querySnapshot.docs
-          .filter((doc) => {
-            return doc.data().dateStart.toDate() >= new Date();
-          })
-          .map(async (doc) => {
-            const event = {
-              id: doc.id,
-              ...doc.data(),
-            } as Event;
+//   const unsubscribe = onSnapshot(
+//     cityQuery,
+//     async (querySnapshot) => {
+//       const eventsWithOwners = await Promise.all(
+//         querySnapshot.docs
+//           .filter((doc) => {
+//             return doc.data().dateStart.toDate() >= new Date();
+//           })
+//           .map(async (doc) => {
+//             const event = {
+//               id: doc.id,
+//               ...doc.data(),
+//             } as Event;
 
-            return event;
-          })
-      );
+//             return event;
+//           })
+//       );
 
-      onEventsUpdated(eventsWithOwners); // Pass the updated events to the callback
-    },
-    (error) => {
-      console.error("Error listening to events:", error);
-    }
-  );
+//       onEventsUpdated(eventsWithOwners); // Pass the updated events to the callback
+//     },
+//     (error) => {
+//       console.error("Error listening to events:", error);
+//     }
+//   );
 
-  return unsubscribe;
-};
+//   return unsubscribe;
+// };
 
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
@@ -299,9 +299,17 @@ export const fetchEventsByCity = async (city: string) => {
         return doc.data().dateStart.toDate() >= new Date();
       })
       .map(async (doc) => {
+        const eventId = doc.id;
+
+        // Fetch participants
+        const participantsCollectionRef = collection(Firebase_Firestore, `events/${eventId}/participants`);
+        const participantsSnapshot = await getDocs(participantsCollectionRef);
+        const attendeeIds = participantsSnapshot.docs.map((participantDoc) => participantDoc.id);
+
         const event = {
           id: doc.id,
           ...doc.data(),
+          attendeeIds
         } as Event;
 
         return event;
@@ -322,9 +330,10 @@ export const createTicket = async (
 ) => {
   try {
     const ticketRef = doc(collection(Firebase_Firestore, 'tickets'));
+    const ticketId = ticketRef.id;
 
     const newTicket: Ticket = {
-      ticketId: ticketRef.id,
+      ticketId: ticketId,
       eventName: event.title,
       eventAddress: `${event.street}, ${event.city}, ${event.state} ${event.zipCode}`,
       userName: user.fullName,
@@ -340,17 +349,18 @@ export const createTicket = async (
       userId: user.id,
     };
 
-    const ticketId = newTicket.ticketId;
     console.log('Ticket created with Firestore-generated ID:', ticketId);
 
-    await setDoc(ticketRef, newTicket);
-
     const eventTicketRef = doc(Firebase_Firestore, `events/${event.id}/ticket-purchase`, ticketId);
-    await setDoc(eventTicketRef, { });
-
-    // Add ticket to the user's 'ticket-purchase' subcollection
+    const eventParticipantsRef = doc(Firebase_Firestore, `events/${event.id}/participants`, user.id);
     const userTicketRef = doc(Firebase_Firestore, `users/${user.id}/ticket-purchase`, ticketId);
-    await setDoc(userTicketRef, { });
+
+    await Promise.all([
+      setDoc(ticketRef, newTicket),
+      setDoc(eventTicketRef, {}),
+      setDoc(eventParticipantsRef, {}),
+      setDoc(userTicketRef, {}),
+    ]);
 
     console.log('Ticket created successfully and added to event and user subcollections!');
 

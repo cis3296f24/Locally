@@ -14,11 +14,11 @@ const PurchasePopup = ({
   visible,
   onClose,
 }: {
-  event?: Event;
+  event: Event;
   seeTicketClick: () => void;
   onkeepExploringClick: () => void;
   visible: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }) => {
     return(
       <>

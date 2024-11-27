@@ -12,8 +12,10 @@ import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
 import UserProfileImage from '@/components/UserProfileImage';
-import { fetchUserProfileById, followUser, unfollowUser } from '@/services/firebase-service';
-import { User } from '@/types/type';
+import { createTicket, fetchUserProfileById, followUser, unfollowUser } from '@/services/firebase-service';
+import { Event, User } from '@/types/type';
+import PurchasePopup from '@/components/PurchasePopup';
+import { useTicketStore } from '@/store/ticket';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
@@ -32,16 +34,30 @@ const EventDetailsScreen = () => {
     const eventLocation = selectedEvent?.locationName;
     const eventAddress = formatAddress(selectedEvent?.street, selectedEvent?.city, selectedEvent?.state, selectedEvent?.zipCode);
 
-    console.log("Is Foloowing", selectedUser?.isFollowing);
-
     const [isChatVisible, setIsChatVisible] = useState(false);
+
+    const [confirmJoin, setConfirmJoin] = useState(false);
+    const { ticketList, setTicketList, setSelectedTicket, setShowHeaderTitle } = useTicketStore();
+    const hasTicket = ticketList.some(ticket => ticket.eventId === selectedEvent?.id);
+
+    const numberOfAttendees = selectedEvent?.attendeeIds?.length || 0;
 
     const handlePurchase = () => {
         router.push('/(root)/purchase-screen');
     }
 
-    const handleJoinEvent = () => {
-        
+    const handleJoinEvent = async () => {
+        const ticket = await createTicket(
+            selectedEvent as Event,   
+            user as User,           
+            1,           
+            "Free"
+        )
+
+        setTicketList([...ticketList, ticket]);
+        setShowHeaderTitle(false);
+        setSelectedTicket(ticket);
+        setConfirmJoin(true);
     }
 
     const handleGoBack = () => {
@@ -103,6 +119,18 @@ const EventDetailsScreen = () => {
         <View>
             <ScrollView>
                 <View style={{ flex: 1 }}>
+
+                    <View className="allign-center">
+                        {confirmJoin && (
+                            <PurchasePopup 
+                                event={selectedEvent as Event} 
+                                visible={confirmJoin} 
+                                seeTicketClick={() => router.replace( "/(root)/ticket-screen")} 
+                                onkeepExploringClick={() => router.replace("/(root)/(tabs)/explore")}
+                            /> 
+                        )}
+                    </View>
+
                     {/* Cover Image */}
                     <Image
                         source={imageSource}
@@ -151,7 +179,9 @@ const EventDetailsScreen = () => {
                             }}
                         />
 
-                        <Text style={{ fontSize: 12, color: '#003566', fontWeight: 500 }}> +20 Going</Text>
+                        <Text style={{ fontSize: 12, color: '#003566', fontWeight: 500 }}>
+                            {`+${numberOfAttendees} Going`}
+                        </Text>
 
                         <TouchableOpacity
                             style={{
@@ -276,7 +306,7 @@ const EventDetailsScreen = () => {
                         /> 
                     ): (
                         <PrimaryButton
-                            text="Join Now"
+                            text={hasTicket ? "See Ticket" : "Join Now"}
                             onPress={handleJoinEvent}
                         />
                     )}

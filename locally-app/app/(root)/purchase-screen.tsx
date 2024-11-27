@@ -49,10 +49,7 @@ const PurchaseScreen = () => {
   const handleSeeTicket = () => {
     setPaymentConfirmed(false);
     setShowHeaderTitle(false);
-    router.replace({
-      pathname: "/(root)/ticket-screen", 
-      params: { showHeader: "true" }      
-    });
+    router.replace( "/(root)/ticket-screen");
   }
 
   const handleKeepExploring = () => {
