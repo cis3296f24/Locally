@@ -151,7 +151,7 @@ const Profile = () => {
   );
 
   const displayedText = isExpanded || !user?.bio || user.bio.length <= 200 
-    ? user?.bio 
+    ? user?.bio   
     : `${user?.bio.slice(0, 200)}...`;
 
   const renderBioTab = () => (
@@ -202,7 +202,7 @@ const Profile = () => {
                 <UserProfileImage 
                   image={user?.profileImage}
                   name={user?.username}
-                  isSubscribed={true}
+                  isSubscribed={user?.isSubscribed}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
                   textStyle="text-2xl mt-2 font-bold text-primary-pBlue"
@@ -257,9 +257,13 @@ const Profile = () => {
                       <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
                       <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
                     </TouchableOpacity>
-                    <View className="absolute -top-2 -right-2 bg-primary-pBlue w-6 h-6 rounded-full justify-center items-center">
-                      <Text className="text-white text-sm font-bold">{ticketList.length}</Text>
-                    </View>
+                    {ticketList.length > 0 ? (
+                      <View 
+                        className="absolute -top-2 -right-2 bg-primary-pBlue w-6 h-6 rounded-full justify-center items-center"
+                      >
+                        <Text className="text-white text-sm font-bold">{ticketList.length}</Text>
+                      </View>
+                    ): null}
                   </View>
                 </View>
               </View>

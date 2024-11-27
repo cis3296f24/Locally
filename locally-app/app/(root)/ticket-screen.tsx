@@ -1,11 +1,8 @@
 import {View, Text, Image, TouchableOpacity, ScrollView, Modal, ImageBackground} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import React from "react";
+import { router } from "expo-router";
 import PrimaryButton from "@/components/PrimaryButton";
-import { images } from "@/constants";
-import InfoItem from "@/components/InfoItem";
-import {Ticket} from "@/types/type"
 import TicketCard from "@/components/Ticket";
 import { useTicketStore } from "@/store/ticket";
 
@@ -27,16 +24,16 @@ const TicketScreen = () => {
             <View className="flex-1 flex-col mt-16 top-[20px] bg-[#c7effc]">
                 { showHeaderTitle && (
                     <TouchableOpacity onPress={handleGoBack}>
-                        <View className="flex-row gap-2 pl-3 pb-16 items-center ml-5">
+                        <View className="flex-row gap-2 mt-6 pl-3 items-center ml-5">
                             <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
-                            <Text className="text-2xl">View Ticket</Text>
+                            <Text className="text-2xl">Ticket Details</Text>
                         </View>
                     </TouchableOpacity>    
                 )}
                 
                 {/* Ticket Component */}
                 { selectedTicket ? (
-                    <View className="mt-16">
+                    <View className={`${showHeaderTitle ? "mt-12" : "mt-24"}`}>
                         <TicketCard ticket = {selectedTicket}/>
                     </View>
                 ) : (

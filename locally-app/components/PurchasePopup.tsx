@@ -53,7 +53,10 @@ const PurchasePopup = ({
           {/* Button 2, See Ticket */}
             <View className="shadow-md">
               <PrimaryButton
-                text="keep Exploring" bgColor="bg-white" textcolor="text-black" iconVisible={false} 
+                text="keep Exploring" 
+                bgColor="bg-white" 
+                textStyle="text-black" 
+                iconVisible={false} 
                 onPress={onkeepExploringClick}
               >
               </PrimaryButton>

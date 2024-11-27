@@ -10,4 +10,8 @@ export const useUserStore = create<UserStore>((set) => ({
   selectedUser: null,
   setSelectedUser: (selectedUser: User) => set({ selectedUser }),
   clearSelectedUser: () => set({ selectedUser: null }),
+
+  userList: [],
+  setUserList: (userList: User[]) => set({ userList }),
+  clearUserList: () => set({ userList: [] }),
 }));

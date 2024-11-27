@@ -209,7 +209,7 @@ const UserProfile = () => {
                 <UserProfileImage 
                   image={selectedUser?.profileImage}
                   name={selectedUser?.username}
-                  isSubscribed={true}
+                  isSubscribed={selectedUser?.isSubscribed}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
                   textStyle="text-2xl mt-2 font-bold text-primary-pBlue"

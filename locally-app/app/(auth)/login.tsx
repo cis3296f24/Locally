@@ -6,8 +6,9 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
-import { fetchTicketsByUser, signInUser } from '@/services/firebase-service'
+import { fetchAllUsers, fetchTicketsByUser, signInUser } from '@/services/firebase-service'
 import { useTicketStore } from '@/store/ticket'
+import { useUserStore } from '@/store/user'
 
 //Login logic goes here
 const LoginScreen = () => {
@@ -29,6 +30,10 @@ const LoginScreen = () => {
                 console.log('User signed in successfully', user)
                 const ticketList = await fetchTicketsByUser(user.id);
                 useTicketStore.getState().setTicketList(ticketList);
+
+                const users = await fetchAllUsers();
+                useUserStore.getState().setUserList(users);
+
                 setLoading(false)
                 router.replace('/(root)/(tabs)/explore')
             }

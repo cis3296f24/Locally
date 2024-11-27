@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc, getCountFromServer } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc, getCountFromServer, QueryDocumentSnapshot, startAfter } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
@@ -270,12 +270,6 @@ export const fetchEventsByCityWithListener = (
               ...doc.data(),
             } as Event;
 
-            // try {
-            //   event.owner = await fetchUserProfileById(event.ownerId);
-            // } catch (error) {
-            //   console.error(`Error fetching owner for event ${event.id}:`, error);
-            // }
-
             return event;
           })
       );
@@ -372,17 +366,6 @@ export const createTicket = async (
     throw new Error('Error creating ticket. Please try again.');
   }
 }
-
-// export const fetchTicketsByUser = async (userId: string) => {
-//   const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
-//   const querySnapshot = await getDocs(userTicketsRef);
-
-//   const tickets = querySnapshot.docs.map((doc) => {
-//     return doc.data() as Ticket;
-//   });
-
-//   return tickets;
-// }
 
 export const fetchTicketsByUser = async (userId: string) => {
   const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
@@ -540,9 +523,7 @@ export const listenToConversations = (
   const unsubscribe = onSnapshot(
     userConversationsRef,
     async (snapshot) => {
-      const conversations: Conversation[] = [];
-
-      for (const docSnapshot of snapshot.docs) {
+      const promises = snapshot.docs.map(async (docSnapshot) => {
         const conversationId = docSnapshot.data().conversationId;
 
         const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
@@ -557,7 +538,7 @@ export const listenToConversations = (
 
           const isRead = docSnapshot.data()?.isRead;
 
-          const conversation: Conversation = {
+          return {
             id: conversationId,
             lastMessage: conversationData.lastMessage || '',
             lastMessageTimestamp: conversationData.lastMessageTimestamp || Timestamp.now(),
@@ -565,15 +546,18 @@ export const listenToConversations = (
             participants: participants,
             recipient: recipientProfile,
           };
-
-          conversations.push(conversation);
         }
-      }
-      
+        return null; // Filter out invalid conversations
+      });
+
+      // Resolve all promises in parallel
+      const conversations = (await Promise.all(promises)).filter(Boolean) as Conversation[];
+
+      // Sort conversations by timestamp in descending order
       conversations.sort((a, b) => {
         const aTime = a.lastMessageTimestamp.toDate().getTime();
         const bTime = b.lastMessageTimestamp.toDate().getTime();
-        return bTime - aTime; // Descending order
+        return bTime - aTime;
       });
 
       onConversationsUpdated(conversations);

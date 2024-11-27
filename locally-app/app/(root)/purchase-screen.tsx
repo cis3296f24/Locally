@@ -19,7 +19,7 @@ import { createTicket } from "@/services/firebase-service";
 import Constants from 'expo-constants';
 
 const PurchaseScreen = () => {
-  const { setSelectedTicket, setShowHeaderTitle } = useTicketStore();
+  const { ticketList, setTicketList, setSelectedTicket, setShowHeaderTitle } = useTicketStore();
   const { selectedEvent } = useEventStore();
   const { user } = useUserStore();
 
@@ -42,6 +42,7 @@ const PurchaseScreen = () => {
       (subTotal * 1.07).toFixed(2)
     )
 
+    setTicketList([...ticketList, ticket]);
     setSelectedTicket(ticket);
   }
 

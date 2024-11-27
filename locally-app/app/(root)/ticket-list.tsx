@@ -5,10 +5,18 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { useTicketStore } from '@/store/ticket'
-import { images } from '@/constants'
+import { icons, images } from '@/constants'
+import { formatDetailsEventDateAndTime, formatTimeLeft } from '@/utils/util'
+import QRCode from 'react-native-qrcode-svg'
 
 const TicketList = () => {
-  const { ticketList } = useTicketStore()
+  const { ticketList, setSelectedTicket, setShowHeaderTitle } = useTicketStore()
+
+  const handleTicketClick = (ticket: Ticket) => {
+    setSelectedTicket(ticket)
+    setShowHeaderTitle(true)
+    router.push('/(root)/ticket-screen')
+  }
 
   return (
     <View>
@@ -28,9 +36,9 @@ const TicketList = () => {
             keyExtractor={(item) => item.ticketId}
             className='px-6 py-3'
             renderItem={({ item }) => (
-              <TicketCard 
+              <TicketItem 
                 ticket={item}
-                onClick={() => {}}
+                onClick={() => handleTicketClick(item)}
               />
             )} 
           />
@@ -42,54 +50,66 @@ const TicketList = () => {
 
 export default TicketList
 
-const TicketCard = ({
+const TicketItem = ({
   ticket,
   onClick
 }: {
   ticket: Ticket
   onClick: () => void
 }) => {
+  const imageSource = ticket.eventImage
+    ? { uri: ticket.eventImage }
+    : images.admitOne;
+
+  const formattedTime = formatDetailsEventDateAndTime(ticket.date, ticket.time);
+  const timeLeft = formatTimeLeft(ticket.date);
+
   return (
-    <View
-      className="flex-row p-4 bg-white rounded-2xl shadow-md shadow-slate-300 mb-4 items-center"
+    <TouchableOpacity
+      className="flex-row gap-4 p-3 bg-white rounded-2xl shadow-md shadow-slate-300 mx-1 mb-6 items-center"
+      onPress={onClick}
     >
-      <View className="mr-4">
+      <>
         <Image
-          source={images.man2} // Replace with your image URL
-          className="w-16 h-16 rounded-md"
+          source={imageSource} // Replace with your image URL
+          className="w-[85px] h-[85px] rounded-md"
+          resizeMode="cover"
         />
-      </View>
 
-      {/* Ticket Details */}
-      <View className="flex-1">
-        <Text className="text-sm text-gray-500 font-medium">
-          {"Mon"} • {"12:00 PM"}
-        </Text>
-        <Text className="text-lg text-blue-600 font-bold mt-1">
-          {ticket.eventName}
-        </Text>
-        <Text className="text-sm text-gray-400 mt-1">{"45GBH89"}</Text>
-      </View>
+        <View className="flex-1 gap-1">
+          <View className='flex-row justify-between items-center'>
+            <Text className="text-sm text-primary-pBlue font-medium">
+              {formattedTime}
+            </Text>
 
-      {/* Right Section */}
-      <View className="items-end">
-        <Text className="text-sm text-gray-400 mb-2">
-          ~ {"8"} days left
-        </Text>
-        {!ticket.total ? (
-          <TouchableOpacity
-            className="px-4 py-2 bg-blue-600 rounded-full"
-          >
-            <Text className="text-white font-bold text-sm">RSVP</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text
-            className="px-4 py-2 bg-yellow-400 rounded-full text-white font-bold text-sm"
-          >
-            ${ticket.total}
-          </Text>
-        )}
-      </View>
-    </View>
+            <Text className="text-xs text-gray-400 mb-2">
+              {timeLeft}
+            </Text>
+          </View>
+        
+          <View className='flex-row'>
+            <View className='justify-between flex-1'>
+              <Text className="font-semibold text-secondary-sBlue line-clamp-1">
+                {ticket.eventName}
+              </Text>
+              <View className='flex-row items-center'>
+                <Image
+                  source={icons.marker}
+                  className="w-3.5 h-3.5 mr-1"
+                />
+                <Text className="text-gray-500 text-xs flex-1">
+                  {ticket.eventAddress}
+                </Text>
+              </View>
+            </View>
+
+            <QRCode 
+              value={ticket.qrcode} 
+              size={52}
+            />
+          </View>
+        </View>
+      </>
+    </TouchableOpacity>
   )
 }
