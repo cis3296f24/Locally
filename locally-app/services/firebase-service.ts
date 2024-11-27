@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, where, GeoPoint, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
@@ -9,9 +9,9 @@ import * as FileSystem from 'expo-file-system';
 // Firebase Authentication
 
 export const signUpUser = async ({
-  fullName, 
-  email, 
-  password 
+  fullName,
+  email,
+  password
 }: {
   fullName: string;
   email: string;
@@ -47,10 +47,10 @@ export const signInUser = async ({
   try {
     const userCredential = await signInWithEmailAndPassword(Firebase_Auth, email, password);
     const user = await fetchUserProfileById(userCredential.user.uid);
-    
+
     useUserStore.getState().setUser(user);
 
-    return { user }; 
+    return { user };
   } catch (error) {
     throw new Error('Invalid credentials. Please check your email or password.');
   }
@@ -103,14 +103,14 @@ export const uploadImage = async (fileUri: string, userId: string) => {
 export const updateUserProfile = async (userData: User) => {
   try {
     const userRef = doc(Firebase_Firestore, 'users', userData.id);
-    
+
     const newUser: User = {
       ...userData,
       username: userData.username ?? userData.fullName.split(' ')[0].toLowerCase(),
       isSubscribed: userData.isSubscribed ?? false,
       profileImage: userData.profileImage,
     };
-    
+
     await setDoc(userRef, newUser);
   } catch (error) {
     console.error("Error creating user profile:", error);
@@ -192,7 +192,7 @@ export const followUser = async (currentUserId: string, otherUserId: string) => 
       .catch((error) => {
         console.error("Error fetching or updating user profile:", error);
       });
-    
+
     fetchUserProfileById(otherUserId)
       .then((otherUser) => {
         useUserStore.getState().setSelectedUser(otherUser);
@@ -239,7 +239,6 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
   }
 };
 
-
 // Firebase Firestore (EVENTS)
 
 export const fetchEventsByCityWithListener = (
@@ -268,17 +267,11 @@ export const fetchEventsByCityWithListener = (
               ...doc.data(),
             } as Event;
 
-            // try {
-            //   event.owner = await fetchUserProfileById(event.ownerId);
-            // } catch (error) {
-            //   console.error(`Error fetching owner for event ${event.id}:`, error);
-            // }
-
             return event;
           })
       );
 
-      onEventsUpdated(eventsWithOwners); // Pass the updated events to the callback
+      onEventsUpdated(eventsWithOwners);
     },
     (error) => {
       console.error("Error listening to events:", error);
@@ -289,31 +282,36 @@ export const fetchEventsByCityWithListener = (
 };
 
 export const fetchEventsByCity = async (city: string) => {
-  const eventsCollectionRef = collection(Firebase_Firestore, "events");
+  try {
+    const eventsCollectionRef = collection(Firebase_Firestore, "events");
+    const cityQuery = query(
+      eventsCollectionRef,
+      where("city", "==", city)
+    );
+    const querySnapshot = await getDocs(cityQuery);
 
-  const cityQuery = query(
-    eventsCollectionRef, 
-    where("city", "==", city)
-  );
-  const querySnapshot = await getDocs(cityQuery)
+    const eventsWithOwners = await Promise.all(
+      querySnapshot.docs
+        .filter((doc) => {
+          const eventData = doc.data();
+          const eventDate = eventData.dateStart.toDate();
+          const currentDate = new Date();
+          return eventDate >= currentDate;
+        })
+        .map(async (doc) => {
+          const event = {
+            id: doc.id,
+            ...doc.data(),
+          } as Event;
+          return event;
+        })
+    );
 
-  const eventsWithOwners = await Promise.all(
-    querySnapshot.docs
-      .filter((doc) => {
-        return doc.data().dateStart.toDate() >= new Date();
-      })
-      .map(async (doc) => {
-        const event = {
-          id: doc.id,
-          ...doc.data(),
-        } as Event;
-
-        return event;
-      }
-    )
-  );
-
-  return eventsWithOwners;
+    return eventsWithOwners;
+  } catch (error) {
+    console.error('Error in fetchEventsByCity:', error);
+    return [];
+  }
 };
 
 // Firebase Firestore (TICKETS)
@@ -386,7 +384,7 @@ export const fetchTicketsByUser = async (userId: string) => {
 // Firebase Firestore (CHAT)
 
 const createConversationId = async (
-  userId_1: string, 
+  userId_1: string,
   userId_2: string,
 ) => {
   try {
@@ -407,13 +405,13 @@ const createConversationId = async (
     return newConversationId;
   } catch (error) {
     console.log("Error getting/creating conversation:", error);
-    throw error; 
+    throw error;
   }
 };
 
 const addConversationToUser = async (
-  userId: string, 
-  otherUserId: string, 
+  userId: string,
+  otherUserId: string,
   conversationId: string
 ) => {
   try {
@@ -430,7 +428,7 @@ const addConversationToUser = async (
 
 const updateConversation = async (conversationId: string, lastMessage: string) => {
   try {
-    const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId); 
+    const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
     await updateDoc(conversationRef, {
       lastMessage: lastMessage,
       lastMessageTimestamp: Timestamp.now(),
@@ -441,8 +439,8 @@ const updateConversation = async (conversationId: string, lastMessage: string) =
 };
 
 export const updateUserConversationStatus = async (
-  userId: string, 
-  otherUserId: string, 
+  userId: string,
+  otherUserId: string,
   status: boolean
 ) => {
   try {
@@ -458,13 +456,13 @@ export const updateUserConversationStatus = async (
 };
 
 export const sendMessage = async (
-  senderId: string, 
+  senderId: string,
   recipientId: string,
-  conversationId: string | null, 
+  conversationId: string | null,
   messageText: string,
 ) => {
   try {
-    const currentConversationId = conversationId 
+    const currentConversationId = conversationId
       || await createConversationId(senderId, recipientId);
 
     const messagesRef = collection(Firebase_Firestore, 'conversations', currentConversationId, 'messages');
@@ -495,7 +493,7 @@ export const fetchConversationIdByUserIds = async (
 ) => {
   try {
     const recipientDocRef = doc(
-      Firebase_Firestore, 
+      Firebase_Firestore,
       `users/${senderId}/user-conversations/${recipientId}`
     );
 
@@ -550,7 +548,7 @@ export const listenToConversations = (
           conversations.push(conversation);
         }
       }
-      
+
       conversations.sort((a, b) => {
         const aTime = a.lastMessageTimestamp.toDate().getTime();
         const bTime = b.lastMessageTimestamp.toDate().getTime();
@@ -591,7 +589,7 @@ export const fetchMessagesByConversationId = (
           } catch (error) {
             console.error(`Error fetching sender for message ${message.id}:`, error);
           }
-          
+
           return message;
         })
       );
@@ -608,18 +606,18 @@ export const fetchMessagesByConversationId = (
 
 export const sendMessageToEvent = async (
   senderId: string,
-  eventId: string, 
+  eventId: string,
   messageText: string
 ) => {
   try {
     const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
-    
+
     const message: Message = {
-      id: '', 
+      id: '',
       text: messageText,
       timestamp: Timestamp.now(),
       senderId: senderId,
-      recipientId: eventId, 
+      recipientId: eventId,
     };
 
     await addDoc(messagesRef, message);
@@ -667,4 +665,101 @@ export const fetchEventBasedMessages = (
   );
 
   return unsubscribe;
+};
+
+// Helper function to combine date and time
+function combineDateAndTime(date: Date, time: Date): Date {
+  const combined = new Date(date);
+  combined.setHours(time.getHours());
+  combined.setMinutes(time.getMinutes());
+  combined.setSeconds(time.getSeconds());
+  combined.setMilliseconds(time.getMilliseconds());
+  return combined;
+}
+
+export const createEvent = async (
+  eventData: {
+    image: string;
+    title: string;
+    description: string;
+    category: string;
+    startDate: Date;
+    endDate: Date | null;
+    startTime: Date;
+    endTime: Date | null;
+    price: string;
+    locationName: string;
+    street: string;
+    coordinate: {
+      lat: number;
+      lng: number;
+    };
+    city: string;
+    state: string;
+    zipCode: string;
+  },
+  userId: string
+) => {
+  try {
+    let coverImageUrl = "";
+    if (eventData.image) {
+      coverImageUrl = await uploadImage(eventData.image, userId);
+    }
+
+    // Combine start date and time
+    const dateStartCombined = combineDateAndTime(eventData.startDate, eventData.startTime);
+    const startDateTime = Timestamp.fromDate(dateStartCombined);
+
+    // Combine end date and time, if available
+    let endDateTime;
+    if (eventData.endDate && eventData.endTime) {
+      const dateEndCombined = combineDateAndTime(eventData.endDate, eventData.endTime);
+      endDateTime = Timestamp.fromDate(dateEndCombined);
+    }
+
+    const eventInitialData: Omit<Event, 'id'> = {
+      title: eventData.title,
+      description: eventData.description,
+      locationName: eventData.locationName,
+      street: eventData.street,
+      category: eventData.category,
+      dateCreated: Timestamp.now(),
+      dateStart: startDateTime,
+      timeStart: eventData.startTime.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      dateEnd: endDateTime,
+      timeEnd: eventData.endTime
+        ? eventData.endTime.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        : undefined,
+      price: parseFloat(eventData.price) || 0,
+      ownerId: userId,
+      coverImage: coverImageUrl,
+      coordinate: new GeoPoint(eventData.coordinate.lat, eventData.coordinate.lng),
+      city: eventData.city,
+      state: eventData.state,
+      zipCode: eventData.zipCode,
+      attendeeIds: [],
+      attendees: [],
+    };
+
+    console.log('Event data before creation:', eventInitialData);
+
+    const eventRef = await addDoc(collection(Firebase_Firestore, 'events'), eventInitialData);
+    console.log('Event successfully created in Firestore with ID:', eventRef.id);
+    const newEvent: Event = { ...eventInitialData, id: eventRef.id };
+
+    // Add the event to the user's events subcollection
+    const userEventsRef = collection(Firebase_Firestore, `users/${userId}/events`);
+    await setDoc(doc(userEventsRef, eventRef.id), newEvent);
+
+    return eventRef.id;
+  } catch (error) {
+    console.error("Error creating event:", error);
+    throw new Error('Failed to create event. Please try again.');
+  }
 };

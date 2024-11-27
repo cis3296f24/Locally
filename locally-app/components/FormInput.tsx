@@ -1,13 +1,15 @@
-import { View, TextInput, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
-import Ionicons from '@expo/vector-icons/Ionicons'
+import { View, TextInput, StyleSheet } from 'react-native';
+import React from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface FormInputProps {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon?: keyof typeof Ionicons.glyphMap;
     placeholder: string;
     secureTextEntry?: boolean;
     value?: string;
     onChangeText?: (text: string) => void;
+    iconPosition?: 'left' | 'right';
+    editable?: boolean;
 }
 
 const FormInput = ({ 
@@ -15,32 +17,56 @@ const FormInput = ({
     placeholder, 
     secureTextEntry = false,
     value,
-    onChangeText 
+    onChangeText,
+    iconPosition = 'left',
+    editable = true,
 }: FormInputProps) => {
-    const [showPassword, setShowPassword] = useState(false);
+    const IconComponent = icon ? (
+        <View style={iconPosition === 'right' ? styles.iconRight : styles.iconLeft}>
+            <Ionicons name={icon} size={20} color="#999" />
+        </View>
+    ) : null;
 
     return (
-        <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 mb-4">
-            <Ionicons name={icon} size={20} color="#999" />
+        <View style={styles.container}>
+            {iconPosition === 'left' && IconComponent}
             <TextInput 
                 placeholder={placeholder}
-                className="flex-1 py-3 px-3"
-                secureTextEntry={secureTextEntry && !showPassword}
+                style={styles.input}
+                secureTextEntry={secureTextEntry}
                 placeholderTextColor="#999"
                 value={value}
                 onChangeText={onChangeText}
+                editable={editable}
+                pointerEvents={editable ? 'auto' : 'none'}
             />
-            {secureTextEntry && (
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                    <Ionicons 
-                        name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                        size={20} 
-                        color="#999" 
-                    />
-                </TouchableOpacity>
-            )}
+            {iconPosition === 'right' && IconComponent}
         </View>
-    )
-}
+    );
+};
 
-export default FormInput
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E5E9F0',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        height: 50,
+    },
+    iconLeft: {
+        marginRight: 12,
+    },
+    iconRight: {
+        marginLeft: 'auto',
+    },
+    input: {
+        flex: 1,
+        height: '100%',
+        color: '#000000',
+    },
+});
+
+export default React.memo(FormInput);
