@@ -33,6 +33,8 @@ import woman4 from '@/assets/images/woman4.jpg'
 import woman5 from '@/assets/images/woman5.jpg'
 import noTickets from '@/assets/images/no-ticket.png'
 
+import loadingGif from '@/assets/images/loading.gif'
+
 export const icons = {
   calendar,
   flame,
@@ -70,4 +72,8 @@ export const images = {
   woman5,
   splash,
   noTickets
+}
+
+export const animations = {
+  loadingGif
 }

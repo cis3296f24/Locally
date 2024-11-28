@@ -77,6 +77,9 @@ interface Event {
   // attendees
   attendeeIds?: string[];
   attendees?: User[];
+
+  // favorites
+  isBookmarked?: boolean;
 }
 
 interface CardPopProps {

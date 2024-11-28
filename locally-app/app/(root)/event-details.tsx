@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -12,13 +12,15 @@ import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
 import UserProfileImage from '@/components/UserProfileImage';
-import { createTicket, fetchUserProfileById, followUser, unfollowUser } from '@/services/firebase-service';
-import { Event, User } from '@/types/type';
+import { bookmarkEvent, createTicket, fetchUserProfileById, followUser, unbookmarkEvent, unfollowUser } from '@/services/firebase-service';
+import { Event, Ticket, User } from '@/types/type';
 import PurchasePopup from '@/components/PurchasePopup';
 import { useTicketStore } from '@/store/ticket';
+import { handleBookmark, updateSelectedEvent } from '@/utils/event';
+import { animations } from '@/constants';
 
 const EventDetailsScreen = () => {
-    const { selectedEvent } = useEventStore();
+    const { events, selectedEvent, setEvents, setSelectedEvent } = useEventStore();
     const { user, selectedUser } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -62,6 +64,8 @@ const EventDetailsScreen = () => {
     }
 
     const handleSeeTicket = () => {
+        const ticket = ticketList.find(ticket => ticket.eventId === selectedEvent?.id);
+        setSelectedTicket(ticket as Ticket);
         setShowHeaderTitle(true);
         console.log('See ticket');
         router.push("/(root)/ticket-screen");
@@ -89,6 +93,49 @@ const EventDetailsScreen = () => {
         }
     }
 
+    const handleBookmarkClick = async () => {
+        await handleBookmark(selectedEvent as Event);
+        // if (!selectedEvent) return;
+
+        // if (selectedEvent.isBookmarked) {
+        //     await unbookmarkEvent(selectedEvent.id);
+        // } else {
+        //     await bookmarkEvent(selectedEvent.id);
+        // }
+
+        // setSelectedEvent({ ...selectedEvent, isBookmarked: !selectedEvent.isBookmarked });
+        // const eventToUpdate = events.find((event) => event.id === selectedEvent.id);
+
+        // if (eventToUpdate) {
+        //     eventToUpdate.isBookmarked = !selectedEvent.isBookmarked; // Update the bookmark status
+        // }
+
+        // setEvents([...events]);
+    }
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            await updateSelectedEvent(selectedEvent as Event);
+            setLoading(false);
+        }
+
+        fetchUsers();
+    }, [])
+
+    if (loading) {
+        return (
+            <View className='flex-1 bg-white items-center justify-center'>
+                {/* <Image  
+                    source={animations.loadingGif}
+                    className='w-36 h-36'
+                /> */}
+                <ActivityIndicator size="large" color="#39C3F2" />
+            </View>
+        )
+    }
+
     return (
         <View>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -110,20 +157,28 @@ const EventDetailsScreen = () => {
                         source={imageSource}
                         className='w-full h-[280px]'
                     />
+
                     {/* Top Icons */}
                     <View className='absolute top-20 left-10 right-0 flex-row justify-between'>
                         <TouchableOpacity 
-                            className='flex-row items-center p-3 gap-2 rounded-full bg-white/50'
+                            className='flex-row items-center p-3 gap-2 rounded-full bg-white/60'
                             onPress={handleGoBack}
                         >
-                            <Ionicons name="arrow-back" size={24} color="white" />
-                            <Text className='text-white text-2xl'>Details</Text>
+                            <Ionicons name="arrow-back" size={24} color="#003566" />
+                            <Text className='text-primary-pBlue text-2xl'>Details</Text>
                         </TouchableOpacity>
                     </View>
 
                     <View className='absolute top-20 right-10'> 
-                        <TouchableOpacity className='p-3 rounded-xl bg-white/50'>
-                            <Ionicons name="bookmark" size={24} color="#003566" />
+                        <TouchableOpacity 
+                            className='p-3 rounded-xl bg-white/60'
+                            onPress={handleBookmarkClick}
+                        >
+                            {selectedEvent?.isBookmarked ? (
+                                <Ionicons name="bookmark" size={30} color="#003566" />
+                            ): (
+                                <Ionicons name="bookmark-outline" size={30} color="#003566" />
+                            )}
                         </TouchableOpacity>
                     </View>
 

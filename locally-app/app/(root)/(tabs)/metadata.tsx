@@ -175,7 +175,7 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
   const { setSelectedEvent } = useEventStore();
 
   const handleEventPress = async (event: Event) => {
-    await updateSelectedEvent(event);
+    setSelectedEvent(event);
     router.push('/(root)/event-details')
   }
 

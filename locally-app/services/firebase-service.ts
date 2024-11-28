@@ -286,6 +286,10 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
 
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
 
   const cityQuery = query(
     eventsCollectionRef, 
@@ -295,20 +299,26 @@ export const fetchEventsByCity = async (city: string) => {
 
   const eventsWithOwners = await Promise.all(
     querySnapshot.docs
-      .filter((doc) => {
-        return doc.data().dateStart.toDate() >= new Date();
+      .filter((snapshot) => {
+        return snapshot.data().dateStart.toDate() >= new Date();
       })
-      .map(async (doc) => {
-        const eventId = doc.id;
+      .map(async (snapshot) => {
+        const eventId = snapshot.id;
 
         // Fetch participants
         const participantsCollectionRef = collection(Firebase_Firestore, `events/${eventId}/participants`);
         const participantsSnapshot = await getDocs(participantsCollectionRef);
         const attendeeIds = participantsSnapshot.docs.map((participantDoc) => participantDoc.id);
 
+        // Check if the event is bookmarked by the user
+        const userBookmarkRef = doc(Firebase_Firestore, `users/${currentUid}/bookmarks`, eventId);
+        const bookmarkSnapshot = await getDoc(userBookmarkRef);
+        const isBookmarked = bookmarkSnapshot.exists();
+
         const event = {
-          id: doc.id,
-          ...doc.data(),
+          id: snapshot.id,
+          ...snapshot.data(),
+          isBookmarked: isBookmarked,
           attendeeIds
         } as Event;
 
@@ -319,6 +329,45 @@ export const fetchEventsByCity = async (city: string) => {
 
   return eventsWithOwners;
 };
+
+export const bookmarkEvent = async (eventId: string) => {
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
+
+  try {
+    const userBookmarksRef = collection(Firebase_Firestore, `users/${currentUid}/bookmarks`);
+    const eventBookmarksRef = collection(Firebase_Firestore, `events/${eventId}/bookmarks`);
+    await setDoc(doc(userBookmarksRef, eventId), {});
+    await setDoc(doc(eventBookmarksRef, currentUid), {});
+
+    console.log("Event bookmarked successfully!");
+  } catch (error) {
+    console.error("Error bookmarking event:", error);
+    throw error;
+  }
+}
+
+export const unbookmarkEvent = async (eventId: string) => {
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
+
+  try {
+    const userBookmarksRef = doc(Firebase_Firestore, `users/${currentUid}/bookmarks`, eventId);
+    const eventBookmarksRef = doc(Firebase_Firestore, `events/${eventId}/bookmarks`, currentUid);
+    await deleteDoc(userBookmarksRef);
+    await deleteDoc(eventBookmarksRef);
+
+    console.log("Event unbookmarked successfully!");
+  } catch (error) {
+    console.error("Error unbookmarking event:", error);
+    throw error;
+  }
+}
+
 
 // Firebase Firestore (TICKETS)
 

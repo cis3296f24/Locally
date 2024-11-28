@@ -76,7 +76,7 @@ const Explore = () => {
   }
 
   const handleEventPress = async (event: Event) => {
-    await updateSelectedEvent(event);
+    setSelectedEvent(event);
     router.push('/(root)/event-details')
   }
 

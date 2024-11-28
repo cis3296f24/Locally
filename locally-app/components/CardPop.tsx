@@ -3,6 +3,7 @@ import React from 'react'
 import { images, icons } from '@/constants'
 import { CardPopProps } from '@/types/type';
 import { formatDate } from '@/utils/util';
+import { Ionicons } from '@expo/vector-icons';
 
 const CardPop = ({
   event,
@@ -17,6 +18,25 @@ const CardPop = ({
 
   const eventDate = formatDate(event.dateStart);
   const eventAddress = `${event.street}, ${event.city}`;
+
+  const handleBookmarkClick = async () => {
+    if (!event) return;
+
+    // if (selectedEvent.isBookmarked) {
+    //     await unbookmarkEvent(user.id, selectedEvent.id);
+    // } else {
+    //     await bookmarkEvent(user.id, selectedEvent.id);
+    // }
+
+    // setSelectedEvent({ ...selectedEvent, isBookmarked: !selectedEvent.isBookmarked });
+    // const eventToUpdate = events.find((event) => event.id === selectedEvent.id);
+
+    // if (eventToUpdate) {
+    //     eventToUpdate.isBookmarked = !selectedEvent.isBookmarked; // Update the bookmark status
+    // }
+
+    // setEvents([...events]);
+  }
 
   return (
     <TouchableOpacity 
@@ -55,10 +75,15 @@ const CardPop = ({
         </View>
 
         <View className="items-center justify-between">
-          <Image
-            source={icons.bookmarkFilled}
-            className="w-5 h-6 ml-auto mr-0.5"
-          />
+          <TouchableOpacity 
+            onPress={handleBookmarkClick}
+          >
+            {event.isBookmarked ? (
+                <Ionicons name="bookmark" size={24} color="#003566" />
+            ): (
+                <Ionicons name="bookmark-outline" size={24} color="#003566" />
+            )}
+          </TouchableOpacity>
           {event.price && (
             <View className="bg-yellow-400 rounded-full px-2 py-1">
               <Text className="text-white">$</Text>
