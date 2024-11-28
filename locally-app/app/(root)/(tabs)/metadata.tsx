@@ -11,6 +11,7 @@ import { useEventStore } from '@/store/event'
 import useLocationStore from '@/store/locationStore'
 import { images } from '@/constants'
 import { fetchUserProfileById } from '@/services/firebase-service'
+import { updateSelectedEvent } from '@/utils/event'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
@@ -174,9 +175,7 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
   const { setSelectedEvent } = useEventStore();
 
   const handleEventPress = async (event: Event) => {
-    const owner = await fetchUserProfileById(event.ownerId);
-    useUserStore.getState().setSelectedUser(owner);
-    setSelectedEvent(event);
+    await updateSelectedEvent(event);
     router.push('/(root)/event-details')
   }
 

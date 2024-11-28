@@ -12,6 +12,7 @@ import { useEventStore } from '@/store/event';
 import { getUserCity, setUserCity } from '@/services/storage-service';
 import { fetchUserProfileById } from '@/services/firebase-service';
 import { useUserStore } from '@/store/user';
+import { updateSelectedEvent } from '@/utils/event';
 
 const Explore = () => {
   const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
@@ -75,9 +76,7 @@ const Explore = () => {
   }
 
   const handleEventPress = async (event: Event) => {
-    const owner = await fetchUserProfileById(event.ownerId);
-    useUserStore.getState().setSelectedUser(owner);
-    setSelectedEvent(event);
+    await updateSelectedEvent(event);
     router.push('/(root)/event-details')
   }
 

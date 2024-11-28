@@ -19,7 +19,7 @@ import { useTicketStore } from '@/store/ticket';
 
 const EventDetailsScreen = () => {
     const { selectedEvent } = useEventStore();
-    const { user, selectedUser, setSelectedUser } = useUserStore();
+    const { user, selectedUser } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const displayedText = isExpanded || (selectedEvent?.description && selectedEvent.description.length <= 200)
@@ -40,7 +40,8 @@ const EventDetailsScreen = () => {
     const { ticketList, setTicketList, setSelectedTicket, setShowHeaderTitle } = useTicketStore();
     const hasTicket = ticketList.some(ticket => ticket.eventId === selectedEvent?.id);
 
-    const numberOfAttendees = selectedEvent?.attendeeIds?.length || 0;
+    const threeAttendees = selectedEvent?.attendees || [];
+    const attendeeIds = selectedEvent?.attendeeIds || [];
 
     const handlePurchase = () => {
         router.push('/(root)/purchase-screen');
@@ -58,6 +59,12 @@ const EventDetailsScreen = () => {
         setShowHeaderTitle(false);
         setSelectedTicket(ticket);
         setConfirmJoin(true);
+    }
+
+    const handleSeeTicket = () => {
+        setShowHeaderTitle(true);
+        console.log('See ticket');
+        router.push("/(root)/ticket-screen");
     }
 
     const handleGoBack = () => {
@@ -81,44 +88,11 @@ const EventDetailsScreen = () => {
             await unfollowUser(user.id, selectedUser.id);
         }
     }
-    
-    const InfoRow = ({ 
-        icon, title, subtitle, rightElement, image, isImage = false
-    }: {
-        icon?: any,
-        title: string,
-        subtitle: string,
-        rightElement?: React.ReactNode,
-        image?: string,
-        isImage?: boolean
-    } ) => {
-        return (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
-                    {isImage && (
-                        <UserProfileImage 
-                            image={image} 
-                            imageStyle="w-10 h-10 items-center justify-center"
-                            onPress={handleOrganizerImageClick}
-                        />
-                    )}
-                    {icon && (
-                        <Ionicons name={icon} size={30} color="#003566" />
-                    )}
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text className='text-lg font-semibold' >{title}</Text>
-                    <Text style={{ fontSize: 13, fontStyle: 'italic', color: '#003566', marginTop: 2 }}>{subtitle}</Text>
-                </View>
-                {rightElement}
-            </View>
-        )
-    } 
 
     return (
         <View>
-            <ScrollView>
-                <View style={{ flex: 1 }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <View className='flex-1'>
 
                     <View className="allign-center">
                         {confirmJoin && (
@@ -134,75 +108,79 @@ const EventDetailsScreen = () => {
                     {/* Cover Image */}
                     <Image
                         source={imageSource}
-                        style={{ width: '100%', height: 250 }}
+                        className='w-full h-[280px]'
                     />
                     {/* Top Icons */}
-                    <View style={{ position: 'absolute', top: 0, left: 0, margin: 20, marginTop: 50 }}>
-                        <View style={{ backgroundColor: 'rgba(200, 200, 200, 0.8)', padding: 12, borderRadius: 40 }}>
-                            <TouchableOpacity 
-                                style={{ flexDirection: 'row', alignItems: 'center' }}
-                                onPress={handleGoBack}
-                            >
-                                <Ionicons name="arrow-back" size={24} color="white" />
-                                <Text style={{ marginLeft: 5, fontSize: 20, color: 'white' }}>Details</Text>
-                            </TouchableOpacity>
-                        </View>
+                    <View className='absolute top-20 left-10 right-0 flex-row justify-between'>
+                        <TouchableOpacity 
+                            className='flex-row items-center p-3 gap-2 rounded-full bg-white/50'
+                            onPress={handleGoBack}
+                        >
+                            <Ionicons name="arrow-back" size={24} color="white" />
+                            <Text className='text-white text-2xl'>Details</Text>
+                        </TouchableOpacity>
                     </View>
-                    <View style={{ position: 'absolute', top: 0, right: 0, margin: 20,  marginTop: 50 }}>
-                        <TouchableOpacity>
-                            <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.25)', padding: 16, borderRadius: 6 }}>
-                                <Ionicons name="bookmark" size={24} color="#003566" />
-                            </View>
+
+                    <View className='absolute top-20 right-10'> 
+                        <TouchableOpacity className='p-3 rounded-xl bg-white/50'>
+                            <Ionicons name="bookmark" size={24} color="#003566" />
                         </TouchableOpacity>
                     </View>
 
                     {/* Attendees and Invite Button */}
-                    <View style={{ width: 250, height: 50, backgroundColor: 'white', position: 'relative', bottom: 15, marginLeft: 'auto', marginRight: 'auto', borderRadius: 20, flexDirection: 'row', alignItems: 'center', paddingLeft: 10 }}>
-                        <Image
-                            source={images.woman1}
-                            style={{
-                                width: 30, height: 30, borderRadius: 20, zIndex: 3
-                            }}
-                        />
+                    <View className="h-[50px] bg-white relative gap-2 -top-6 mx-auto rounded-full flex-row items-center px-3 py-2">
+                        
+                        {attendeeIds?.length > 2 ? (
+                            <>
+                                <View className='flex-row-reverse'>
+                                    <Image
+                                        source={{uri: threeAttendees[2].profileImage}}
+                                        className='w-10 h-10 rounded-full p-0.5 bg-white'
+                                    />
 
-                        <Image
-                            source={images.woman2}
-                            style={{
-                                width: 30, height: 30, borderRadius: 20, marginLeft: -15, zIndex: 2
-                            }}
-                        />
+                                    <Image
+                                        source={{uri: threeAttendees[1].profileImage || images.noImage}}
+                                        className='w-10 h-10 rounded-full -mr-4 p-0.5 bg-white'
+                                    />
 
-                        <Image
-                            source={images.woman3}
-                            style={{
-                                width: 30, height: 30, borderRadius: 20, marginLeft: -15, zIndex: 1
-                            }}
-                        />
+                                    <Image
+                                        source={{uri: threeAttendees[0].profileImage || images.noImage}}
+                                        className='w-10 h-10 rounded-full -mr-4 p-0.5 bg-white'
+                                    />  
+                                </View>
 
-                        <Text style={{ fontSize: 12, color: '#003566', fontWeight: 500 }}>
-                            {`+${numberOfAttendees} Going`}
-                        </Text>
+                                <View className='items-center justify-center'>
+                                    <Text className='text-primary-pBlue font-semibold text-sm'>
+                                        {`+${selectedEvent?.attendeeIds && selectedEvent.attendeeIds.length}`}
+                                    </Text>
+                                    <Text className='text-primary-pBlue font-semibold text-xs'>Going</Text>
+                                </View>  
+                            </>  
+                        ): (
+                            <Text className='text-xl font-semibold capitalize'>Join us</Text>
+                        ) }
 
                         <TouchableOpacity
-                            style={{
-                                backgroundColor: '#003566', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10, marginLeft: 25 }}
+                            className='bg-primary-pBlue rounded-3xl px-2.5 py-2'
+                            onPress={() => {}}
                         >
-                            <Text style={{ color: 'white', fontWeight: '500' }}>Invite</Text>
+                            <Text className='text-white text-md font-semibold'>Invite</Text>
                         </TouchableOpacity>
 
                     </View>
 
                     {/* Body of Event Detail Page*/}
 
-                    <View style={{ padding: 16 }}>
-                        <View className='mb-4'>
-                            <Text style={{ fontSize: 40, fontWeight: 'bold' }}>{selectedEvent?.title}</Text>
-                        </View>
+                    <View className='px-6 py-3 gap-4'>
+                        <Text className='text-[32px] font-bold mb-2 line-clamp-2'>
+                            {selectedEvent?.title}
+                        </Text>
 
                         <InfoRow icon="calendar"
                             title={eventDate}
                             subtitle={eventInterval}
                         />
+
                         <InfoRow icon="location"
                             title={eventLocation || 'Location Name'}
                             subtitle={eventAddress}
@@ -217,10 +195,10 @@ const EventDetailsScreen = () => {
                                     onPress={handleFollowClick}
                                     className={`px-4 py-1.5 rounded-full ${
                                         selectedUser?.isFollowing
-                                        ? 'bg-white border-0.5 border-primary-pBlue'
+                                        ? 'bg-white border-0.5 border-gray-300'
                                         : 'bg-primary-pBlue'
                                     }`}
-                                    >
+                                >
                                     <Text
                                         className={`${
                                         selectedUser?.isFollowing ? 'text-primary-pBlue' : 'text-white'
@@ -229,14 +207,14 @@ const EventDetailsScreen = () => {
                                         {selectedUser?.isFollowing ? 'Following' : 'Follow'}
                                     </Text>
                                 </TouchableOpacity>
-
                             }
+                            onImagePress={handleOrganizerImageClick}
                         />
 
                         {/* About Section*/}
 
-                        <View style={{ marginBottom: 24 }}>
-                            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>About Event</Text>
+                        <View className='gap-2 mt-2'>
+                            <Text className='text-xl font-bold'>About Event</Text>
                             <Text className="text-gray-600">
                                 {displayedText}
                                 {selectedEvent?.description && selectedEvent.description.length > 200 && (
@@ -253,7 +231,7 @@ const EventDetailsScreen = () => {
 
                         { selectedEvent?.coordinate && (
                             <View className='mb-6 gap-2'>
-                                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+                                <Text className='text-xl font-bold'>
                                     Location
                                 </Text>
 
@@ -290,7 +268,7 @@ const EventDetailsScreen = () => {
                 </View>
                 
                 {/* making blank space for simulating scrolling */}
-                <View className='h-[200px]'/>
+                <View className='h-[100px]'/>
             </ScrollView >
             
             {/* Button for making purchase */}
@@ -307,7 +285,7 @@ const EventDetailsScreen = () => {
                     ): (
                         <PrimaryButton
                             text={hasTicket ? "See Ticket" : "Join Now"}
-                            onPress={handleJoinEvent}
+                            onPress={hasTicket ? handleSeeTicket : handleJoinEvent}
                         />
                     )}
                 </View>   
@@ -332,3 +310,47 @@ const EventDetailsScreen = () => {
 
 export default EventDetailsScreen;
 
+
+const InfoRow = ({ 
+    icon, 
+    title, 
+    subtitle, 
+    rightElement, 
+    image, 
+    isImage = false,
+    onImagePress
+}: {
+    icon?: any,
+    title: string,
+    subtitle: string,
+    rightElement?: any,
+    image?: string,
+    isImage?: boolean,
+    onImagePress?: () => void
+} ) => {
+    return (
+        <View className='flex-row items-center justify-center'>
+            <View className='items-center justify-center mr-3 w-[40px] h-[40px]'>
+                {isImage && (
+                    <UserProfileImage 
+                        image={image} 
+                        imageStyle="w-10 h-10 items-center justify-center"
+                        onPress={onImagePress}
+                    />
+                )}
+                {icon && (
+                    <Ionicons name={icon} size={30} color="#003566" />
+                )}
+            </View>
+            <View className='flex-1'>
+                <Text className='text-lg font-semibold' >
+                    {title}
+                </Text>
+                <Text className='text-sm italic text-[#003566]'>
+                    {subtitle}
+                </Text>
+            </View>
+            {rightElement}
+        </View>
+    )
+}

@@ -31,6 +31,7 @@ import man1 from '@/assets/images/man1.jpg'
 import man2 from '@/assets/images/man2.jpg'
 import woman4 from '@/assets/images/woman4.jpg'
 import woman5 from '@/assets/images/woman5.jpg'
+import noTickets from '@/assets/images/no-ticket.png'
 
 export const icons = {
   calendar,
@@ -67,5 +68,6 @@ export const images = {
   man2,
   woman4,
   woman5,
-  splash
+  splash,
+  noTickets
 }
