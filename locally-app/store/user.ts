@@ -1,5 +1,5 @@
 import { UserStore } from "@/types/store";
-import { User } from "@/types/type";
+import { Event, User } from "@/types/type";
 import { create } from "zustand";
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -14,4 +14,8 @@ export const useUserStore = create<UserStore>((set) => ({
   userList: [],
   setUserList: (userList: User[]) => set({ userList }),
   clearUserList: () => set({ userList: [] }),
+
+  userBookmarkedEvents: [],
+  setUserBookmarkedEvents: (events: Event[]) => set({ userBookmarkedEvents: events }),
+  clearUserBookmarkedEvents: () => set({ userBookmarkedEvents: [] }),
 }));

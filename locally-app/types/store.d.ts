@@ -23,6 +23,10 @@ interface UserStore {
   userList: User[];
   setUserList: (users: User[]) => void;
   clearUserList: () => void;
+
+  userBookmarkedEvents: Event[];
+  setUserBookmarkedEvents: (events: Event[]) => void;
+  clearUserBookmarkedEvents: () => void;
 }
 
 interface EventStore {
@@ -30,7 +34,16 @@ interface EventStore {
   selectedEvent: Event | null;       
   setEvents: (events: Event[]) => void;       
   setSelectedEvent: (event: Event) => void;   
-  clearSelectedEvent: () => void; 
+  clearSelectedEvent: () => void;
+  
+  shouldClearSelectedEvent: boolean;
+  setShouldClearSelectedEvent: (shouldClear: boolean) => void
+
+  bookmarkedEvents: Event[];
+  setBookmarkedEvents: (events: Event[]) => void;
+
+  filteredEvents: Event[];
+  setFilteredEvents: (events: Event[]) => void;
   
   listTitle: string;
   setListTitle: (title: string) => void;

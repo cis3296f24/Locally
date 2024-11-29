@@ -20,8 +20,8 @@ import { handleBookmark, updateSelectedEvent } from '@/utils/event';
 import { animations } from '@/constants';
 
 const EventDetailsScreen = () => {
-    const { events, selectedEvent, setEvents, setSelectedEvent } = useEventStore();
-    const { user, selectedUser } = useUserStore();
+    const { events, selectedEvent, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
+    const { user, selectedUser, userBookmarkedEvents } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const displayedText = isExpanded || (selectedEvent?.description && selectedEvent.description.length <= 200)
@@ -71,7 +71,13 @@ const EventDetailsScreen = () => {
         router.push("/(root)/ticket-screen");
     }
 
+    console.log("shouldClearSelectedEvent", shouldClearSelectedEvent);
+
     const handleGoBack = () => {
+        if (shouldClearSelectedEvent) {
+            clearSelectedEvent()
+            console.log('clearing selected event');
+        }
         router.back(); 
     };
 
@@ -93,28 +99,23 @@ const EventDetailsScreen = () => {
         }
     }
 
+    // Check if bookmarked
+    const [isBookmarked, setIsBookmarked] = useState(false);
+
+    useEffect(() => {
+        if (selectedEvent) {
+            const isBookmarked = userBookmarkedEvents.some(event => event.id === selectedEvent.id);
+            setIsBookmarked(isBookmarked);
+        }
+    }, [isBookmarked])
+
     const handleBookmarkClick = async () => {
-        await handleBookmark(selectedEvent as Event);
-        // if (!selectedEvent) return;
-
-        // if (selectedEvent.isBookmarked) {
-        //     await unbookmarkEvent(selectedEvent.id);
-        // } else {
-        //     await bookmarkEvent(selectedEvent.id);
-        // }
-
-        // setSelectedEvent({ ...selectedEvent, isBookmarked: !selectedEvent.isBookmarked });
-        // const eventToUpdate = events.find((event) => event.id === selectedEvent.id);
-
-        // if (eventToUpdate) {
-        //     eventToUpdate.isBookmarked = !selectedEvent.isBookmarked; // Update the bookmark status
-        // }
-
-        // setEvents([...events]);
+        const bookmarked = await handleBookmark(selectedEvent, isBookmarked);
+        setIsBookmarked(bookmarked as boolean);
     }
 
+    // To fetch three representative attendees
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         const fetchUsers = async () => {
             await updateSelectedEvent(selectedEvent as Event);
@@ -174,7 +175,7 @@ const EventDetailsScreen = () => {
                             className='p-3 rounded-xl bg-white/60'
                             onPress={handleBookmarkClick}
                         >
-                            {selectedEvent?.isBookmarked ? (
+                            {isBookmarked ? (
                                 <Ionicons name="bookmark" size={30} color="#003566" />
                             ): (
                                 <Ionicons name="bookmark-outline" size={30} color="#003566" />

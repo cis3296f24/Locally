@@ -22,13 +22,6 @@ interface CategoryCardProps { // use this to define the types for the arguments
   iconName: any;
 }
 
-interface CardPopProps {
-  event: Event;
-  styling?: string;
-  imageSize?: string;
-  onClick?: () => void;
-}
-
 interface Ticket {
   ticketId: string;
   eventName: string;

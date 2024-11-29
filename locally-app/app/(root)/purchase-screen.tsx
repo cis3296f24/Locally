@@ -93,6 +93,8 @@ const PurchaseScreen = () => {
             <CardPop
               event={event}
               imageSize="h-[100px] w-[100px]"
+              isBookmarkShown={false}
+              isCardDisabled={true}
             />
           </View>
 

@@ -311,14 +311,14 @@ export const fetchEventsByCity = async (city: string) => {
         const attendeeIds = participantsSnapshot.docs.map((participantDoc) => participantDoc.id);
 
         // Check if the event is bookmarked by the user
-        const userBookmarkRef = doc(Firebase_Firestore, `users/${currentUid}/bookmarks`, eventId);
-        const bookmarkSnapshot = await getDoc(userBookmarkRef);
-        const isBookmarked = bookmarkSnapshot.exists();
+        // const userBookmarkRef = doc(Firebase_Firestore, `users/${currentUid}/bookmarks`, eventId);
+        // const bookmarkSnapshot = await getDoc(userBookmarkRef);
+        // const isBookmarked = bookmarkSnapshot.exists();
 
         const event = {
           id: snapshot.id,
           ...snapshot.data(),
-          isBookmarked: isBookmarked,
+          // isBookmarked: isBookmarked,
           attendeeIds
         } as Event;
 
@@ -364,6 +364,31 @@ export const unbookmarkEvent = async (eventId: string) => {
     console.log("Event unbookmarked successfully!");
   } catch (error) {
     console.error("Error unbookmarking event:", error);
+    throw error;
+  }
+}
+
+export const fetchBookmarkedEventsByUserId = async (userId: string) => {
+  try {
+    const userBookmarksRef = collection(Firebase_Firestore, `users/${userId}/bookmarks`);
+    const querySnapshot = await getDocs(userBookmarksRef);
+    const eventIds = querySnapshot.docs.map((doc) => doc.id);
+
+    const events = await Promise.all(
+      eventIds.map(async (eventId) => {
+        const eventDocRef = doc(Firebase_Firestore, `events`, eventId);
+        const eventDoc = await getDoc(eventDocRef);
+        return { 
+          id: eventDoc.id,
+          isBookmarked: true, 
+          ...eventDoc.data() 
+        } as Event;
+      })
+    );
+
+    return events;
+  } catch (error) {
+    console.error("Error fetching bookmarked events:", error);
     throw error;
   }
 }

@@ -9,6 +9,15 @@ export const useEventStore = create<EventStore>((set) => ({
   setSelectedEvent: (event: Event) => set({ selectedEvent: event }),
   clearSelectedEvent: () => set({ selectedEvent: null }),
 
+  shouldClearSelectedEvent: false,
+  setShouldClearSelectedEvent: (shouldClear: boolean) => set({ shouldClearSelectedEvent: shouldClear }),
+
+  bookmarkedEvents: [],
+  setBookmarkedEvents: (events: Event[]) => set({ bookmarkedEvents: events }),
+
+  filteredEvents: [],
+  setFilteredEvents: (events: Event[]) => set({ filteredEvents: events }),
+
   listTitle: "",
   setListTitle: (title: string) => set({ listTitle: title }),
   category: "All",

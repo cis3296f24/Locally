@@ -1,4 +1,4 @@
-import { bookmarkEvent, fetchUserProfileById, unbookmarkEvent } from "@/services/firebase-service";
+import { bookmarkEvent, fetchBookmarkedEventsByUserId, fetchUserProfileById, unbookmarkEvent } from "@/services/firebase-service";
 import { useEventStore } from "@/store/event";
 import { useUserStore } from "@/store/user";
 import { Event, User } from "@/types/type";
@@ -22,32 +22,35 @@ export const updateSelectedEvent = async (event: Event) => {
   }
 }
 
-export const handleBookmark = async (event: Event) => {
+export const handleBookmark = async (
+  event: Event | null, 
+  isBookmarked: boolean
+) => {
   if (!event) return;
 
+  const { user, userBookmarkedEvents, setUserBookmarkedEvents } = useUserStore.getState();
+
   try {
-    if (event.isBookmarked) {
+    if (isBookmarked) {
       console.log('Unbookmarking event');
       await unbookmarkEvent(event.id);
+
+      // const updatedBookmarkedEvents = userBookmarkedEvents.filter(
+      //   (bookmarkedEvent) => bookmarkedEvent.id !== event.id
+      // );
     } else {
       console.log('Bookmarking event');
       await bookmarkEvent(event.id);
+
+      // const updatedBookmarkedEvents = [...userBookmarkedEvents, event];
     }
 
-    // Update the selected event state
-    const updatedEvent = { ...event, isBookmarked: !event.isBookmarked };
-    useEventStore.getState().setSelectedEvent(updatedEvent);
+    const updatedBookmarkedEvents = await fetchBookmarkedEventsByUserId(user?.id as string);
+    setUserBookmarkedEvents(updatedBookmarkedEvents);
 
-    // Update the event in the global event list state
-    const events = useEventStore.getState().events;
-    const updatedEvents = events.map((existingEvent) => 
-      existingEvent.id === event.id ? updatedEvent : existingEvent
-    );
-
-    // Set the updated events list in the store
-    useEventStore.getState().setEvents(updatedEvents);
-
+    return !isBookmarked;
   } catch (error) {
     console.error("Error handling bookmark:", error);
+    return false
   }
 }

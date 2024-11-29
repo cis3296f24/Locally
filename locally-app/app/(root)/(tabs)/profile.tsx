@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList } from 'react-native'
-import React, { useState } from 'react'
-import { signOutUser } from '@/services/firebase-service'
+import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList, RefreshControl } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
+import { fetchBookmarkedEventsByUserId, signOutUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { images } from '@/constants';
@@ -11,15 +11,35 @@ import UserProfileImage from '@/components/UserProfileImage';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
 import { useTicketStore } from '@/store/ticket';
+import { useFetch } from '@/lib/fetch';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setEvents, setListTitle } = useEventStore();
+  const { events, setEvents, setListTitle, setFilteredEvents } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { user } = useUserStore();
+  const { user, userBookmarkedEvents } = useUserStore();
   const { ticketList } = useTicketStore();
 
+  // const [refreshing, setRefreshing] = useState(false);
+
+  // const handleRefresh = useCallback(() => {
+  //   setRefreshing(true);
+  //   refetch();
+  //   setRefreshing(false);
+  // }, []);
+
+  const myEvents = events.filter((event) => event.ownerId === user?.id);
+
+  const title1 = "My Events";
+  const title2 = "Bookmark";
+
   const handleSeeAllClick = (title: string) => {
+    if (title === title1) {
+      setFilteredEvents(myEvents);
+    } else if (title === title2) {
+      setFilteredEvents(userBookmarkedEvents);
+    }
+
     setListTitle(title)
     router.push('/(root)/event-list')
   }
@@ -31,35 +51,6 @@ const Profile = () => {
   const handleTicketClick = async () => {
     router.push('/(root)/ticket-list')
   }
-
-  const userAlt = {
-    name: "David Rose",
-    following: 350,
-    followers: 346,
-    bio: "Traveling to new places and connecting with people from diverse backgrounds broadens my perspective and enriches my life. I enjoy immersing myself in the cultures, traditions, and cuisines of the destinations I visit. Whether it’s exploring bustling cities, trekking through serene landscapes, or simply engaging in heartfelt conversations, every journey offers a unique opportunity to grow.",
-    events: [
-      {
-        id: 1,
-        title: "Ticket to Wonderland",
-        dateStart: "2024-10-22T00:00:00",
-        street: "123 Wonder Ave",
-        city: "Wonderland City",
-        description: "I had such a fun time here. Would definitely join again.",
-        coverImage: images.dog,
-        price: true,
-      },
-      {
-        id: 2,
-        title: "Democracy Rules",
-        dateStart: "2024-10-22T00:00:00",
-        street: "456 Democracy St",
-        city: "Liberty City",
-        description: "I had such a fun time here. Would definitely join again.",
-        coverImage: images.dog,
-        price: false,
-      }
-    ]
-  };
 
   const renderHistoryTab = () => {  
     return (
@@ -104,20 +95,20 @@ const Profile = () => {
     <View className='bg-white gap-4 mt-4'>
       <View>
         <SeeAll
-          title='My Events'
+          title={title1}
           styling='m-2'
           seeAllColor='text-secondary-sBlue'
           arrowColor='#39C3F2'
           onSeeAllPress={(value) => handleSeeAllClick(value)} 
         />
 
-        {events.slice(0, 2).map((event) => (
+        {myEvents.slice(0, 2).map((event) => (
           <View 
             key={event.id} 
             className='bg-white rounded-2xl w-full items-center my-2'>
             <CardPop 
               event={event}
-              onClick={() => {}}
+              onEventClick={() => {}}
               styling='shadow-md shadow-slate-300 w-[90%] px-4'
               imageSize='w-[80px] h-[80px] -ml-0.5'
             />
@@ -127,20 +118,22 @@ const Profile = () => {
 
       <View>
         <SeeAll
-          title='Bookmark'
+          title={title2}
           styling='m-2'
           seeAllColor='text-secondary-sBlue'
           arrowColor='#39C3F2' 
           onSeeAllPress={(value) => handleSeeAllClick(value)} 
         />
 
-        {events.slice(0, 2).map((event) => (
+        {userBookmarkedEvents
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 2).map((event) => (
           <View 
             key={event.id} 
             className='bg-white rounded-2xl w-full items-center my-2'>
             <CardPop 
               event={event}
-              onClick={() => {}}
+              onEventClick={() => {}}
               styling='shadow-md shadow-slate-300 w-[90%] px-4'
               imageSize='w-[80px] h-[80px]'
             />
@@ -193,6 +186,14 @@ const Profile = () => {
         keyExtractor={(item) => item}
         className='px-8'
         renderItem={() => renderTabContent()}
+        // refreshControl={
+        //   <RefreshControl
+        //     refreshing={refreshing}
+        //     onRefresh={handleRefresh}
+        //     colors={['#ff6347']} // Optional: Android colors
+        //     tintColor="#ff6347" // Optional: iOS color
+        //   />
+        // }
         ListHeaderComponent={
           <>
             <View className='items-center mt-4 gap-4'>

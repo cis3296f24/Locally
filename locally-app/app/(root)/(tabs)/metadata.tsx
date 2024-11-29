@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
@@ -10,15 +10,14 @@ import { Event, User } from '@/types/type'
 import { useEventStore } from '@/store/event'
 import useLocationStore from '@/store/locationStore'
 import { images } from '@/constants'
-import { fetchUserProfileById } from '@/services/firebase-service'
-import { updateSelectedEvent } from '@/utils/event'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
-  const { events, setEvents, setListTitle } = useEventStore();
+  const { events, setListTitle, setFilteredEvents } = useEventStore();
   const { destinationCity } = useLocationStore();
 
   const handleSeeAllClick = (title: string) => {
+    setFilteredEvents(events);
     setListTitle(title)
     router.push('/(root)/event-list')
   }
@@ -172,11 +171,12 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
     .slice(0, 4)
     .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis());
 
-  const { setSelectedEvent } = useEventStore();
+  const { setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
 
   const handleEventPress = async (event: Event) => {
+    setShouldClearSelectedEvent(true)
     setSelectedEvent(event);
-    router.push('/(root)/event-details')
+    router.navigate('/(root)/event-details')
   }
 
   return (

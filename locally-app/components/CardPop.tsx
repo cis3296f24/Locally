@@ -1,17 +1,28 @@
 import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { images, icons } from '@/constants'
-import { CardPopProps } from '@/types/type';
+import { CardPopProps, Event } from '@/types/type';
 import { formatDate } from '@/utils/util';
 import { Ionicons } from '@expo/vector-icons';
+import { handleBookmark } from '@/utils/event';
+import { useUserStore } from '@/store/user';
 
 const CardPop = ({
   event,
   styling='max-w-[90%]',
   imageSize='w-[85px] h-[85px]',
-  onClick 
-}: CardPopProps) => {
-
+  isBookmarkShown=true,
+  isCardDisabled=false,
+  onEventClick,
+}: {
+  event: Event;
+  styling?: string;
+  imageSize?: string;
+  isBookmarkShown?: boolean;
+  isCardDisabled?: boolean;
+  onEventClick?: () => void;
+}) => {
+  const { userBookmarkedEvents } = useUserStore();
   const imageSource = event.coverImage
     ? { uri: event.coverImage }
     : images.noImage;
@@ -19,29 +30,25 @@ const CardPop = ({
   const eventDate = formatDate(event.dateStart);
   const eventAddress = `${event.street}, ${event.city}`;
 
+  // Check if bookmarked
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  useEffect(() => {
+    const isBookmarked = userBookmarkedEvents.some(bookmarkEvent => bookmarkEvent.id === event.id);
+    setIsBookmarked(isBookmarked);
+    console.log('isBookmarked', isBookmarked);
+  }, [isBookmarked, event.id, userBookmarkedEvents]);
+
   const handleBookmarkClick = async () => {
-    if (!event) return;
-
-    // if (selectedEvent.isBookmarked) {
-    //     await unbookmarkEvent(user.id, selectedEvent.id);
-    // } else {
-    //     await bookmarkEvent(user.id, selectedEvent.id);
-    // }
-
-    // setSelectedEvent({ ...selectedEvent, isBookmarked: !selectedEvent.isBookmarked });
-    // const eventToUpdate = events.find((event) => event.id === selectedEvent.id);
-
-    // if (eventToUpdate) {
-    //     eventToUpdate.isBookmarked = !selectedEvent.isBookmarked; // Update the bookmark status
-    // }
-
-    // setEvents([...events]);
+    const bookmarked = await handleBookmark(event, isBookmarked);
+    setIsBookmarked(bookmarked as boolean);
   }
 
   return (
     <TouchableOpacity 
-      onPress={onClick}
+      onPress={onEventClick}
       className={`${styling} flex-row rounded-2xl gap-4 p-3 bg-white self-center w-full`}
+      disabled={isCardDisabled}
     >
       <>
         <Image
@@ -75,19 +82,19 @@ const CardPop = ({
         </View>
 
         <View className="items-center justify-between">
-          <TouchableOpacity 
-            onPress={handleBookmarkClick}
-          >
-            {event.isBookmarked ? (
-                <Ionicons name="bookmark" size={24} color="#003566" />
-            ): (
-                <Ionicons name="bookmark-outline" size={24} color="#003566" />
-            )}
-          </TouchableOpacity>
+          {isBookmarkShown && (
+            <TouchableOpacity 
+              onPress={handleBookmarkClick}
+            >
+              {isBookmarked ? (
+                  <Ionicons name="bookmark" size={24} color="#003566" />
+              ): (
+                  <Ionicons name="bookmark-outline" size={24} color="#003566" />
+              )}
+            </TouchableOpacity>
+          )}
           {event.price && (
-            <View className="bg-yellow-400 rounded-full px-2 py-1">
-              <Text className="text-white">$</Text>
-            </View>
+              <Text className="text-white bg-yellow-400 rounded-full py-1 px-2">$</Text>
           )}
         </View>
       </>
