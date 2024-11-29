@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList, RefreshControl } from 'react-native'
-import React, { useCallback, useEffect, useState } from 'react'
+import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList, RefreshControl, Modal, LayoutChangeEvent, findNodeHandle, UIManager } from 'react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchBookmarkedEventsByUserId, fetchUserProfileById, signOutUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
@@ -11,7 +11,6 @@ import UserProfileImage from '@/components/UserProfileImage';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
 import { useTicketStore } from '@/store/ticket';
-import { useFetch } from '@/lib/fetch';
 import { Event } from '@/types/type';
 
 const Profile = () => {
@@ -57,6 +56,13 @@ const Profile = () => {
     setSelectedEvent(event)
     setShouldClearSelectedEvent(true)
     router.navigate("/(root)/event-details")
+  }
+
+  const [visible, setVisible] = useState(false);
+
+  const handleCreateEvent = () => {
+    router.push('/(root)/create-event')
+    setVisible(false)
   }
 
   const renderHistoryTab = () => {  
@@ -197,8 +203,8 @@ const Profile = () => {
         //   <RefreshControl
         //     refreshing={refreshing}
         //     onRefresh={handleRefresh}
-        //     colors={['#ff6347']} // Optional: Android colors
-        //     tintColor="#ff6347" // Optional: iOS color
+        //     colors={['#00C5DC']} // Optional: Android colors
+        //     tintColor="#00C5DC" // Optional: iOS color
         //   />
         // }
         ListHeaderComponent={
@@ -246,13 +252,12 @@ const Profile = () => {
               <View className="flex-row justify-center items-center gap-8 px-20">
                 {/* New Button */}
                 <View className='flex-1 justify-center items-end'>
-                  <TouchableOpacity 
-                    className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                    onPress={() => {}}
-                  >
-                    <Ionicons name="add" size={24} color="white" />
-                    <Text className="text-white font-medium text-lg">New</Text>
-                  </TouchableOpacity>
+                  <DropDownMenu 
+                    isVisible={visible}
+                    onPress={() => setVisible(true)}
+                    onCreateEvent={handleCreateEvent}
+                    onclose={() => setVisible(false)}
+                  />
                 </View>
 
                 {/* Edit Button */}
@@ -301,3 +306,80 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
+const DropDownMenu = ({
+  isVisible,
+  onPress,
+  onCreateEvent,
+  onCreatePost,
+  onclose
+}: {
+  isVisible: boolean;
+  onPress: () => void;
+  onCreateEvent?: () => void;
+  onCreatePost?: () => void;
+  onclose?: () => void;
+}) => {
+  const [buttonCoords, setButtonCoords] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef(null);
+
+  const handleOpenMenu = () => {
+    onPress();
+    const node = findNodeHandle(buttonRef.current);
+    if (node) {
+      UIManager.measure(
+        node,
+        (x, y, width, height, pageX, pageY) => {
+          setButtonCoords({ x: pageX, y: pageY + height }); // Set position below the button
+        }
+      );
+    }
+  };
+
+  return (
+    <View className="flex-1 justify-center items-center">
+      <TouchableOpacity
+        ref={buttonRef} 
+        className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+        onPress={handleOpenMenu}
+      >
+        <Ionicons name="add" size={24} color="white" />
+        <Text className="text-white font-medium text-lg">New</Text>
+      </TouchableOpacity>
+
+      <Modal
+        transparent
+        visible={isVisible}
+        animationType="fade"
+        onRequestClose={onclose}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/30"
+          onPress={onclose}
+        >
+          <View
+            className="absolute w-48 bg-white rounded-lg shadow-lg"
+            style={{
+              top: buttonCoords.y,
+              left: buttonCoords.x,
+            }}
+          >
+            <TouchableOpacity
+              onPress={onCreateEvent}
+              className="px-4 py-3 border-b border-gray-200"
+            >
+              <Text className="text-base">Create Event</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onCreatePost}
+              className="px-4 py-3"
+            >
+              <Text className="text-base">Create Post</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+};

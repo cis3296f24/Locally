@@ -244,6 +244,18 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
 
 // Firebase Firestore (EVENTS)
 
+const createEvent = async (eventData: Event) => {
+  try {
+    const eventsCollectionRef = collection(Firebase_Firestore, 'events');
+    const eventRef = await addDoc(eventsCollectionRef, eventData);
+
+    return eventRef.id;
+  } catch (error) {
+    console.error("Error creating event:", error);
+    throw error;
+  }
+}
+
 // export const fetchEventsByCityWithListener = (
 //   city: string,
 //   onEventsUpdated: (events: Event[]) => void

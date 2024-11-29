@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons'
 
 interface FormInputProps {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon?: any;
     placeholder: string;
     secureTextEntry?: boolean;
     value?: string;

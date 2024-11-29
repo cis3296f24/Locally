@@ -21,7 +21,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { User } from '@/types/type';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import Constants from 'expo-constants';
-import Subscription from '@/components/Subscription';
 import Payment from '@/components/Payment';
 
 export default function EditProfile() {
