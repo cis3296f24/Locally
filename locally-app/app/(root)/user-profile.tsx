@@ -1,29 +1,34 @@
 import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList } from 'react-native'
-import React, { useState } from 'react'
-import { followUser, signOutUser, unfollowUser } from '@/services/firebase-service'
+import React, { useEffect, useState } from 'react'
+import { fetchBookmarkedEventsByUserId, fetchUserProfileById, followUser, signOutUser, unfollowUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
-import { images } from '@/constants';
+import { animations, images } from '@/constants';
 import { formatEventDate } from '@/utils/util';
 import SeeAll from '@/components/SeeAll';
 import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
 import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
+import { Event } from '@/types/type';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setEvents, setListTitle } = useEventStore();
-  const { user, selectedUser, setUser, setSelectedUser, clearSelectedUser } = useUserStore();
+  const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
+  const { user, selectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
 
+  const title1 = `Hosted by ${selectedUser?.username}`;
+  const title2 = `Bookmarked by ${selectedUser?.username}`;
+
   const handleSeeAllClick = (title: string) => {
+    setFilteredEvents(bookmarkEvents);
     setListTitle(title)
     router.push('/(root)/event-list')
   }
 
-  const handleHambugerClick = () => {
+  const handleCloseClick = () => {
     router.back();
   }
 
@@ -39,34 +44,22 @@ const UserProfile = () => {
     setIsFollowing(!isfollowing);
   }
 
-  const useralt = {
-    name: "David Rose",
-    following: 350,
-    followers: 346,
-    bio: "Traveling to new places and connecting with people from diverse backgrounds broadens my perspective and enriches my life. I enjoy immersing myself in the cultures, traditions, and cuisines of the destinations I visit. Whether it’s exploring bustling cities, trekking through serene landscapes, or simply engaging in heartfelt conversations, every journey offers a unique opportunity to grow.",
-    events: [
-      {
-        id: 1,
-        title: "Ticket to Wonderland",
-        dateStart: "2024-10-22T00:00:00",
-        street: "123 Wonder Ave",
-        city: "Wonderland City",
-        description: "I had such a fun time here. Would definitely join again.",
-        coverImage: images.dog,
-        price: true,
-      },
-      {
-        id: 2,
-        title: "Democracy Rules",
-        dateStart: "2024-10-22T00:00:00",
-        street: "456 Democracy St",
-        city: "Liberty City",
-        description: "I had such a fun time here. Would definitely join again.",
-        coverImage: images.dog,
-        price: false,
-      }
-    ]
-  };
+  const isSubscribed = selectedUser?.isSubscribed;
+
+  const [bookmarkEvents, setBookmarkEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      fetchBookmarkedEventsByUserId(selectedUser.id)
+        .then((events) => setBookmarkEvents(events));
+    }
+  }, [selectedUser]);
+
+  const handleOnEventClick = async (event: Event) => {
+    setSelectedEvent(event)
+    setShouldClearSelectedEvent(true)
+    router.navigate("/(root)/event-details")
+  }
 
   const renderHistoryTab = () => {  
     return (
@@ -109,51 +102,66 @@ const UserProfile = () => {
 
   const renderFavoriteTab = () => (
     <View className='bg-white gap-4 mt-4'>
-      <View>
-        <SeeAll
-          title='My Events'
-          styling='m-2'
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          onSeeAllPress={(value) => handleSeeAllClick(value)} 
-        />
+      {isSubscribed && (
+        <View>
+          <SeeAll
+            title={title1}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2'
+            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+          />
 
-        {events.slice(0, 2).map((event) => (
-          <View 
-            key={event.id} 
-            className='bg-white rounded-2xl w-full items-center my-2'>
-            <CardPop 
-              event={event}
-              onClick={() => {}}
-              styling='shadow-md shadow-slate-300 w-[90%] px-4'
-              imageSize='w-[80px] h-[80px] -ml-0.5'
-            />
-          </View>
-        ))}
-      </View>
+          {events.slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px] -ml-0.5'
+              />
+            </View>
+          ))}
+        </View>
+      )}
 
-      <View>
-        <SeeAll
-          title='Bookmark'
-          styling='m-2'
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2' 
-          onSeeAllPress={(value) => handleSeeAllClick(value)} 
-        />
+      {bookmarkEvents.length > 0 ? (
+        <View>
+          <SeeAll
+            title={title2}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2' 
+            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+          />
 
-        {events.slice(0, 2).map((event) => (
-          <View 
-            key={event.id} 
-            className='bg-white rounded-2xl w-full items-center my-2'>
-            <CardPop 
-              event={event}
-              onClick={() => {}}
-              styling='shadow-md shadow-slate-300 w-[90%] px-4'
-              imageSize='w-[80px] h-[80px]'
-            />
-          </View>
-        ))}
-      </View>
+          {bookmarkEvents.slice(0, isSubscribed ? 2 : 5).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'
+            >
+                <CardPop 
+                  event={event}
+                  onEventClick={() => handleOnEventClick(event)}
+                  styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                  imageSize='w-[80px] h-[80px]'
+                />
+              </View>
+            ))}
+        </View>
+      ) : (
+        <View className='my-16 justify-center items-center'>
+          <Text className='items-center font-medium text-xl'>
+            {`${selectedUser?.username} has no bookmarked events`}
+          </Text>
+          <Image 
+            source={animations.loadingGif}
+            className='w-80 h-80 mt-4'
+          />
+        </View>
+      )}
     </View>
   );
 
@@ -209,7 +217,7 @@ const UserProfile = () => {
                 <UserProfileImage 
                   image={selectedUser?.profileImage}
                   name={selectedUser?.username}
-                  isSubscribed={selectedUser?.isSubscribed}
+                  isSubscribed={isSubscribed}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
                   textStyle="text-2xl mt-2 font-bold text-primary-pBlue"
@@ -219,7 +227,7 @@ const UserProfile = () => {
 
                 <View className="flex-1 items-end h-full">
                   <TouchableOpacity 
-                    onPress={handleHambugerClick} 
+                    onPress={handleCloseClick} 
                   >
                     <Ionicons name="close" size={36} color="#003566" />
                   </TouchableOpacity>
@@ -248,19 +256,19 @@ const UserProfile = () => {
                   <TouchableOpacity 
                     className={`${isfollowing 
                       ? "bg-white border-secondary-sBlue border" 
-                      : "bg-secondary-sBlue" } gap-1 px-6 py-2 rounded-full flex-row items-center`
+                      : "bg-secondary-sBlue" } gap-1 px-4 py-2 rounded-full flex-row items-center`
                     }
                     onPress={handleFollowClick}
                   >
                     {isfollowing ? (
                       <>
                         <MaterialCommunityIcons name="account-check-outline" size={20} color="#39C3F2" />
-                        <Text className="text-secondary-sBlue font-medium text-lg">Following</Text>
+                        <Text className="text-secondary-sBlue font-medium text-md">Following</Text>
                       </>
                     ): (
                       <>
                         <AntDesign name="adduser" size={20} color="white" />
-                        <Text className="text-white font-medium text-lg">Follow</Text>
+                        <Text className="text-white font-medium text-md">Follow</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -269,11 +277,11 @@ const UserProfile = () => {
                 {/* Edit Button */}
                 <View className='flex-1 justify-center items-center'>
                   <TouchableOpacity 
-                    className="border border-secondary-sBlue gap-2 px-6 py-2 rounded-full flex-row items-center"
+                    className="border border-secondary-sBlue gap-2 px-4 py-2 rounded-full flex-row items-center"
                     onPress={() => {}}
                   >
                     <Ionicons name="chatbubble-outline" size={20} color="#39C3F2" />
-                    <Text className="text-secondary-sBlue font-medium text-lg">Message</Text>
+                    <Text className="text-secondary-sBlue font-medium text-md">Message</Text>
                   </TouchableOpacity>
                 </View>
               </View>

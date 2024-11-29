@@ -1,5 +1,5 @@
 import { EventStore } from "@/types/store";
-import { Event } from "@/types/type";
+import { Event, User } from "@/types/type";
 import { create } from "zustand";
 
 export const useEventStore = create<EventStore>((set) => ({
@@ -12,8 +12,8 @@ export const useEventStore = create<EventStore>((set) => ({
   shouldClearSelectedEvent: false,
   setShouldClearSelectedEvent: (shouldClear: boolean) => set({ shouldClearSelectedEvent: shouldClear }),
 
-  bookmarkedEvents: [],
-  setBookmarkedEvents: (events: Event[]) => set({ bookmarkedEvents: events }),
+  eventOwner: null,
+  setEventOwner: (user: User) => set({ eventOwner: user }),
 
   filteredEvents: [],
   setFilteredEvents: (events: Event[]) => set({ filteredEvents: events }),

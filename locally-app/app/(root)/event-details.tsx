@@ -20,8 +20,8 @@ import { handleBookmark, updateSelectedEvent } from '@/utils/event';
 import { animations } from '@/constants';
 
 const EventDetailsScreen = () => {
-    const { events, selectedEvent, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
-    const { user, selectedUser, userBookmarkedEvents } = useUserStore();
+    const { selectedEvent, eventOwner, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
+    const { user, userBookmarkedEvents } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const displayedText = isExpanded || (selectedEvent?.description && selectedEvent.description.length <= 200)
@@ -71,8 +71,6 @@ const EventDetailsScreen = () => {
         router.push("/(root)/ticket-screen");
     }
 
-    console.log("shouldClearSelectedEvent", shouldClearSelectedEvent);
-
     const handleGoBack = () => {
         if (shouldClearSelectedEvent) {
             clearSelectedEvent()
@@ -82,7 +80,7 @@ const EventDetailsScreen = () => {
     };
 
     const handleOrganizerImageClick = async () => {
-        if (selectedUser?.id !== user?.id) {
+        if (eventOwner?.id !== user?.id) {
             router.push("/(root)/user-profile");
         } else {
             router.push("/(root)/(tabs)/profile");
@@ -90,12 +88,12 @@ const EventDetailsScreen = () => {
     }
 
     const  handleFollowClick = async () => {
-        if (user?.id && selectedUser?.id && !selectedUser?.isFollowing) {
-            await followUser(user.id, selectedUser.id);
+        if (user?.id && eventOwner?.id && !eventOwner?.isFollowing) {
+            await followUser(user.id, eventOwner.id);
         } 
       
-        if (user?.id && selectedUser?.id && selectedUser?.isFollowing) {
-            await unfollowUser(user.id, selectedUser.id);
+        if (user?.id && eventOwner?.id && eventOwner?.isFollowing) {
+            await unfollowUser(user.id, eventOwner.id);
         }
     }
 
@@ -242,25 +240,25 @@ const EventDetailsScreen = () => {
                             subtitle={eventAddress}
                         />
                         <InfoRow
-                            image={selectedUser?.profileImage}
+                            image={eventOwner?.profileImage}
                             isImage={true}
-                            title={selectedUser?.fullName || 'Organizer Name'}
+                            title={eventOwner?.fullName || 'Organizer Name'}
                             subtitle="Organizer"
                             rightElement={
                                 <TouchableOpacity
                                     onPress={handleFollowClick}
                                     className={`px-4 py-1.5 rounded-full ${
-                                        selectedUser?.isFollowing
+                                        eventOwner?.isFollowing
                                         ? 'bg-white border-0.5 border-gray-300'
                                         : 'bg-primary-pBlue'
                                     }`}
                                 >
                                     <Text
                                         className={`${
-                                        selectedUser?.isFollowing ? 'text-primary-pBlue' : 'text-white'
+                                        eventOwner?.isFollowing ? 'text-primary-pBlue' : 'text-white'
                                         } text-sm font-semibold`}
                                     >
-                                        {selectedUser?.isFollowing ? 'Following' : 'Follow'}
+                                        {eventOwner?.isFollowing ? 'Following' : 'Follow'}
                                     </Text>
                                 </TouchableOpacity>
                             }

@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList, RefreshControl } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
-import { fetchBookmarkedEventsByUserId, signOutUser } from '@/services/firebase-service'
+import { fetchBookmarkedEventsByUserId, fetchUserProfileById, signOutUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { images } from '@/constants';
@@ -12,10 +12,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
 import { useTicketStore } from '@/store/ticket';
 import { useFetch } from '@/lib/fetch';
+import { Event } from '@/types/type';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setEvents, setListTitle, setFilteredEvents } = useEventStore();
+  const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const { user, userBookmarkedEvents } = useUserStore();
   const { ticketList } = useTicketStore();
@@ -48,8 +49,14 @@ const Profile = () => {
     router.push('/(root)/edit-profile')
   }
 
-  const handleTicketClick = async () => {
+  const handleSeeTicketsClick = async () => {
     router.push('/(root)/ticket-list')
+  }
+
+  const handleOnEventClick = async (event: Event) => {
+    setSelectedEvent(event)
+    setShouldClearSelectedEvent(true)
+    router.navigate("/(root)/event-details")
   }
 
   const renderHistoryTab = () => {  
@@ -108,7 +115,7 @@ const Profile = () => {
             className='bg-white rounded-2xl w-full items-center my-2'>
             <CardPop 
               event={event}
-              onEventClick={() => {}}
+              onEventClick={() => handleOnEventClick(event)}
               styling='shadow-md shadow-slate-300 w-[90%] px-4'
               imageSize='w-[80px] h-[80px] -ml-0.5'
             />
@@ -126,14 +133,14 @@ const Profile = () => {
         />
 
         {userBookmarkedEvents
-          .sort(() => Math.random() - 0.5)
+          // .sort(() => Math.random() - 0.5)
           .slice(0, 2).map((event) => (
           <View 
             key={event.id} 
             className='bg-white rounded-2xl w-full items-center my-2'>
             <CardPop 
               event={event}
-              onEventClick={() => {}}
+              onEventClick={() => handleOnEventClick(event)}
               styling='shadow-md shadow-slate-300 w-[90%] px-4'
               imageSize='w-[80px] h-[80px]'
             />
@@ -253,7 +260,7 @@ const Profile = () => {
                   <View className="relative">
                     <TouchableOpacity 
                       className="border border-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                      onPress={handleTicketClick}
+                      onPress={handleSeeTicketsClick}
                     >
                       <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
                       <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>

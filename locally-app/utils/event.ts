@@ -5,7 +5,7 @@ import { Event, User } from "@/types/type";
 
 export const updateSelectedEvent = async (event: Event) => {
   const owner = await fetchUserProfileById(event.ownerId);
-  useUserStore.getState().setSelectedUser(owner);
+  useEventStore.getState().setEventOwner(owner);
 
   if (event.attendeeIds && event.attendeeIds.length > 2) {
       const shuffledIds = [...event.attendeeIds].sort(() => 0.5 - Math.random());

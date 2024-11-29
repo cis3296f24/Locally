@@ -39,8 +39,8 @@ interface EventStore {
   shouldClearSelectedEvent: boolean;
   setShouldClearSelectedEvent: (shouldClear: boolean) => void
 
-  bookmarkedEvents: Event[];
-  setBookmarkedEvents: (events: Event[]) => void;
+  eventOwner: User | null;
+  setEventOwner: (user: User) => void;
 
   filteredEvents: Event[];
   setFilteredEvents: (events: Event[]) => void;
