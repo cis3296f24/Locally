@@ -61,38 +61,51 @@ const SignUpScreen = () => {
                     source={ images.logo }
                     className="w-32 h-32"
                 />
-                <Text className="text-3xl font-bold text-center">Locally</Text>
+                <Text className="text-3xl font-bold text-center text-primary-pBlue">
+                    Locally
+                </Text>
             </View>
 
             {/* Sign Up Form */}
             <View className="mb-6">
-                <Text className="text-2xl font-bold text-start my-8">Sign Up</Text>
+                <Text className="text-2xl font-bold text-primary-pBlue text-start my-8">
+                    Sign Up
+                </Text>
 
-                <FormInput
-                    icon="person-outline"
-                    placeholder="Full name"
-                    value={fullName}
-                    onChangeText={setFullName}
-                />
-                <FormInput
-                    icon="mail-outline"
-                    placeholder="abc@email.com"
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <FormInput
-                    icon="lock-closed-outline"
-                    placeholder="Your password"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                />
+                <View className='flex-row'>
+                    <FormInput
+                        icon="person-outline"
+                        placeholder="Full name"
+                        value={fullName}
+                        onChangeText={setFullName}
+                    />
+                </View>
+
+                <View className='flex-row'>
+                    <FormInput
+                        icon="mail-outline"
+                        placeholder="abc@email.com"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
+                </View>
+
+                <View className='flex-row'>
+                    <FormInput
+                        icon="lock-closed-outline"
+                        placeholder="Your password"
+                        secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
+                    />
+                </View>
 
                 <PrimaryButton
                     text="Register"
                     icon="pencil-remove-outline"
                     onPress={handleSignUp}
                     loading={loading}
+                    buttonStyle='mt-4'
                 />
             </View>
 
@@ -107,7 +120,7 @@ const SignUpScreen = () => {
             {/* Login Link */}
             <View className="flex-row justify-center mt-6">
                 <Text className="text-gray-600">Already have an account? </Text>
-                <Link href="./login" className="text-blue-500 font-semibold">Log In</Link>
+                <Link href="./login" className="text-secondary-sBlue font-semibold">Log In</Link>
             </View>
         </View>
     )

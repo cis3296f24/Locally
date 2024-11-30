@@ -1,5 +1,5 @@
 import { Firebase_Auth } from "@/configs/firebase";
-import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchUserCreatedEvents, fetchUserProfileById } from "@/services/firebase-service";
+import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById } from "@/services/firebase-service";
 import { useUserStore } from "@/store/user";
 import 'react-native-get-random-values';
 import { Redirect } from "expo-router";
@@ -25,7 +25,7 @@ export default function Index() {
           fetchUserProfileById(user.uid),
           fetchAllUsers(),
           fetchBookmarkedEventsByUserId(user.uid),
-          fetchUserCreatedEvents(user.uid),
+          fetchCreatedEventsByUserId(user.uid),
           fetchTicketsByUser(user.uid),
         ]);
 
@@ -43,7 +43,7 @@ export default function Index() {
         // const bookmarkEvents = await fetchBookmarkedEventsByUserId(user.uid);
         // useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
 
-        // const createdEvents = await fetchUserCreatedEvents(user.uid);
+        // const createdEvents = await fetchCreatedEventsByUserId(user.uid);
         // useUserStore.getState().setUserCreatedEvents(createdEvents);
 
         // const ticketList = await fetchTicketsByUser(user.uid);

@@ -245,22 +245,24 @@ const EventDetailsScreen = () => {
                             title={eventOwner?.fullName || 'Organizer Name'}
                             subtitle="Organizer"
                             rightElement={
-                                <TouchableOpacity
-                                    onPress={handleFollowClick}
-                                    className={`px-4 py-1.5 rounded-full ${
-                                        eventOwner?.isFollowing
-                                        ? 'bg-white border-0.5 border-gray-300'
-                                        : 'bg-primary-pBlue'
-                                    }`}
-                                >
-                                    <Text
-                                        className={`${
-                                        eventOwner?.isFollowing ? 'text-primary-pBlue' : 'text-white'
-                                        } text-sm font-semibold`}
+                                eventOwner?.id !== user?.id && (
+                                    <TouchableOpacity
+                                        onPress={handleFollowClick}
+                                        className={`px-4 py-1.5 rounded-full ${
+                                            eventOwner?.isFollowing
+                                            ? 'bg-white border-0.5 border-gray-300'
+                                            : 'bg-primary-pBlue'
+                                        }`}
                                     >
-                                        {eventOwner?.isFollowing ? 'Following' : 'Follow'}
-                                    </Text>
-                                </TouchableOpacity>
+                                        <Text
+                                            className={`${
+                                            eventOwner?.isFollowing ? 'text-primary-pBlue' : 'text-white'
+                                            } text-sm font-semibold`}
+                                        >
+                                            {eventOwner?.isFollowing ? 'Following' : 'Follow'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )
                             }
                             onImagePress={handleOrganizerImageClick}
                         />

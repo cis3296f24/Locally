@@ -80,8 +80,8 @@ const PurchasePopup = ({
                 bgColor="bg-[#003566]" 
                 iconBgColor="bg-[#39C3F2]" 
                 icon={isTicket ? "ticket-confirmation-outline" : "calendar-text"}
-                onPress={handleSeeButton}>
-              </PrimaryButton>
+                onPress={handleSeeButton}
+              />
             </View>
           {/* Button 2, See Ticket */}
             <View className="shadow-md">
@@ -91,8 +91,7 @@ const PurchasePopup = ({
                 textStyle="text-black" 
                 iconVisible={false} 
                 onPress={handleBackClick}
-              >
-              </PrimaryButton>
+              />
             </View>
           </View>
         </View>

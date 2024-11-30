@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList } from 'react-native'
+import { View, Text, TouchableOpacity, Image, SafeAreaView, FlatList } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { fetchBookmarkedEventsByUserId, fetchUserProfileById, followUser, signOutUser, unfollowUser } from '@/services/firebase-service'
+import { fetchBookmarkedEventsByUserId, fetchCreatedEventsByUserId, followUser, unfollowUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { animations, images } from '@/constants';
@@ -14,7 +14,7 @@ import { Event } from '@/types/type';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
+  const { events, setSelectedEvent, setListTitle, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
   const { user, selectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
@@ -47,11 +47,15 @@ const UserProfile = () => {
   const isSubscribed = selectedUser?.isSubscribed;
 
   const [bookmarkEvents, setBookmarkEvents] = useState<Event[]>([]);
+  const [userHostedEvents, setUserHostedEvents] = useState<Event[]>([]);
 
   useEffect(() => {
     if (selectedUser) {
       fetchBookmarkedEventsByUserId(selectedUser.id)
         .then((events) => setBookmarkEvents(events));
+
+      fetchCreatedEventsByUserId(selectedUser.id)
+      .then((events) => setUserHostedEvents(events));
     }
   }, [selectedUser]);
 
@@ -102,7 +106,7 @@ const UserProfile = () => {
 
   const renderFavoriteTab = () => (
     <View className='bg-white gap-4 mt-4'>
-      {isSubscribed && (
+      {isSubscribed && userHostedEvents.length > 0 && (
         <View>
           <SeeAll
             title={title1}
@@ -112,7 +116,7 @@ const UserProfile = () => {
             onSeeAllPress={(value) => handleSeeAllClick(value)} 
           />
 
-          {events.slice(0, 2).map((event) => (
+          {userHostedEvents.slice(0, 2).map((event) => (
             <View 
               key={event.id} 
               className='bg-white rounded-2xl w-full items-center my-2'>

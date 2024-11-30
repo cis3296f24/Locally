@@ -250,7 +250,7 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
 // Firebase Firestore (EVENTS)
 
 export const createEvent = async (
-  eventData: Omit<Event, "id" | "coordinate" | "coverImage" | "ownerId">,
+  eventData: Omit<Event, "id" | "coverImage" | "ownerId">,
   fileUri: string,
 ): Promise<Event> => {
   try {
@@ -260,24 +260,14 @@ export const createEvent = async (
     }
 
     const coverImage = await uploadImage(fileUri, userId, 'event_images');
-    const GOOGLE_API_KEY = Constants.expoConfig?.extra?.GOOGLE_API_KEY;
 
-    const fullAddress = `${eventData.street}, ${eventData.city}, ${eventData.state}, ${eventData.zipCode}`;
-    const geocodeResult = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${GOOGLE_API_KEY}`);
-    const geocodeJson = await geocodeResult.json();
-
-    if (geocodeJson.status !== "OK" || geocodeJson.results.length === 0) {
-      throw new Error("Could not geocode the address.");
-    }
-
-    const { lat, lng } = geocodeJson.results[0].geometry.location;
     const eventsCollectionRef = doc(collection(Firebase_Firestore, 'events'));
     const userEventRef = collection(Firebase_Firestore, `users/${userId}/event-owner`);
 
     const eventToSave: Event = {
       ...eventData,
       id: eventsCollectionRef.id,
-      coordinate: new GeoPoint(lat, lng),
+      coordinate: new GeoPoint(eventData.coordinate.latitude, eventData.coordinate.longitude),
       coverImage: coverImage,
       ownerId: userId,
       dateCreated: Timestamp.now(),
@@ -288,13 +278,6 @@ export const createEvent = async (
       setDoc(doc(userEventRef, eventToSave.id), {})
     ]);
 
-    // const snapshot = await getDoc(doc(eventsCollectionRef, eventToSave.id));
-
-    // const newEvent = {
-    //   id: snapshot.id,
-    //   ...snapshot.data(),
-    // } as Event;
-
     return eventToSave;
   } catch (error) {
     console.error("Error creating event:", error);
@@ -302,7 +285,7 @@ export const createEvent = async (
   }
 }
 
-export const fetchUserCreatedEvents = async (userId: string) => {
+export const fetchCreatedEventsByUserId = async (userId: string) => {
   const userEventsRef = collection(Firebase_Firestore, `users/${userId}/event-owner`);
   const querySnapshot = await getDocs(userEventsRef);
 

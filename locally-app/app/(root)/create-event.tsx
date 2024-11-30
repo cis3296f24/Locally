@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, Alert, TextInput, FlatList, Modal, TouchableWithoutFeedback, StyleSheet, Button } from 'react-native'
-import React, { useCallback, useRef, useState } from 'react'
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Image, Alert, FlatList} from 'react-native'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -8,7 +8,7 @@ import { images } from '@/constants'
 import FormInput from '@/components/FormInput';
 import { Timestamp } from 'firebase/firestore'
 import { DropDownInput } from '@/components/DropDownInput'
-import { categories, states } from '@/utils/static-data'
+import { categories } from '@/utils/static-data'
 import { DateTimePickerInput } from '@/components/DateTimePickerInput'
 import PrimaryButton from '@/components/PrimaryButton'
 import { createEvent } from '@/services/firebase-service'
@@ -16,9 +16,12 @@ import { useEventStore } from '@/store/event'
 import { Event } from '@/types/type'
 import PurchasePopup from '@/components/PurchasePopup'
 import { useUserStore } from '@/store/user'
+import useLocationStore from '@/store/locationStore'
+import { LocationPickerInput } from '@/components/LocationPickerInput'
 
 const CreateEvent = () => {
-  const { events, selectedEvent, setEvents, setSelectedEvent } = useEventStore();
+  const { events, selectedEvent, setEvents, setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
+  const { destinationCity } = useLocationStore();
   const { userCreatedEvents, setUserCreatedEvents } = useUserStore();
   const [image, setImage] = useState<string | null>(null);
   const initialFormState = {
@@ -36,9 +39,14 @@ const CreateEvent = () => {
     timeEnd: '',
     title: '',
     zipCode: '',
+    coordinate: {
+      latitude: 0.0, 
+      longitude: 0.0, 
+    }  
   };
 
   const [form, setForm] = useState(initialFormState);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleImageClick = async () => {
@@ -76,9 +84,11 @@ const CreateEvent = () => {
       for (const field of requiredFields) {
         if (!form[field]?.toString().trim()) {
           alert(`The field "${field}" is required.`);
-          return; // Stop execution if any field is invalid
+          return; 
         }
       }
+
+      setLoading(true);
 
       const eventDateStart = form.dateStart;
       const eventDateEnd = form.dateEnd;
@@ -98,19 +108,28 @@ const CreateEvent = () => {
 
       const createdEvent = await createEvent(event, image as string);
       setSelectedEvent(createdEvent);
-      setEvents([createdEvent, ...events]);
+      
+      if (createdEvent.city == destinationCity) {
+        setEvents([createdEvent, ...events]);
+      }
+
       setUserCreatedEvents([createdEvent, ...userCreatedEvents]);
 
+      setLoading(false);
       setModalVisible(true);
     } catch (error) {
+      setLoading(false);
       console.error('Error creating event', error);
+    } finally {
+      setLoading(false);
     }
   }
 
   const handleSeeEvent = () => {
     setModalVisible(false);
     setForm(initialFormState);
-    router.navigate('/(root)/event-details');
+    setShouldClearSelectedEvent(true);
+    router.replace('/(root)/event-details');
   }
 
   const handleBackToProfile = () => {
@@ -145,13 +164,14 @@ const CreateEvent = () => {
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
           className='flex-1'
-          keyboardVerticalOffset={160}
+          keyboardVerticalOffset={100}
         >
           <FlatList 
             data={["1"]}
             keyExtractor={(item) => item}
             renderItem={({ item }) => null}
             className='px-8'
+            keyboardShouldPersistTaps='handled'
             ListHeaderComponent={
               <View className="flex-col gap-6">
                 <TouchableOpacity
@@ -177,7 +197,7 @@ const CreateEvent = () => {
 
                 <Text className="text-primary-pBlue font-semibold text-2xl">Event Details</Text>
 
-                <View className="gap-2 mb-16">
+                <View className="gap-2">
                   <FormInput
                     title='Event Title'
                     placeholder="Enter event title"
@@ -200,34 +220,10 @@ const CreateEvent = () => {
                     onChangeText={(locationName) => onInputChange('locationName', locationName)}
                   />
 
-                  <FormInput
-                    title='Address'
-                    placeholder="Street"
-                    value={form.street}
-                    onChangeText={(street) => onInputChange('street', street)}
+                  <LocationPickerInput
+                    form={form} 
+                    onInputChange={onInputChange}
                   />
-
-                  <FormInput
-                    placeholder="City"
-                    value={form.city}
-                    onChangeText={(city) => onInputChange('city', city)}
-                  />
-
-                  <View className="flex-row gap-4">
-                    <DropDownInput
-                      placeholder='State'
-                      data={states} 
-                      onSelect={(state) => onInputChange('state', state)}
-                    />
-
-                    <FormInput
-                      placeholder="Zip Code"
-                      value={form.zipCode}
-                      isNumeric={true}
-                      maxLength={5}
-                      onChangeText={(zipCode) => onInputChange('zipCode', zipCode)}
-                    />
-                  </View>
 
                   <DropDownInput
                     title='Category'
@@ -284,6 +280,7 @@ const CreateEvent = () => {
                     text="Create Event"
                     buttonStyle='mt-8'
                     onPress={handleCreateEvent}
+                    loading={loading}
                   />
                 </View>
               </View>
@@ -296,5 +293,6 @@ const CreateEvent = () => {
 }
 
 export default CreateEvent
+
 
 

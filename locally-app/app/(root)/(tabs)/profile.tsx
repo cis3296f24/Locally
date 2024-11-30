@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
 import { useTicketStore } from '@/store/ticket';
 import { Event } from '@/types/type';
+import PrimaryButton from '@/components/PrimaryButton';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
@@ -104,53 +105,70 @@ const Profile = () => {
 
   const renderFavoriteTab = () => (
     <View className='bg-white gap-4 mt-4'>
-      <View>
-        <SeeAll
-          title={title1}
-          styling='m-2'
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          onSeeAllPress={(value) => handleSeeAllClick(value)} 
-        />
+      {user?.isSubscribed && userCreatedEvents.length > 0 && (
+        <View>
+          <SeeAll
+            title={title1}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2'
+            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+          />
 
-        {userCreatedEvents.slice(0, 2).map((event) => (
-          <View 
-            key={event.id} 
-            className='bg-white rounded-2xl w-full items-center my-2'>
-            <CardPop 
-              event={event}
-              onEventClick={() => handleOnEventClick(event)}
-              styling='shadow-md shadow-slate-300 w-[90%] px-4'
-              imageSize='w-[80px] h-[80px] -ml-0.5'
-            />
-          </View>
-        ))}
-      </View>
+          {userCreatedEvents.slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px] -ml-0.5'
+              />
+            </View>
+          ))}
+        </View>
+      )}
 
-      <View>
-        <SeeAll
-          title={title2}
-          styling='m-2'
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2' 
-          onSeeAllPress={(value) => handleSeeAllClick(value)} 
-        />
+      { userBookmarkedEvents.length > 0 ? (
+        <View>
+          <SeeAll
+            title={title2}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2' 
+            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+          />
 
-        {userBookmarkedEvents
-          // .sort(() => Math.random() - 0.5)
-          .slice(0, 2).map((event) => (
-          <View 
-            key={event.id} 
-            className='bg-white rounded-2xl w-full items-center my-2'>
-            <CardPop 
-              event={event}
-              onEventClick={() => handleOnEventClick(event)}
-              styling='shadow-md shadow-slate-300 w-[90%] px-4'
-              imageSize='w-[80px] h-[80px]'
-            />
-          </View>
-        ))}
-      </View>
+          {userBookmarkedEvents
+            // .sort(() => Math.random() - 0.5)
+            .slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px]'
+              />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View className='justify-center gap-8 items-center my-32'>
+          <Text className='text-lg font-semibold text-primary-pBlue'>
+            Let's explore something exciting around you!
+          </Text>
+
+          <PrimaryButton
+            text={"back to home"} 
+            bgColor="bg-[#003566]" 
+            iconVisible={false} 
+            onPress={() => router.replace('/(root)/(tabs)/explore')}
+          />
+        </View>
+      )}
     </View>
   );
 
@@ -250,12 +268,23 @@ const Profile = () => {
               <View className="flex-row justify-center items-center gap-8 px-20">
                 {/* New Button */}
                 <View className='flex-1 justify-center items-end'>
-                  <DropDownMenu 
-                    isVisible={visible}
-                    onPress={() => setVisible(true)}
-                    onCreateEvent={handleCreateEvent}
-                    onclose={() => setVisible(false)}
-                  />
+                  {user?.isSubscribed ? (
+                    <DropDownMenu 
+                      isVisible={visible}
+                      onPress={() => setVisible(true)}
+                      onCreateEvent={handleCreateEvent}
+                      onclose={() => setVisible(false)}
+                    />
+                  ):(
+                    <TouchableOpacity
+                      className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+                      onPress={() => console.log("Create new post")}
+                    >
+                      <Ionicons name="add" size={24} color="white" />
+                      <Text className="text-white font-medium text-lg">New</Text>
+                    </TouchableOpacity>
+                  )}
+                  
                 </View>
 
                 {/* Edit Button */}

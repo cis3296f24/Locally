@@ -6,7 +6,7 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
-import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchUserCreatedEvents, fetchUserProfileById, signInUser } from '@/services/firebase-service'
+import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, signInUser } from '@/services/firebase-service'
 import { useTicketStore } from '@/store/ticket'
 import { useUserStore } from '@/store/user'
 
@@ -37,7 +37,7 @@ const LoginScreen = () => {
                     fetchUserProfileById(user.id),
                     fetchAllUsers(),
                     fetchBookmarkedEventsByUserId(user.id),
-                    fetchUserCreatedEvents(user.id),
+                    fetchCreatedEventsByUserId(user.id),
                     fetchTicketsByUser(user.id),
                 ]);
 
@@ -76,26 +76,35 @@ const LoginScreen = () => {
                     source={ images.logo }
                     className="w-32 h-32"
                 />
-                <Text className="text-3xl font-bold text-center">Locally</Text>
+                <Text className="text-3xl font-bold text-primary-pBlue text-center">
+                    Locally
+                </Text>
             </View>
 
             {/* Login Form */}
             <View className="mb-6">
-                <Text className="text-2xl font-bold text-start my-8">Log In</Text>
+                <Text className="text-2xl font-bold text-start text-primary-pBlue my-8">
+                    Log In
+                </Text>
 
-                <FormInput
-                    icon="mail-outline"
-                    placeholder="abc@email.com"
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <FormInput
-                    icon="lock-closed-outline"
-                    placeholder="Your password"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                />
+                <View className='flex-row'>
+                    <FormInput
+                        icon="mail-outline"
+                        placeholder="abc@email.com"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
+                </View>
+
+                <View className='flex-row'>
+                    <FormInput
+                        icon="lock-closed-outline"
+                        placeholder="Your password"
+                        secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
+                    />
+                </View>  
 
                 <TouchableOpacity className="self-end mb-4">
                     <Text className="text-orange-500">Forgot Password?</Text>
@@ -122,7 +131,7 @@ const LoginScreen = () => {
             {/* Sign Up Link */}
             <View className="flex-row justify-center mt-6">
                 <Text className="text-gray-600">Don't have an account? </Text>
-                <Link href="./signup" className="text-blue-500 font-semibold">Sign up</Link>
+                <Link href="./signup" className="text-secondary-sBlue font-semibold">Sign up</Link>
             </View>
         </View>
     )
