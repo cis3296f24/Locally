@@ -7,7 +7,8 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
-import { signUpUser } from '@/services/firebase-service'
+import { fetchAllUsers, fetchUserProfileById, signUpUser } from '@/services/firebase-service'
+import { useUserStore } from '@/store/user'
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
@@ -26,7 +27,17 @@ const SignUpScreen = () => {
             const user = await signUpUser({fullName, email, password })
             
             if (user) {
-                console.log('User signed up successfully', user)
+                const [
+                    currentuser,
+                    users,
+                ] = await Promise.all([
+                    fetchUserProfileById(useUserStore.getState().user?.id as string),
+                    fetchAllUsers(),
+                ]);
+
+                useUserStore.getState().setUser(currentuser);
+                useUserStore.getState().setUserList(users);
+
                 setLoading(false)
                 router.replace('/(root)/(tabs)/explore')
             }

@@ -71,7 +71,7 @@ export default function EditProfile() {
         let updatedUser: User = { ...user };
 
         if (image && image !== user.profileImage) {
-          const imageUrl = await uploadImage(image, user.id);
+          const imageUrl = await uploadImage(image, user.id, 'profile_images');
           updatedUser.profileImage = imageUrl;
           setImage(imageUrl); 
         }

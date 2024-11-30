@@ -18,4 +18,8 @@ export const useUserStore = create<UserStore>((set) => ({
   userBookmarkedEvents: [],
   setUserBookmarkedEvents: (events: Event[]) => set({ userBookmarkedEvents: events }),
   clearUserBookmarkedEvents: () => set({ userBookmarkedEvents: [] }),
+
+  userCreatedEvents: [],
+  setUserCreatedEvents: (events: Event[]) => set({ userCreatedEvents: events }),
+  clearUserCreatedEvents: () => set({ userCreatedEvents: [] }),
 }));

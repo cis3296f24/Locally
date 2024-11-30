@@ -59,7 +59,7 @@ interface Event {
   dateCreated: Timestamp;
   dateStart: Timestamp;
   dateEnd?: Timestamp;
-  price?: number;
+  price?: number | null;
   timeStart: string;
   timeEnd?: string;
 
@@ -70,9 +70,6 @@ interface Event {
   // attendees
   attendeeIds?: string[];
   attendees?: User[];
-
-  // favorites
-  isBookmarked?: boolean;
 }
 
 interface CardPopProps {

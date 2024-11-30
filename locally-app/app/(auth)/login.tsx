@@ -6,7 +6,7 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
-import { fetchAllUsers, fetchTicketsByUser, signInUser } from '@/services/firebase-service'
+import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchUserCreatedEvents, fetchUserProfileById, signInUser } from '@/services/firebase-service'
 import { useTicketStore } from '@/store/ticket'
 import { useUserStore } from '@/store/user'
 
@@ -27,12 +27,31 @@ const LoginScreen = () => {
             const { user } = await signInUser({email, password })
             
             if (user) {
-                console.log('User signed in successfully', user)
-                const ticketList = await fetchTicketsByUser(user.id);
+                const [
+                    currentuser,
+                    users,
+                    bookmarkEvents,
+                    createdEvents,
+                    ticketList
+                ] = await Promise.all([
+                    fetchUserProfileById(user.id),
+                    fetchAllUsers(),
+                    fetchBookmarkedEventsByUserId(user.id),
+                    fetchUserCreatedEvents(user.id),
+                    fetchTicketsByUser(user.id),
+                ]);
+
+                useUserStore.getState().setUser(currentuser);
+                useUserStore.getState().setUserList(users);
+                useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
+                useUserStore.getState().setUserCreatedEvents(createdEvents);
                 useTicketStore.getState().setTicketList(ticketList);
 
-                const users = await fetchAllUsers();
-                useUserStore.getState().setUserList(users);
+                // const ticketList = await fetchTicketsByUser(user.id);
+                // useTicketStore.getState().setTicketList(ticketList);
+
+                // const users = await fetchAllUsers();
+                // useUserStore.getState().setUserList(users);
 
                 setLoading(false)
                 router.replace('/(root)/(tabs)/explore')

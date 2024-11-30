@@ -5,6 +5,7 @@ import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, start
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
+import Constants from 'expo-constants';
 
 // Firebase Authentication
 
@@ -71,7 +72,11 @@ export const signOutUser = async () => {
 
 // Firebase Storage
 
-export const uploadImage = async (fileUri: string, userId: string) => {
+export const uploadImage = async (
+  fileUri: string, 
+  userId: string,
+  path: string
+) => {
   try {
     const { uri } = await FileSystem.getInfoAsync(fileUri)
     const blob = await new Promise((resolve, reject) => {
@@ -89,7 +94,7 @@ export const uploadImage = async (fileUri: string, userId: string) => {
     console.log('Blob', blob)
 
     const fileName = fileUri.split('/').pop();
-    const storageRef = ref(Firebase_Storage, `profile_images/${userId}/${fileName}`);
+    const storageRef = ref(Firebase_Storage, `${path}/${userId}/${fileName}`);
     await uploadBytes(storageRef, blob as Blob);
 
     const downloadURL = await getDownloadURL(storageRef);
@@ -244,16 +249,74 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
 
 // Firebase Firestore (EVENTS)
 
-const createEvent = async (eventData: Event) => {
+export const createEvent = async (
+  eventData: Omit<Event, "id" | "coordinate" | "coverImage" | "ownerId">,
+  fileUri: string,
+): Promise<Event> => {
   try {
-    const eventsCollectionRef = collection(Firebase_Firestore, 'events');
-    const eventRef = await addDoc(eventsCollectionRef, eventData);
+    const userId = Firebase_Auth.currentUser?.uid;
+    if (!userId) {
+      throw new Error("User is not logged in.");
+    }
 
-    return eventRef.id;
+    const coverImage = await uploadImage(fileUri, userId, 'event_images');
+    const GOOGLE_API_KEY = Constants.expoConfig?.extra?.GOOGLE_API_KEY;
+
+    const fullAddress = `${eventData.street}, ${eventData.city}, ${eventData.state}, ${eventData.zipCode}`;
+    const geocodeResult = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${GOOGLE_API_KEY}`);
+    const geocodeJson = await geocodeResult.json();
+
+    if (geocodeJson.status !== "OK" || geocodeJson.results.length === 0) {
+      throw new Error("Could not geocode the address.");
+    }
+
+    const { lat, lng } = geocodeJson.results[0].geometry.location;
+    const eventsCollectionRef = doc(collection(Firebase_Firestore, 'events'));
+    const userEventRef = collection(Firebase_Firestore, `users/${userId}/event-owner`);
+
+    const eventToSave: Event = {
+      ...eventData,
+      id: eventsCollectionRef.id,
+      coordinate: new GeoPoint(lat, lng),
+      coverImage: coverImage,
+      ownerId: userId,
+      dateCreated: Timestamp.now(),
+    };
+
+    await Promise.all([
+      setDoc(eventsCollectionRef, eventToSave),
+      setDoc(doc(userEventRef, eventToSave.id), {})
+    ]);
+
+    // const snapshot = await getDoc(doc(eventsCollectionRef, eventToSave.id));
+
+    // const newEvent = {
+    //   id: snapshot.id,
+    //   ...snapshot.data(),
+    // } as Event;
+
+    return eventToSave;
   } catch (error) {
     console.error("Error creating event:", error);
     throw error;
   }
+}
+
+export const fetchUserCreatedEvents = async (userId: string) => {
+  const userEventsRef = collection(Firebase_Firestore, `users/${userId}/event-owner`);
+  const querySnapshot = await getDocs(userEventsRef);
+
+  const eventIds = querySnapshot.docs.map((doc) => doc.id);
+
+  const events = await Promise.all(
+    eventIds.map(async (eventId) => {
+      const eventDocRef = doc(Firebase_Firestore, `events`, eventId);
+      const eventDoc = await getDoc(eventDocRef);
+      return { id: eventDoc.id, ...eventDoc.data() } as Event;
+    })
+  );
+
+  return events;
 }
 
 // export const fetchEventsByCityWithListener = (
@@ -322,15 +385,9 @@ export const fetchEventsByCity = async (city: string) => {
         const participantsSnapshot = await getDocs(participantsCollectionRef);
         const attendeeIds = participantsSnapshot.docs.map((participantDoc) => participantDoc.id);
 
-        // Check if the event is bookmarked by the user
-        // const userBookmarkRef = doc(Firebase_Firestore, `users/${currentUid}/bookmarks`, eventId);
-        // const bookmarkSnapshot = await getDoc(userBookmarkRef);
-        // const isBookmarked = bookmarkSnapshot.exists();
-
         const event = {
           id: snapshot.id,
           ...snapshot.data(),
-          // isBookmarked: isBookmarked,
           attendeeIds
         } as Event;
 
@@ -392,7 +449,6 @@ export const fetchBookmarkedEventsByUserId = async (userId: string) => {
         const eventDoc = await getDoc(eventDocRef);
         return { 
           id: eventDoc.id,
-          isBookmarked: true, 
           ...eventDoc.data() 
         } as Event;
       })

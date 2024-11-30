@@ -27,6 +27,10 @@ interface UserStore {
   userBookmarkedEvents: Event[];
   setUserBookmarkedEvents: (events: Event[]) => void;
   clearUserBookmarkedEvents: () => void;
+
+  userCreatedEvents: Event[];
+  setUserCreatedEvents: (events: Event[]) => void;
+  clearUserCreatedEvents: () => void;
 }
 
 interface EventStore {

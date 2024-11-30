@@ -64,24 +64,24 @@ const CardPop = ({
             </Text>
           </View>
           
-          <View className='justify-between flex-1 mt-2'>
+          <View className='flex-1 mt-2'>
             <Text className="font-semibold text-gray-900 line-clamp-2">
               {event.title}
             </Text>
-            
-            <View className='flex-row items-center'>
-              <Image
-                source={icons.marker}
-                className="w-3.5 h-3.5 mr-1"
-              />
-              <Text className="text-gray-500 text-xs flex-1">
-                {eventAddress}
-              </Text>
-            </View>
+          </View>
+
+          <View className='flex-row items-center'>
+            <Image
+              source={icons.marker}
+              className="w-3.5 h-3.5 mr-1"
+            />
+            <Text className="text-gray-500 text-xs flex-1">
+              {eventAddress}
+            </Text>
           </View>
         </View>
 
-        <View className="items-center justify-between">
+        <View className="items-center justify-between w-[26px]">
           {isBookmarkShown && (
             <TouchableOpacity 
               onPress={handleBookmarkClick}

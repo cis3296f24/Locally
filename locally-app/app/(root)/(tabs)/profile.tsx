@@ -17,7 +17,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { user, userBookmarkedEvents } = useUserStore();
+  const { user, userBookmarkedEvents, userCreatedEvents } = useUserStore();
   const { ticketList } = useTicketStore();
 
   // const [refreshing, setRefreshing] = useState(false);
@@ -28,14 +28,12 @@ const Profile = () => {
   //   setRefreshing(false);
   // }, []);
 
-  const myEvents = events.filter((event) => event.ownerId === user?.id);
-
   const title1 = "My Events";
   const title2 = "Bookmark";
 
   const handleSeeAllClick = (title: string) => {
     if (title === title1) {
-      setFilteredEvents(myEvents);
+      setFilteredEvents(userCreatedEvents);
     } else if (title === title2) {
       setFilteredEvents(userBookmarkedEvents);
     }
@@ -115,7 +113,7 @@ const Profile = () => {
           onSeeAllPress={(value) => handleSeeAllClick(value)} 
         />
 
-        {myEvents.slice(0, 2).map((event) => (
+        {userCreatedEvents.slice(0, 2).map((event) => (
           <View 
             key={event.id} 
             className='bg-white rounded-2xl w-full items-center my-2'>
