@@ -9,24 +9,17 @@ interface User {
   profileImage: string = "";
 
   // optional
-  followingIds?: string[];
-  followersIds?: string[];
+  followingCount: number;
+  followersCount: number;
   isFollowing?: boolean;
   bio?: string;
-  bookmarkedEvents?: Event[];
-  hostedEvents?: Event[];
+  // bookmarkedEvents?: Event[];
+  // hostedEvents?: Event[];
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments
   label: string;
   iconName: any;
-}
-
-interface CardPopProps {
-  event: Event;
-  styling?: string;
-  imageSize?: string;
-  onClick?: () => void;
 }
 
 interface Ticket {
@@ -66,7 +59,7 @@ interface Event {
   dateCreated: Timestamp;
   dateStart: Timestamp;
   dateEnd?: Timestamp;
-  price?: number;
+  price?: number | null;
   timeStart: string;
   timeEnd?: string;
 
@@ -89,7 +82,7 @@ type PrimaryButtonProps = {
   onPress: () => void;
   icon?: any;
   bgColor?: string;
-  textcolor?: string;
+  textStyle?: string;
   iconBgColor?: string;
   iconColor?: string;
   iconVisible?: boolean;

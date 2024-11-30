@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList } from 'react-native'
-import React, { useState } from 'react'
-import { signOutUser } from '@/services/firebase-service'
+import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList, RefreshControl, Modal, LayoutChangeEvent, findNodeHandle, UIManager } from 'react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { fetchBookmarkedEventsByUserId, fetchUserProfileById, signOutUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { images } from '@/constants';
@@ -10,14 +10,35 @@ import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
+import { useTicketStore } from '@/store/ticket';
+import { Event } from '@/types/type';
+import PrimaryButton from '@/components/PrimaryButton';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setEvents, setListTitle } = useEventStore();
+  const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { user } = useUserStore();
+  const { user, userBookmarkedEvents, userCreatedEvents } = useUserStore();
+  const { ticketList } = useTicketStore();
+
+  // const [refreshing, setRefreshing] = useState(false);
+
+  // const handleRefresh = useCallback(() => {
+  //   setRefreshing(true);
+  //   refetch();
+  //   setRefreshing(false);
+  // }, []);
+
+  const title1 = "My Events";
+  const title2 = "Bookmark";
 
   const handleSeeAllClick = (title: string) => {
+    if (title === title1) {
+      setFilteredEvents(userCreatedEvents);
+    } else if (title === title2) {
+      setFilteredEvents(userBookmarkedEvents);
+    }
+
     setListTitle(title)
     router.push('/(root)/event-list')
   }
@@ -26,34 +47,22 @@ const Profile = () => {
     router.push('/(root)/edit-profile')
   }
 
-  const userAlt = {
-    name: "David Rose",
-    following: 350,
-    followers: 346,
-    bio: "Traveling to new places and connecting with people from diverse backgrounds broadens my perspective and enriches my life. I enjoy immersing myself in the cultures, traditions, and cuisines of the destinations I visit. Whether it’s exploring bustling cities, trekking through serene landscapes, or simply engaging in heartfelt conversations, every journey offers a unique opportunity to grow.",
-    events: [
-      {
-        id: 1,
-        title: "Ticket to Wonderland",
-        dateStart: "2024-10-22T00:00:00",
-        street: "123 Wonder Ave",
-        city: "Wonderland City",
-        description: "I had such a fun time here. Would definitely join again.",
-        coverImage: images.dog,
-        price: true,
-      },
-      {
-        id: 2,
-        title: "Democracy Rules",
-        dateStart: "2024-10-22T00:00:00",
-        street: "456 Democracy St",
-        city: "Liberty City",
-        description: "I had such a fun time here. Would definitely join again.",
-        coverImage: images.dog,
-        price: false,
-      }
-    ]
-  };
+  const handleSeeTicketsClick = async () => {
+    router.push('/(root)/ticket-list')
+  }
+
+  const handleOnEventClick = async (event: Event) => {
+    setSelectedEvent(event)
+    setShouldClearSelectedEvent(true)
+    router.navigate("/(root)/event-details")
+  }
+
+  const [visible, setVisible] = useState(false);
+
+  const handleCreateEvent = () => {
+    router.push('/(root)/create-event')
+    setVisible(false)
+  }
 
   const renderHistoryTab = () => {  
     return (
@@ -96,56 +105,75 @@ const Profile = () => {
 
   const renderFavoriteTab = () => (
     <View className='bg-white gap-4 mt-4'>
-      <View>
-        <SeeAll
-          title='My Events'
-          styling='m-2'
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2'
-          onSeeAllPress={(value) => handleSeeAllClick(value)} 
-        />
+      {user?.isSubscribed && userCreatedEvents.length > 0 && (
+        <View>
+          <SeeAll
+            title={title1}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2'
+            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+          />
 
-        {events.slice(0, 2).map((event) => (
-          <View 
-            key={event.id} 
-            className='bg-white rounded-2xl w-full items-center my-2'>
-            <CardPop 
-              event={event}
-              onClick={() => {}}
-              styling='shadow-md shadow-slate-300 w-[90%] px-4'
-              imageSize='w-[80px] h-[80px] -ml-0.5'
-            />
-          </View>
-        ))}
-      </View>
+          {userCreatedEvents.slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px] -ml-0.5'
+              />
+            </View>
+          ))}
+        </View>
+      )}
 
-      <View>
-        <SeeAll
-          title='Bookmark'
-          styling='m-2'
-          seeAllColor='text-secondary-sBlue'
-          arrowColor='#39C3F2' 
-          onSeeAllPress={(value) => handleSeeAllClick(value)} 
-        />
+      { userBookmarkedEvents.length > 0 ? (
+        <View>
+          <SeeAll
+            title={title2}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2' 
+            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+          />
 
-        {events.slice(0, 2).map((event) => (
-          <View 
-            key={event.id} 
-            className='bg-white rounded-2xl w-full items-center my-2'>
-            <CardPop 
-              event={event}
-              onClick={() => {}}
-              styling='shadow-md shadow-slate-300 w-[90%] px-4'
-              imageSize='w-[80px] h-[80px]'
-            />
-          </View>
-        ))}
-      </View>
+          {userBookmarkedEvents
+            // .sort(() => Math.random() - 0.5)
+            .slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px]'
+              />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View className='justify-center gap-8 items-center my-32'>
+          <Text className='text-lg font-semibold text-primary-pBlue'>
+            Let's explore something exciting around you!
+          </Text>
+
+          <PrimaryButton
+            text={"back to home"} 
+            bgColor="bg-[#003566]" 
+            iconVisible={false} 
+            onPress={() => router.replace('/(root)/(tabs)/explore')}
+          />
+        </View>
+      )}
     </View>
   );
 
   const displayedText = isExpanded || !user?.bio || user.bio.length <= 200 
-    ? user?.bio 
+    ? user?.bio   
     : `${user?.bio.slice(0, 200)}...`;
 
   const renderBioTab = () => (
@@ -187,6 +215,14 @@ const Profile = () => {
         keyExtractor={(item) => item}
         className='px-8'
         renderItem={() => renderTabContent()}
+        // refreshControl={
+        //   <RefreshControl
+        //     refreshing={refreshing}
+        //     onRefresh={handleRefresh}
+        //     colors={['#00C5DC']} // Optional: Android colors
+        //     tintColor="#00C5DC" // Optional: iOS color
+        //   />
+        // }
         ListHeaderComponent={
           <>
             <View className='items-center mt-4 gap-4'>
@@ -196,7 +232,7 @@ const Profile = () => {
                 <UserProfileImage 
                   image={user?.profileImage}
                   name={user?.username}
-                  isSubscribed={true}
+                  isSubscribed={user?.isSubscribed}
                   imageStyle="w-28 h-28"
                   dotStyle="bottom-1.5 right-1.5 w-5 h-5"
                   textStyle="text-2xl mt-2 font-bold text-primary-pBlue"
@@ -216,14 +252,14 @@ const Profile = () => {
               <View className="flex-row">
                 <View className="items-center px-6">
                   <Text className="text-lg font-semibold text-primary-pBlue">
-                    {user?.followingIds?.length}
+                    {user?.followingCount}
                   </Text>
                   <Text className="text-sm text-gray-500">Following</Text>
                 </View>
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
                   <Text className="text-lg font-semibold text-primary-pBlue">
-                    {user?.followersIds?.length}
+                    {user?.followersCount}
                   </Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>
@@ -232,24 +268,43 @@ const Profile = () => {
               <View className="flex-row justify-center items-center gap-8 px-20">
                 {/* New Button */}
                 <View className='flex-1 justify-center items-end'>
-                  <TouchableOpacity 
-                    className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                    onPress={() => {}}
-                  >
-                    <Ionicons name="add" size={24} color="white" />
-                    <Text className="text-white font-medium text-lg">New</Text>
-                  </TouchableOpacity>
+                  {user?.isSubscribed ? (
+                    <DropDownMenu 
+                      isVisible={visible}
+                      onPress={() => setVisible(true)}
+                      onCreateEvent={handleCreateEvent}
+                      onclose={() => setVisible(false)}
+                    />
+                  ):(
+                    <TouchableOpacity
+                      className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+                      onPress={() => console.log("Create new post")}
+                    >
+                      <Ionicons name="add" size={24} color="white" />
+                      <Text className="text-white font-medium text-lg">New</Text>
+                    </TouchableOpacity>
+                  )}
+                  
                 </View>
 
                 {/* Edit Button */}
                 <View className='flex-1 justify-center items-center'>
-                  <TouchableOpacity 
-                    className="border border-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                    onPress={() => {}}
-                  >
-                    <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
-                    <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
-                  </TouchableOpacity>
+                  <View className="relative">
+                    <TouchableOpacity 
+                      className="border border-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+                      onPress={handleSeeTicketsClick}
+                    >
+                      <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
+                      <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
+                    </TouchableOpacity>
+                    {ticketList.length > 0 ? (
+                      <View 
+                        className="absolute -top-2 -right-2 bg-primary-pBlue w-6 h-6 rounded-full justify-center items-center"
+                      >
+                        <Text className="text-white text-sm font-bold">{ticketList.length}</Text>
+                      </View>
+                    ): null}
+                  </View>
                 </View>
               </View>
 
@@ -278,3 +333,80 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
+const DropDownMenu = ({
+  isVisible,
+  onPress,
+  onCreateEvent,
+  onCreatePost,
+  onclose
+}: {
+  isVisible: boolean;
+  onPress: () => void;
+  onCreateEvent?: () => void;
+  onCreatePost?: () => void;
+  onclose?: () => void;
+}) => {
+  const [buttonCoords, setButtonCoords] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef(null);
+
+  const handleOpenMenu = () => {
+    onPress();
+    const node = findNodeHandle(buttonRef.current);
+    if (node) {
+      UIManager.measure(
+        node,
+        (x, y, width, height, pageX, pageY) => {
+          setButtonCoords({ x: pageX, y: pageY + height }); // Set position below the button
+        }
+      );
+    }
+  };
+
+  return (
+    <View className="flex-1 justify-center items-center">
+      <TouchableOpacity
+        ref={buttonRef} 
+        className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
+        onPress={handleOpenMenu}
+      >
+        <Ionicons name="add" size={24} color="white" />
+        <Text className="text-white font-medium text-lg">New</Text>
+      </TouchableOpacity>
+
+      <Modal
+        transparent
+        visible={isVisible}
+        animationType="fade"
+        onRequestClose={onclose}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/30"
+          onPress={onclose}
+        >
+          <View
+            className="absolute w-48 bg-white rounded-lg shadow-lg"
+            style={{
+              top: buttonCoords.y,
+              left: buttonCoords.x,
+            }}
+          >
+            <TouchableOpacity
+              onPress={onCreateEvent}
+              className="px-4 py-3 border-b border-gray-200"
+            >
+              <Text className="text-base">Create Event</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onCreatePost}
+              className="px-4 py-3"
+            >
+              <Text className="text-base">Create Post</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+};

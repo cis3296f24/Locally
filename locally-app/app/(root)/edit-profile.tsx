@@ -3,7 +3,7 @@ import UserProfileImage from '@/components/UserProfileImage';
 import { signOutUser, updateUserProfile, uploadImage } from '@/services/firebase-service';
 import useLocationStore from '@/store/locationStore';
 import { useUserStore } from '@/store/user';
-import { AntDesign, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome6, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -13,12 +13,15 @@ import {
   Text,
   TouchableOpacity,
   Switch,
-  Image,
   TextInput,
   Alert,
+  Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { User } from '@/types/type';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import Constants from 'expo-constants';
+import Payment from '@/components/Payment';
 
 export default function EditProfile() {
 
@@ -29,6 +32,23 @@ export default function EditProfile() {
   const [username, setUsername] = useState(user?.username);
   const [bio, setBio] = useState(user?.bio);
   const [isEditing, setIsEditing] = useState(false);
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleOpenSheet = () => setIsVisible(true);
+  const handleCloseSheet = () => setIsVisible(false);
+
+  const handleSubscribe = async () => {
+    if (user) {
+      let updatedUser: User = { ...user };
+      updatedUser.isSubscribed = true;
+      useUserStore.setState({ user: updatedUser });
+      await updateUserProfile(updatedUser);
+    }
+
+    setIsVisible(false);
+  }
+  const handleUnsubscribe = () => {}
 
   const handleImageClick = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -51,7 +71,7 @@ export default function EditProfile() {
         let updatedUser: User = { ...user };
 
         if (image && image !== user.profileImage) {
-          const imageUrl = await uploadImage(image, user.id);
+          const imageUrl = await uploadImage(image, user.id, 'profile_images');
           updatedUser.profileImage = imageUrl;
           setImage(imageUrl); 
         }
@@ -102,17 +122,35 @@ export default function EditProfile() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="py-6 px-0 flex-grow flex-shrink basis-0">
-        <TouchableOpacity onPress={() => router.back()}>
-          <View className="flex-row gap-2 pl-3 my-4 items-center ml-5">
-            <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
-            <Text className="text-2xl">Settings</Text>
-          </View>
-        </TouchableOpacity>
+      <View className="py-8 px-0 flex-grow flex-shrink basis-0">
+        <View className='flex-row justify-between items-center'>
+          <TouchableOpacity onPress={() => router.back()}>
+            <View className="flex-row gap-2 pl-3 my-4 items-center ml-5">
+              <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
+              <Text className="text-2xl">Settings</Text>
+            </View>
+          </TouchableOpacity>
+
+          {user?.isSubscribed ? (
+            <TouchableOpacity
+              onPress={handleUnsubscribe}
+              className="bg-white border border-[#FFC300] h-10 px-2 py-1 rounded-full items-center justify-center mr-5"
+            >
+              <Text className="text-[#FFC300] font-semibold text-md">Unsubscribe</Text>
+            </TouchableOpacity>
+          ): (
+            <TouchableOpacity
+              onPress={handleOpenSheet}
+              className="bg-[#FFC300] h-10 px-2 py-1 rounded-full items-center justify-center mr-5"
+            >
+              <Text className="text-white font-semibold text-md">Become a Host</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <ScrollView>
           {/* Profile Section */}
-          <View className="relative py-6 items-center bg-white border-t border-b border-gray-300">
+          <View className="py-6 items-center bg-white border-t border-b border-gray-300">
             <UserProfileImage 
               image={image}
               name={isEditing ? "" : user?.username}
@@ -243,7 +281,6 @@ export default function EditProfile() {
             text="Sign Out"
             onPress={handleSignOut}
             icon={"home-export-outline"}
-            textcolor="text-white"
             buttonStyle="mt-16 mx-24"
           /> 
         </ScrollView>
@@ -253,6 +290,12 @@ export default function EditProfile() {
             Made with ❤️ from Philadelphia
           </Text>
         </View>
+        
+        <BecomeHostSheet 
+          isVisible={isVisible}
+          onClose={handleCloseSheet}
+          onSuccess={handleSubscribe}
+        />
       </View>
     </SafeAreaView>
   );
@@ -287,6 +330,125 @@ const SettingRow = ({
         <View className="flex-grow" />
         {rightElement}
       </TouchableOpacity>
+    </View>
+  );
+}
+
+const BecomeHostSheet = ({
+  isVisible,
+  onClose,
+  onSuccess
+}: {
+  isVisible: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) => {
+
+  const user = useUserStore((state) => state.user);
+
+  return (
+    <StripeProvider
+      publishableKey={Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY}
+      merchantIdentifier="merchant.locally.app"
+      urlScheme="myapp"
+    >
+      <Modal
+        visible={isVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={onClose}
+      >
+        <View className="flex-1 bg-black/50">
+          <View className="bg-white mt-auto rounded-t-3xl py-6 px-4">
+
+            <View className='flex-row justify-end'>
+              <View>
+                <TouchableOpacity 
+                  onPress={onClose} 
+                  className="p-2"
+                >
+                  <Ionicons name="close" size={30} color="black" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          
+
+            <Text className="text-2xl font-semibold text-center text-gray-900">
+              Become a Host
+            </Text>
+            <Text className="text-gray-600 text-center mt-2">
+              Host events around your area and enjoy unlimited support!
+            </Text>
+          
+            <View className="gap-4 px-6 my-12">
+              <BenefitItem 
+                icon={<MaterialIcons name="event-available" size={30} color="white" />}
+                title="Host Events Locally"
+                description="Create and promote events in your community."
+              />
+
+              <BenefitItem 
+                icon={<MaterialIcons name="support-agent" size={30} color="white" />}
+                title="Unlimited Support"
+                description="Get assistance any time to manage your events smoothly."
+              />
+
+              <BenefitItem 
+                icon={<MaterialCommunityIcons name="account-group-outline" size={30} color="white" />}
+                title="Grow Your Community"
+                description="Expand your reach and connect with more people."
+              />
+            </View>   
+
+            <View className="gap-4 px-6">
+              <Payment
+                title="Subscribe for $15/month"
+                name={user?.fullName}
+                email={user?.email}
+                amount="15"
+                textStyle='text-xl capitalize text-white'
+                onPaymentStatus={(status) => {
+                  if (status === 'success') {
+                    onSuccess();
+                  }
+                }}
+              />
+            </View>
+
+            {/* Close Button */}
+            <TouchableOpacity
+              onPress={onClose}
+              className="my-8 py-2"
+            >
+              <Text className="text-center text-xl text-gray-500 font-semibold">
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </StripeProvider>
+  );
+};
+
+const BenefitItem = ({
+  icon,
+  title,
+  description
+}: {
+  icon: any;
+  title: string;
+  description: string;
+}) => {
+  return (
+    <View className="flex-row items-center">
+      <View className="bg-primary-pBlue p-2 rounded-full">
+        {icon}
+      </View>
+      <View className="ml-4">
+        <Text className="text-gray-900 font-medium">{title}</Text>
+        <Text className="text-gray-600 text-sm">{description}</Text>
+      </View>
     </View>
   );
 }

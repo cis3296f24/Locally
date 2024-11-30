@@ -38,6 +38,39 @@ export const formatEventDateAndTime = (dateStart?: Timestamp, timeStart?: string
   return `${dayOfWeek}, ${formattedTime}`;
 };
 
+export const formatDetailsEventDateAndTime = (
+  dateStart?: Timestamp, 
+  timeStart?: string
+): string => {
+  if (!dateStart || !timeStart) return '';
+
+  const startDate = dateStart.toDate();
+
+  // Format the date to "Sun, Nov 24"
+  const formattedDate = startDate.toLocaleDateString('en-US', {
+    weekday: 'short', // Abbreviated day (e.g., Sun)
+    month: 'short',   // Abbreviated month (e.g., Nov)
+    day: 'numeric',   // Numeric day (e.g., 24)
+  });
+
+  return `${formattedDate} • ${timeStart}`;
+};
+
+export const formatTimeLeft = (timeStart: Timestamp): string => {
+  const now = new Date(); 
+  const startDate = timeStart.toDate(); 
+
+  const timeDiff = startDate.getTime() - now.getTime();
+
+  const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+  if (daysLeft <= 0) {
+    return 'Today';
+  }
+
+  return `~ ${daysLeft} day${daysLeft > 1 ? 's' : ''} left`;
+};
+
 export const formatAddress = (
   street?: string, 
   city?: string, 

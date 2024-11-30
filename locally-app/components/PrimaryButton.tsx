@@ -7,7 +7,7 @@ const PrimaryButton = ({
   onPress,
   icon = "arrow-right", 
   bgColor = "bg-[#40BFFF]",
-  textcolor = "text-white",  
+  textStyle = "text-white",  
   iconBgColor = "bg-[#003566]", 
   iconColor = "white",
   iconVisible = true,
@@ -24,7 +24,7 @@ const PrimaryButton = ({
       className={`${bgColor} rounded-xl py-3 ${buttonStyle}`}
     >
       <View className="flex-row items-center justify-center">
-        <Text className={`${textcolor} text-2xl font-semibold uppercase px-5`}>
+        <Text className={`${textStyle} text-2xl font-semibold uppercase px-5`}>
           {text}
         </Text>
 

@@ -6,18 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Event } from '@/types/type'
-import { fetchUserProfileById } from '@/services/firebase-service'
-import { useUserStore } from '@/store/user'
 
 const EventList = () => {
 
-  const { events, listTitle, setSelectedEvent } = useEventStore()
+  const { filteredEvents, listTitle, setSelectedEvent, setShouldClearSelectedEvent } = useEventStore()
 
-  const handleOnCardClick = async (event: Event) => {
-    const owner = await fetchUserProfileById(event.ownerId);
-    useUserStore.getState().setSelectedUser(owner);
+  const handleOnEventClick = async (event: Event) => {
     setSelectedEvent(event)
-    router.push("/(root)/event-details")
+    setShouldClearSelectedEvent(true)
+    router.navigate("/(root)/event-details")
   }
 
   return (
@@ -33,14 +30,15 @@ const EventList = () => {
         </TouchableOpacity>
 
         <FlatList
-          data={events.sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())}
+          data={filteredEvents.sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())}
           keyExtractor={(item) => item.id}
           className='px-6'
           renderItem={({ item }) => (
             <CardPop
               event={item}
               styling="mb-4 shadow-md shadow-slate-300"
-              onClick={() => handleOnCardClick(item)} 
+              onEventClick={() => handleOnEventClick(item)}
+              isBookmarkShown={true} 
             />
           )} 
         />

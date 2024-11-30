@@ -7,7 +7,8 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
-import { signUpUser } from '@/services/firebase-service'
+import { fetchAllUsers, fetchUserProfileById, signUpUser } from '@/services/firebase-service'
+import { useUserStore } from '@/store/user'
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
@@ -26,7 +27,17 @@ const SignUpScreen = () => {
             const user = await signUpUser({fullName, email, password })
             
             if (user) {
-                console.log('User signed up successfully', user)
+                const [
+                    currentuser,
+                    users,
+                ] = await Promise.all([
+                    fetchUserProfileById(useUserStore.getState().user?.id as string),
+                    fetchAllUsers(),
+                ]);
+
+                useUserStore.getState().setUser(currentuser);
+                useUserStore.getState().setUserList(users);
+
                 setLoading(false)
                 router.replace('/(root)/(tabs)/explore')
             }
@@ -50,38 +61,51 @@ const SignUpScreen = () => {
                     source={ images.logo }
                     className="w-32 h-32"
                 />
-                <Text className="text-3xl font-bold text-center">Locally</Text>
+                <Text className="text-3xl font-bold text-center text-primary-pBlue">
+                    Locally
+                </Text>
             </View>
 
             {/* Sign Up Form */}
             <View className="mb-6">
-                <Text className="text-2xl font-bold text-start my-8">Sign Up</Text>
+                <Text className="text-2xl font-bold text-primary-pBlue text-start my-8">
+                    Sign Up
+                </Text>
 
-                <FormInput
-                    icon="person-outline"
-                    placeholder="Full name"
-                    value={fullName}
-                    onChangeText={setFullName}
-                />
-                <FormInput
-                    icon="mail-outline"
-                    placeholder="abc@email.com"
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <FormInput
-                    icon="lock-closed-outline"
-                    placeholder="Your password"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                />
+                <View className='flex-row'>
+                    <FormInput
+                        icon="person-outline"
+                        placeholder="Full name"
+                        value={fullName}
+                        onChangeText={setFullName}
+                    />
+                </View>
+
+                <View className='flex-row'>
+                    <FormInput
+                        icon="mail-outline"
+                        placeholder="abc@email.com"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
+                </View>
+
+                <View className='flex-row'>
+                    <FormInput
+                        icon="lock-closed-outline"
+                        placeholder="Your password"
+                        secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
+                    />
+                </View>
 
                 <PrimaryButton
                     text="Register"
                     icon="pencil-remove-outline"
                     onPress={handleSignUp}
                     loading={loading}
+                    buttonStyle='mt-4'
                 />
             </View>
 
@@ -96,7 +120,7 @@ const SignUpScreen = () => {
             {/* Login Link */}
             <View className="flex-row justify-center mt-6">
                 <Text className="text-gray-600">Already have an account? </Text>
-                <Link href="./login" className="text-blue-500 font-semibold">Log In</Link>
+                <Link href="./login" className="text-secondary-sBlue font-semibold">Log In</Link>
             </View>
         </View>
     )

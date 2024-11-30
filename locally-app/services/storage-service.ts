@@ -47,14 +47,11 @@ export const getUserCity = async () => {
   try {
     const storedCity = await AsyncStorage.getItem('city');
     if (storedCity !== null) {
-      // console.log('Retrieved city:', storedCity);
       return storedCity;
     } else {
       return "Philadelphia";
-      console.log('No city found');
     }
   } catch (error) {
     return "Philadelphia";
-    console.log('Error retrieving city', error);
   }
 }

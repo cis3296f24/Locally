@@ -1,10 +1,11 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc, getCountFromServer, QueryDocumentSnapshot, startAfter } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
+import Constants from 'expo-constants';
 
 // Firebase Authentication
 
@@ -26,6 +27,8 @@ export const signUpUser = async ({
       username: fullName.split(' ')[0].toLowerCase().slice(0, 16),
       isSubscribed: false,
       profileImage: "",
+      followingCount: 0,
+      followersCount: 0
     }
 
     await updateUserProfile(user);
@@ -69,7 +72,11 @@ export const signOutUser = async () => {
 
 // Firebase Storage
 
-export const uploadImage = async (fileUri: string, userId: string) => {
+export const uploadImage = async (
+  fileUri: string, 
+  userId: string,
+  path: string
+) => {
   try {
     const { uri } = await FileSystem.getInfoAsync(fileUri)
     const blob = await new Promise((resolve, reject) => {
@@ -87,7 +94,7 @@ export const uploadImage = async (fileUri: string, userId: string) => {
     console.log('Blob', blob)
 
     const fileName = fileUri.split('/').pop();
-    const storageRef = ref(Firebase_Storage, `profile_images/${userId}/${fileName}`);
+    const storageRef = ref(Firebase_Storage, `${path}/${userId}/${fileName}`);
     await uploadBytes(storageRef, blob as Blob);
 
     const downloadURL = await getDownloadURL(storageRef);
@@ -129,10 +136,10 @@ export const fetchUserProfileById = async (userId: string) => {
     const userData = userSnapshot.data();
 
     const followingRef = collection(Firebase_Firestore, `users/${userId}/following`);
-    const followingSnapshot = await getDocs(followingRef);
-    const followingIds = followingSnapshot.docs.map((doc) => doc.id);
+    const followingCount = (await getCountFromServer(followingRef)).data().count;
 
     const followersRef = collection(Firebase_Firestore, `users/${userId}/followers`);
+    const followersCount = (await getCountFromServer(followersRef)).data().count;
     const followersSnapshot = await getDocs(followersRef);
     const followersIds = followersSnapshot.docs.map((doc) => doc.id);
 
@@ -140,10 +147,10 @@ export const fetchUserProfileById = async (userId: string) => {
 
     return {
       ...userData,
-      followingIds,
-      followersIds,
+      followingCount,
+      followersCount,
       isFollowing,
-    } as User;
+    } as unknown as User;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     throw error;
@@ -242,54 +249,105 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
 
 // Firebase Firestore (EVENTS)
 
-export const fetchEventsByCityWithListener = (
-  city: string,
-  onEventsUpdated: (events: Event[]) => void
-) => {
-  const eventsCollectionRef = collection(Firebase_Firestore, "events");
-  console.log("Fetching events for city:", city)
-
-  const cityQuery = query(
-    eventsCollectionRef,
-    where("city", "==", city)
-  );
-
-  const unsubscribe = onSnapshot(
-    cityQuery,
-    async (querySnapshot) => {
-      const eventsWithOwners = await Promise.all(
-        querySnapshot.docs
-          .filter((doc) => {
-            return doc.data().dateStart.toDate() >= new Date();
-          })
-          .map(async (doc) => {
-            const event = {
-              id: doc.id,
-              ...doc.data(),
-            } as Event;
-
-            // try {
-            //   event.owner = await fetchUserProfileById(event.ownerId);
-            // } catch (error) {
-            //   console.error(`Error fetching owner for event ${event.id}:`, error);
-            // }
-
-            return event;
-          })
-      );
-
-      onEventsUpdated(eventsWithOwners); // Pass the updated events to the callback
-    },
-    (error) => {
-      console.error("Error listening to events:", error);
+export const createEvent = async (
+  eventData: Omit<Event, "id" | "coverImage" | "ownerId">,
+  fileUri: string,
+): Promise<Event> => {
+  try {
+    const userId = Firebase_Auth.currentUser?.uid;
+    if (!userId) {
+      throw new Error("User is not logged in.");
     }
+
+    const coverImage = await uploadImage(fileUri, userId, 'event_images');
+
+    const eventsCollectionRef = doc(collection(Firebase_Firestore, 'events'));
+    const userEventRef = collection(Firebase_Firestore, `users/${userId}/event-owner`);
+
+    const eventToSave: Event = {
+      ...eventData,
+      id: eventsCollectionRef.id,
+      coordinate: new GeoPoint(eventData.coordinate.latitude, eventData.coordinate.longitude),
+      coverImage: coverImage,
+      ownerId: userId,
+      dateCreated: Timestamp.now(),
+    };
+
+    await Promise.all([
+      setDoc(eventsCollectionRef, eventToSave),
+      setDoc(doc(userEventRef, eventToSave.id), {})
+    ]);
+
+    return eventToSave;
+  } catch (error) {
+    console.error("Error creating event:", error);
+    throw error;
+  }
+}
+
+export const fetchCreatedEventsByUserId = async (userId: string) => {
+  const userEventsRef = collection(Firebase_Firestore, `users/${userId}/event-owner`);
+  const querySnapshot = await getDocs(userEventsRef);
+
+  const eventIds = querySnapshot.docs.map((doc) => doc.id);
+
+  const events = await Promise.all(
+    eventIds.map(async (eventId) => {
+      const eventDocRef = doc(Firebase_Firestore, `events`, eventId);
+      const eventDoc = await getDoc(eventDocRef);
+      return { id: eventDoc.id, ...eventDoc.data() } as Event;
+    })
   );
 
-  return unsubscribe;
-};
+  return events;
+}
+
+// export const fetchEventsByCityWithListener = (
+//   city: string,
+//   onEventsUpdated: (events: Event[]) => void
+// ) => {
+//   const eventsCollectionRef = collection(Firebase_Firestore, "events");
+//   console.log("Fetching events for city:", city)
+
+//   const cityQuery = query(
+//     eventsCollectionRef,
+//     where("city", "==", city)
+//   );
+
+//   const unsubscribe = onSnapshot(
+//     cityQuery,
+//     async (querySnapshot) => {
+//       const eventsWithOwners = await Promise.all(
+//         querySnapshot.docs
+//           .filter((doc) => {
+//             return doc.data().dateStart.toDate() >= new Date();
+//           })
+//           .map(async (doc) => {
+//             const event = {
+//               id: doc.id,
+//               ...doc.data(),
+//             } as Event;
+
+//             return event;
+//           })
+//       );
+
+//       onEventsUpdated(eventsWithOwners); // Pass the updated events to the callback
+//     },
+//     (error) => {
+//       console.error("Error listening to events:", error);
+//     }
+//   );
+
+//   return unsubscribe;
+// };
 
 export const fetchEventsByCity = async (city: string) => {
   const eventsCollectionRef = collection(Firebase_Firestore, "events");
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
 
   const cityQuery = query(
     eventsCollectionRef, 
@@ -299,13 +357,21 @@ export const fetchEventsByCity = async (city: string) => {
 
   const eventsWithOwners = await Promise.all(
     querySnapshot.docs
-      .filter((doc) => {
-        return doc.data().dateStart.toDate() >= new Date();
+      .filter((snapshot) => {
+        return snapshot.data().dateStart.toDate() >= new Date();
       })
-      .map(async (doc) => {
+      .map(async (snapshot) => {
+        const eventId = snapshot.id;
+
+        // Fetch participants
+        const participantsCollectionRef = collection(Firebase_Firestore, `events/${eventId}/participants`);
+        const participantsSnapshot = await getDocs(participantsCollectionRef);
+        const attendeeIds = participantsSnapshot.docs.map((participantDoc) => participantDoc.id);
+
         const event = {
-          id: doc.id,
-          ...doc.data(),
+          id: snapshot.id,
+          ...snapshot.data(),
+          attendeeIds
         } as Event;
 
         return event;
@@ -315,6 +381,69 @@ export const fetchEventsByCity = async (city: string) => {
 
   return eventsWithOwners;
 };
+
+export const bookmarkEvent = async (eventId: string) => {
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
+
+  try {
+    const userBookmarksRef = collection(Firebase_Firestore, `users/${currentUid}/bookmarks`);
+    const eventBookmarksRef = collection(Firebase_Firestore, `events/${eventId}/bookmarks`);
+    await setDoc(doc(userBookmarksRef, eventId), {});
+    await setDoc(doc(eventBookmarksRef, currentUid), {});
+
+    console.log("Event bookmarked successfully!");
+  } catch (error) {
+    console.error("Error bookmarking event:", error);
+    throw error;
+  }
+}
+
+export const unbookmarkEvent = async (eventId: string) => {
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
+
+  try {
+    const userBookmarksRef = doc(Firebase_Firestore, `users/${currentUid}/bookmarks`, eventId);
+    const eventBookmarksRef = doc(Firebase_Firestore, `events/${eventId}/bookmarks`, currentUid);
+    await deleteDoc(userBookmarksRef);
+    await deleteDoc(eventBookmarksRef);
+
+    console.log("Event unbookmarked successfully!");
+  } catch (error) {
+    console.error("Error unbookmarking event:", error);
+    throw error;
+  }
+}
+
+export const fetchBookmarkedEventsByUserId = async (userId: string) => {
+  try {
+    const userBookmarksRef = collection(Firebase_Firestore, `users/${userId}/bookmarks`);
+    const querySnapshot = await getDocs(userBookmarksRef);
+    const eventIds = querySnapshot.docs.map((doc) => doc.id);
+
+    const events = await Promise.all(
+      eventIds.map(async (eventId) => {
+        const eventDocRef = doc(Firebase_Firestore, `events`, eventId);
+        const eventDoc = await getDoc(eventDocRef);
+        return { 
+          id: eventDoc.id,
+          ...eventDoc.data() 
+        } as Event;
+      })
+    );
+
+    return events;
+  } catch (error) {
+    console.error("Error fetching bookmarked events:", error);
+    throw error;
+  }
+}
+
 
 // Firebase Firestore (TICKETS)
 
@@ -326,9 +455,10 @@ export const createTicket = async (
 ) => {
   try {
     const ticketRef = doc(collection(Firebase_Firestore, 'tickets'));
+    const ticketId = ticketRef.id;
 
     const newTicket: Ticket = {
-      ticketId: ticketRef.id,
+      ticketId: ticketId,
       eventName: event.title,
       eventAddress: `${event.street}, ${event.city}, ${event.state} ${event.zipCode}`,
       userName: user.fullName,
@@ -344,17 +474,18 @@ export const createTicket = async (
       userId: user.id,
     };
 
-    const ticketId = newTicket.ticketId;
     console.log('Ticket created with Firestore-generated ID:', ticketId);
 
-    await setDoc(ticketRef, newTicket);
-
     const eventTicketRef = doc(Firebase_Firestore, `events/${event.id}/ticket-purchase`, ticketId);
-    await setDoc(eventTicketRef, newTicket);
-
-    // Add ticket to the user's 'ticket-purchase' subcollection
+    const eventParticipantsRef = doc(Firebase_Firestore, `events/${event.id}/participants`, user.id);
     const userTicketRef = doc(Firebase_Firestore, `users/${user.id}/ticket-purchase`, ticketId);
-    await setDoc(userTicketRef, newTicket);
+
+    await Promise.all([
+      setDoc(ticketRef, newTicket),
+      setDoc(eventTicketRef, {}),
+      setDoc(eventParticipantsRef, {}),
+      setDoc(userTicketRef, {}),
+    ]);
 
     console.log('Ticket created successfully and added to event and user subcollections!');
 
@@ -373,14 +504,20 @@ export const createTicket = async (
 
 export const fetchTicketsByUser = async (userId: string) => {
   const userTicketsRef = collection(Firebase_Firestore, `users/${userId}/ticket-purchase`);
+  
   const querySnapshot = await getDocs(userTicketsRef);
+  const ticketIds = querySnapshot.docs.map((doc) => doc.id);
 
-  const tickets = querySnapshot.docs.map((doc) => {
-    return doc.data() as Ticket;
-  });
+  const tickets = await Promise.all(
+    ticketIds.map(async (ticketId) => {
+      const ticketDocRef = doc(Firebase_Firestore, `tickets`, ticketId);
+      const ticketDoc = await getDoc(ticketDocRef);
+      return { ticketId: ticketDoc.id, ...ticketDoc.data() } as Ticket; 
+    })
+  );
 
   return tickets;
-}
+};
 
 
 // Firebase Firestore (CHAT)
@@ -521,9 +658,7 @@ export const listenToConversations = (
   const unsubscribe = onSnapshot(
     userConversationsRef,
     async (snapshot) => {
-      const conversations: Conversation[] = [];
-
-      for (const docSnapshot of snapshot.docs) {
+      const promises = snapshot.docs.map(async (docSnapshot) => {
         const conversationId = docSnapshot.data().conversationId;
 
         const conversationRef = doc(Firebase_Firestore, 'conversations', conversationId);
@@ -538,7 +673,7 @@ export const listenToConversations = (
 
           const isRead = docSnapshot.data()?.isRead;
 
-          const conversation: Conversation = {
+          return {
             id: conversationId,
             lastMessage: conversationData.lastMessage || '',
             lastMessageTimestamp: conversationData.lastMessageTimestamp || Timestamp.now(),
@@ -546,15 +681,18 @@ export const listenToConversations = (
             participants: participants,
             recipient: recipientProfile,
           };
-
-          conversations.push(conversation);
         }
-      }
-      
+        return null; // Filter out invalid conversations
+      });
+
+      // Resolve all promises in parallel
+      const conversations = (await Promise.all(promises)).filter(Boolean) as Conversation[];
+
+      // Sort conversations by timestamp in descending order
       conversations.sort((a, b) => {
         const aTime = a.lastMessageTimestamp.toDate().getTime();
         const bTime = b.lastMessageTimestamp.toDate().getTime();
-        return bTime - aTime; // Descending order
+        return bTime - aTime;
       });
 
       onConversationsUpdated(conversations);
