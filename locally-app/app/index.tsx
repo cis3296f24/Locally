@@ -6,9 +6,10 @@ import { Redirect } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { useTicketStore } from "@/store/ticket";
+import registerNNPushToken from 'native-notify';
 
 export default function Index() {
-
+  registerNNPushToken(25151, 'bdWU0reHJ0TDNushqXwyuJ');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
