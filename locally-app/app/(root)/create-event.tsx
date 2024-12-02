@@ -18,11 +18,13 @@ import PurchasePopup from '@/components/PurchasePopup'
 import { useUserStore } from '@/store/user'
 import useLocationStore from '@/store/locationStore'
 import { LocationPickerInput } from '@/components/LocationPickerInput'
+import useNativeNotify from '@/services/native-notify'
+import { push } from 'expo-router/build/global-state/routing'
 
 const CreateEvent = () => {
+  const { user, userCreatedEvents, setUserCreatedEvents } = useUserStore();
   const { events, selectedEvent, setEvents, setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
   const { destinationCity } = useLocationStore();
-  const { userCreatedEvents, setUserCreatedEvents } = useUserStore();
   const [image, setImage] = useState<string | null>(null);
   const initialFormState = {
     category: '',
@@ -48,6 +50,7 @@ const CreateEvent = () => {
   const [form, setForm] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const { sendFollowNotification } = useNativeNotify();
 
   const handleImageClick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -113,6 +116,18 @@ const CreateEvent = () => {
         setEvents([createdEvent, ...events]);
       }
 
+      sendFollowNotification(
+        user?.id || '', 
+        'New Event Created', 
+        `${user?.username} that you are following just craeted a new event - "${createdEvent.title}" in ${createdEvent.city}.`,
+        {
+          route: '/event-details', // Target route
+          params: {
+              eventId: createdEvent.id, // Event ID to fetch details
+              ownerId: user?.id, // Event owner's name
+          },
+        }
+      );
       setUserCreatedEvents([createdEvent, ...userCreatedEvents]);
 
       setLoading(false);

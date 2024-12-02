@@ -58,7 +58,7 @@ interface Event {
   coverImage?: string;
   dateCreated: Timestamp;
   dateStart: Timestamp;
-  dateEnd?: Timestamp;
+  dateEnd: Timestamp;
   price?: number | null;
   timeStart: string;
   timeEnd?: string;

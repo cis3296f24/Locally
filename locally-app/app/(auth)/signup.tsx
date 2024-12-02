@@ -1,20 +1,21 @@
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, router } from 'expo-router'
-import Ionicons from '@expo/vector-icons/Ionicons'
 import GoogleButton from '../../components/GoogleButton'
 import FormInput from '../../components/FormInput'
-
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
 import { fetchAllUsers, fetchUserProfileById, signUpUser } from '@/services/firebase-service'
 import { useUserStore } from '@/store/user'
+import useNativeNotify from '@/services/native-notify'
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const { registerDevice, registerFollowMaster } = useNativeNotify();
 
     const handleSignUp = async () => {
         if (!fullName || !email || !password) {
@@ -28,15 +29,17 @@ const SignUpScreen = () => {
             
             if (user) {
                 const [
-                    currentuser,
+                    currentUser,
                     users,
                 ] = await Promise.all([
                     fetchUserProfileById(useUserStore.getState().user?.id as string),
                     fetchAllUsers(),
                 ]);
 
-                useUserStore.getState().setUser(currentuser);
+                useUserStore.getState().setUser(currentUser);
                 useUserStore.getState().setUserList(users);
+                registerDevice(currentUser.id);
+                registerFollowMaster(currentUser.id);
 
                 setLoading(false)
                 router.replace('/(root)/(tabs)/explore')

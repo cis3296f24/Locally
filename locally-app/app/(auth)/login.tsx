@@ -9,12 +9,15 @@ import PrimaryButton from '@/components/PrimaryButton'
 import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, signInUser } from '@/services/firebase-service'
 import { useTicketStore } from '@/store/ticket'
 import { useUserStore } from '@/store/user'
+import useNativeNotify from '@/services/native-notify'
 
 //Login logic goes here
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const { registerDevice, registerFollowMaster } = useNativeNotify();
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -46,6 +49,8 @@ const LoginScreen = () => {
                 useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
                 useUserStore.getState().setUserCreatedEvents(createdEvents);
                 useTicketStore.getState().setTicketList(ticketList);
+                registerDevice(user.id);
+                registerFollowMaster(user.id);
 
                 // const ticketList = await fetchTicketsByUser(user.id);
                 // useTicketStore.getState().setTicketList(ticketList);

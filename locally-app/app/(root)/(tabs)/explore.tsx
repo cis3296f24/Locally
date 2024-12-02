@@ -10,7 +10,6 @@ import useLocationStore from '@/store/locationStore';
 import * as Location from 'expo-location';
 import { useEventStore } from '@/store/event';
 import { setUserCity } from '@/services/storage-service';
-import { handleBookmark } from '@/utils/event';
 
 const Explore = () => {
   const { setUserLocation, userCity, destinationCity, setDestinationLocation } = useLocationStore();

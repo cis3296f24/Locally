@@ -1,16 +1,20 @@
 import { Firebase_Auth } from "@/configs/firebase";
-import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById } from "@/services/firebase-service";
+import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, fetchEventById } from "@/services/firebase-service";
 import { useUserStore } from "@/store/user";
 import 'react-native-get-random-values';
 import { Redirect } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { useTicketStore } from "@/store/ticket";
+import registerNNPushToken from 'native-notify';
+import useNativeNotify from "@/services/native-notify";
 
 export default function Index() {
-
+  registerNNPushToken(25151, 'bdWU0reHJ0TDNushqXwyuJ');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { registerDevice, registerFollowMaster } = useNativeNotify();
 
   useEffect(() => {
     onAuthStateChanged(Firebase_Auth, async (user) => {
@@ -34,20 +38,9 @@ export default function Index() {
         useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
         useUserStore.getState().setUserCreatedEvents(createdEvents);
         useTicketStore.getState().setTicketList(ticketList);
-        // const currentuser = await fetchUserProfileById(user.uid);
-        // useUserStore.getState().setUser(currentuser);
+        registerDevice(user.uid);
+        registerFollowMaster(user.uid);
 
-        // const users = await fetchAllUsers();
-        // useUserStore.getState().setUserList(users);
-
-        // const bookmarkEvents = await fetchBookmarkedEventsByUserId(user.uid);
-        // useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
-
-        // const createdEvents = await fetchCreatedEventsByUserId(user.uid);
-        // useUserStore.getState().setUserCreatedEvents(createdEvents);
-
-        // const ticketList = await fetchTicketsByUser(user.uid);
-        // useTicketStore.getState().setTicketList(ticketList);
         setIsLoggedIn(true);
       } else {
         setIsLoggedIn(false);
@@ -64,3 +57,5 @@ export default function Index() {
     }
   }
 }
+
+

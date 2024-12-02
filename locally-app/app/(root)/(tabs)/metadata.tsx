@@ -5,20 +5,73 @@ import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
 import { useUserStore } from '@/store/user'
-import { Timestamp } from 'firebase/firestore'
 import { Event, User } from '@/types/type'
 import { useEventStore } from '@/store/event'
 import useLocationStore from '@/store/locationStore'
 import { images } from '@/constants'
+
+enum EventType {
+  Upcoming = 'Upcoming Events',
+  EndingSoon = 'Ending Soon',
+  Today = 'Today',
+  ThisWeek = 'This Week',
+  New = 'New',
+  MostFavorite = 'Most Favorite',
+  HotPick = 'Hot Pick'
+}
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
   const { events, setListTitle, setFilteredEvents } = useEventStore();
   const { destinationCity } = useLocationStore();
 
-  const handleSeeAllClick = (title: string) => {
-    setFilteredEvents(events);
-    setListTitle(title)
+  const upcomingEvents = events
+    .filter(event => event.dateStart.toDate() > new Date())
+    
+    
+  const currentEvents = events
+    .filter(event => {
+      const now = new Date();
+      const startDate = event.dateStart.toDate(); 
+      const endDate = event.dateEnd.toDate(); 
+      return startDate <= now && endDate >= now; 
+    })
+
+  const endingSoonEvents = events
+    .filter(event => {
+      const now = new Date();
+      const endDate = event.dateEnd.toDate();
+      const threeDaysFromNow = new Date();
+      threeDaysFromNow.setDate(now.getDate() + 3);
+
+      return endDate >= now && endDate <= threeDaysFromNow;
+    })
+
+  const handleFiltering = (title: EventType) => {
+    setListTitle(title);
+
+    switch (title) {
+      case EventType.Upcoming:
+        setFilteredEvents(upcomingEvents);
+        break;
+      case EventType.Today:
+        setFilteredEvents(currentEvents);
+        break;
+      case EventType.EndingSoon:
+        setFilteredEvents(endingSoonEvents);
+        break;
+      case EventType.ThisWeek:
+        break;
+      case EventType.New:
+        break;
+      case EventType.MostFavorite:
+        break;
+      case EventType.HotPick:
+        break;
+      default:
+        break;
+    }
+
     router.push('/(root)/event-list')
   }
 
@@ -30,27 +83,35 @@ const Metadata = () => {
           destinationCity={destinationCity ?? "User City"}
         />
         
-        <CategoryFilter />
+        <CategoryFilter 
+          onSelect={(type) => handleFiltering(type)}
+        />
 
         { events.length > 0 ? (
           <>
             <SeeAll 
-              title="Upcoming Events"
+              title={EventType.Upcoming}
               seeAllColor='text-secondary-sBlue'
               arrowColor='#39C3F2'
               styling='mt-6 mb-3 ml-8 mr-4'
-              onSeeAllPress={(value) => handleSeeAllClick(value)}
+              onSeeAllPress={() => handleFiltering(EventType.Upcoming)}
             />
 
-            <EventHorizontalList events={events || []} />
+            <EventHorizontalList events={upcomingEvents} />
 
-            <SeeAll 
-              title="Recently Viewed"
-              seeAllColor='text-secondary-sBlue'
-              arrowColor='#39C3F2'
-              styling='mt-6 ml-8 mr-4'
-              onSeeAllPress={() => {}}
-            />
+            { endingSoonEvents.length > 0 && (
+              <>
+                <SeeAll 
+                  title={EventType.EndingSoon}
+                  seeAllColor='text-secondary-sBlue'
+                  arrowColor='#39C3F2'
+                  styling='mt-6 mb-3 ml-8 mr-4'
+                  onSeeAllPress={() => handleFiltering(EventType.EndingSoon)}
+                />
+
+                <EventHorizontalList events={endingSoonEvents} />
+              </>
+            )}
           </>
         ):(
           <View className="flex justify-center items-center w-full h-full">
@@ -108,28 +169,37 @@ const Header = ({
 }
 
 // Category Filter component
-const CategoryFilter = () => {
+const CategoryFilter = ({
+  onSelect
+}: {
+  onSelect: (type: EventType) => void
+}) => {
   return (
     <View className="flex-row justify-around items-center px-4">
       <ItemIcon 
         icon={icons.sparkles}
-        title="Today"
+        title={EventType.Today}
+        onPress={() => onSelect(EventType.Today)}
       />
       <ItemIcon 
         icon={icons.calendar}
-        title="This Week"
+        title={EventType.ThisWeek}
+        onPress={() => onSelect(EventType.ThisWeek)}
       />
       <ItemIcon 
         icon={icons.megaphone}
-        title="New"
+        title={EventType.New}
+        onPress={() => onSelect(EventType.New)}
       />
       <ItemIcon 
         icon={icons.heart}
-        title="Most Favorite"
+        title={EventType.MostFavorite}
+        onPress={() => onSelect(EventType.MostFavorite)}
       />
       <ItemIcon 
         icon={icons.flame}
-        title="Hot Pick"
+        title={EventType.HotPick}
+        onPress={() => onSelect(EventType.HotPick)}
       /> 
     </View>
   )
@@ -139,16 +209,16 @@ const CategoryFilter = () => {
 const ItemIcon = ({
   icon, 
   title,
+  onPress
 }: {
   icon: any,
   title: string,
+  onPress?: () => void
 }) => {
   return (
     <TouchableOpacity 
       className="items-center w-24"
-      onPress={(title) => {
-       
-      }}
+      onPress={onPress}
     >
       <Image 
         source={icon}  
@@ -163,14 +233,6 @@ const ItemIcon = ({
 
 // Horizontal List component
 const EventHorizontalList = ({ events }: { events: Event[] }) => {
-  const isEmpty = events.length === 0;
-  const today = Timestamp.now();
-
-  const upcomingEvents = events
-    // .sort(() => 0.5 - Math.random())
-    .slice(0, 4)
-    .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis());
-
   const { setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
 
   const handleEventPress = async (event: Event) => {
@@ -181,8 +243,9 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
 
   return (
     <FlatList
-      data={upcomingEvents}
+      data={events.slice(0, 4).sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())}
       keyExtractor={(item) => item.id}
+      showsHorizontalScrollIndicator={false}
       renderItem={({ item }) => (
         <TouchableOpacity 
           className="flex-row mr-12"
