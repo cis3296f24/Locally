@@ -357,9 +357,6 @@ export const fetchEventsByCity = async (city: string) => {
 
   const eventsWithOwners = await Promise.all(
     querySnapshot.docs
-      .filter((snapshot) => {
-        return snapshot.data().dateStart.toDate() >= new Date();
-      })
       .map(async (snapshot) => {
         const eventId = snapshot.id;
 
@@ -367,6 +364,7 @@ export const fetchEventsByCity = async (city: string) => {
         const participantsCollectionRef = collection(Firebase_Firestore, `events/${eventId}/participants`);
         const participantsSnapshot = await getDocs(participantsCollectionRef);
         const attendeeIds = participantsSnapshot.docs.map((participantDoc) => participantDoc.id);
+        attendeeIds.push(currentUid);
 
         const event = {
           id: snapshot.id,

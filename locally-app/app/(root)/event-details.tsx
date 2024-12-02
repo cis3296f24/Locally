@@ -12,7 +12,7 @@ import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
 import UserProfileImage from '@/components/UserProfileImage';
-import { bookmarkEvent, createTicket, fetchUserProfileById, followUser, unbookmarkEvent, unfollowUser } from '@/services/firebase-service';
+import { createTicket, followUser, unfollowUser } from '@/services/firebase-service';
 import { Event, Ticket, User } from '@/types/type';
 import PurchasePopup from '@/components/PurchasePopup';
 import { useTicketStore } from '@/store/ticket';
@@ -31,8 +31,13 @@ const EventDetailsScreen = () => {
     const imageSource = selectedEvent?.coverImage
         ? { uri: selectedEvent.coverImage }
         : images.noImage;
-    const eventDate = formatEventDate(selectedEvent?.dateStart);
-    const eventInterval = formatEventDateAndTime(selectedEvent?.dateStart, selectedEvent?.timeStart, selectedEvent?.timeEnd);
+    const eventDate = formatEventDate(selectedEvent?.dateStart, selectedEvent?.dateEnd);
+    const eventInterval = formatEventDateAndTime(
+        selectedEvent?.dateStart,
+        selectedEvent?.dateEnd, 
+        selectedEvent?.timeStart, 
+        selectedEvent?.timeEnd
+    );
     const eventLocation = selectedEvent?.locationName;
     const eventAddress = formatAddress(selectedEvent?.street, selectedEvent?.city, selectedEvent?.state, selectedEvent?.zipCode);
 
