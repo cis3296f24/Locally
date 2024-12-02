@@ -11,6 +11,7 @@ import UserProfileImage from '@/components/UserProfileImage';
 import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
 import { Event } from '@/types/type';
+import useNativeNotify from '@/services/native-notify';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
@@ -18,9 +19,13 @@ const UserProfile = () => {
   const { user, selectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
+  const [followers, setFollowers] = useState(selectedUser?.followersCount);
+
+  const { registerFollower, unfollowMaster } = useNativeNotify();
 
   const title1 = `Hosted by ${selectedUser?.username}`;
   const title2 = `Bookmarked by ${selectedUser?.username}`;
+
 
   const handleSeeAllClick = (title: string) => {
     setFilteredEvents(bookmarkEvents);
@@ -35,10 +40,17 @@ const UserProfile = () => {
   const handleFollowClick = async () => {
     if (user?.id && selectedUser?.id && !isfollowing) {
       await followUser(user.id, selectedUser.id);
+      registerFollower(selectedUser.id, user.id);
+      setFollowers((followers ?? 0) + 1);
     } 
 
     if (user?.id && selectedUser?.id && isfollowing) {
       await unfollowUser(user.id, selectedUser.id);
+      unfollowMaster(selectedUser.id, user.id);
+      
+      if (followers && followers > 0) {
+        setFollowers(followers - 1);
+      }
     }
 
     setIsFollowing(!isfollowing);
@@ -248,7 +260,7 @@ const UserProfile = () => {
                 <View className="w-px h-10 bg-secondary-sBlue" />
                 <View className="items-center px-6">
                   <Text className="text-lg font-semibold text-primary-pBlue">
-                    {selectedUser?.followersCount}
+                    {followers}
                   </Text>
                   <Text className="text-sm text-gray-500">Followers</Text>
                 </View>

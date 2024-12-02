@@ -382,6 +382,28 @@ export const fetchEventsByCity = async (city: string) => {
   return eventsWithOwners;
 };
 
+export const fetchEventById = async (eventId: string) => {
+  try {
+    const eventDocRef = doc(Firebase_Firestore, 'events', eventId);
+    const eventDoc = await getDoc(eventDocRef);
+
+    if (!eventDoc.exists()) {
+      throw new Error('Event not found');
+    }
+
+    const eventData = eventDoc.data();
+    const event = {
+      id: eventDoc.id,
+      ...eventData,
+    } as Event;
+
+    return event;
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    throw error;
+  }
+}
+
 export const bookmarkEvent = async (eventId: string) => {
   const currentUid = Firebase_Auth.currentUser?.uid;
   if (!currentUid) {

@@ -13,6 +13,7 @@ import { useUserStore } from '@/store/user';
 import { useTicketStore } from '@/store/ticket';
 import { Event } from '@/types/type';
 import PrimaryButton from '@/components/PrimaryButton';
+import useNativeNotify from '@/services/native-notify';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
@@ -20,6 +21,8 @@ const Profile = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { user, userBookmarkedEvents, userCreatedEvents } = useUserStore();
   const { ticketList } = useTicketStore();
+
+  const { sendFollowNotification } = useNativeNotify();
 
   // const [refreshing, setRefreshing] = useState(false);
 
@@ -274,11 +277,12 @@ const Profile = () => {
                       onPress={() => setVisible(true)}
                       onCreateEvent={handleCreateEvent}
                       onclose={() => setVisible(false)}
+                      onCreatePost={() => {}}
                     />
                   ):(
                     <TouchableOpacity
                       className="bg-secondary-sBlue gap-1 px-6 py-2 rounded-full flex-row items-center"
-                      onPress={() => console.log("Create new post")}
+                      onPress={() => {}}
                     >
                       <Ionicons name="add" size={24} color="white" />
                       <Text className="text-white font-medium text-lg">New</Text>

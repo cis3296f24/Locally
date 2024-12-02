@@ -29,7 +29,6 @@ const EventCard = ({
   useEffect(() => {
     const isBookmarked = userBookmarkedEvents.some(bookmarkEvent => bookmarkEvent.id === event.id);
     setIsBookmarked(isBookmarked);
-    console.log('isBookmarked', isBookmarked);
   }, [isBookmarked, event.id, userBookmarkedEvents]);
 
   const handleBookmarkClick = async () => {
