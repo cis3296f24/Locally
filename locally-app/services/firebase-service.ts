@@ -353,6 +353,7 @@ export const fetchEventsByCity = async (city: string) => {
     eventsCollectionRef, 
     where("city", "==", city)
   );
+
   const querySnapshot = await getDocs(cityQuery)
 
   const eventsWithOwners = await Promise.all(
@@ -806,3 +807,20 @@ export const fetchEventBasedMessages = (
 
   return unsubscribe;
 };
+
+export const fetchRecentlySelectedEvents = async (eventId: string) => {
+  const currentUid = Firebase_Auth.currentUser?.uid;
+  if (!currentUid) {
+    throw new Error("User is not logged in.");
+  }
+
+  try {
+    const userRecentEventsRef = collection(Firebase_Firestore, `users/${currentUid}/recent-events`);
+    await setDoc(doc(userRecentEventsRef, eventId), {});
+
+    console.log("Event has been selected!");
+  } catch (error) {
+    console.error("Error adding event to recents:", error);
+    throw error;
+  }
+} 

@@ -14,7 +14,7 @@ import { handleBookmark } from '@/utils/event';
 
 const Explore = () => {
   const { setUserLocation, userCity, destinationCity, setDestinationLocation } = useLocationStore();
-  const { events, setSelectedEvent, selectedEvent, setCategory, clearSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
+  const { events, setSelectedEvent, selectedEvent, setCategory, clearSelectedEvent, setShouldClearSelectedEvent, addToRecentlySelected } = useEventStore();
 
   useEffect(() => {
     (async () => {
@@ -60,7 +60,7 @@ const Explore = () => {
     console.log('thisEvent', thisEvent);
     setSelectedEvent(thisEvent);
   };
-
+  
   const handleSearchBarPress = () => {
     clearSelectedEvent();
     setCategory('All');
@@ -74,8 +74,15 @@ const Explore = () => {
   }
 
   const handleEventPress = () => {
-    setShouldClearSelectedEvent(false);
-    router.navigate('/(root)/event-details')
+    const thisEvent = useEventStore.getState().selectedEvent // get selected event directly from state
+    if (thisEvent !== null) {
+      setShouldClearSelectedEvent(false);
+      addToRecentlySelected(thisEvent); 
+      router.navigate('/(root)/event-details');
+    } else {
+      // Handle the case where `thisEvent` is null (if needed)
+      console.warn("No event selected");
+    }
   }
 
   return (

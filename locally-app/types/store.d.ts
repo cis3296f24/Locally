@@ -34,7 +34,9 @@ interface UserStore {
 }
 
 interface EventStore {
-  events: Event[];                   
+  events: Event[];      
+  recentlySelectedEvents: Event[];     
+  addToRecentlySelected: (event: Event) => void;        
   selectedEvent: Event | null;       
   setEvents: (events: Event[]) => void;       
   setSelectedEvent: (event: Event) => void;   

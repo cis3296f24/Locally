@@ -13,10 +13,10 @@ import { images } from '@/constants'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
-  const { events, setListTitle, setFilteredEvents } = useEventStore();
+  const { events, setListTitle, setFilteredEvents, recentlySelectedEvents, addToRecentlySelected } = useEventStore();
   const { destinationCity } = useLocationStore();
 
-  const handleSeeAllClick = (title: string) => {
+  const handleSeeAllClick = (title: string, events: Event[]) => {
     setFilteredEvents(events);
     setListTitle(title)
     router.push('/(root)/event-list')
@@ -34,25 +34,48 @@ const Metadata = () => {
 
         { events.length > 0 ? (
           <>
+            {/* For All Events in Area */}
             <SeeAll 
               title="Upcoming Events"
               seeAllColor='text-secondary-sBlue'
               arrowColor='#39C3F2'
               styling='mt-6 mb-3 ml-8 mr-4'
-              onSeeAllPress={(value) => handleSeeAllClick(value)}
+              onSeeAllPress={(value) => handleSeeAllClick(value, events)}
             />
 
             <EventHorizontalList events={events || []} />
 
-            <SeeAll 
-              title="Recently Viewed"
-              seeAllColor='text-secondary-sBlue'
-              arrowColor='#39C3F2'
-              styling='mt-6 ml-8 mr-4'
-              onSeeAllPress={() => {}}
-            />
+            {/* For Recently Chosen Events */}
+
+            { recentlySelectedEvents.length > 0 ? (
+              <>
+              <SeeAll 
+                title="Recently Viewed"
+                seeAllColor='text-secondary-sBlue'
+                arrowColor='#39C3F2'
+                styling='mt-6 ml-8 mr-4 mb-3'
+                onSeeAllPress={(value) => handleSeeAllClick(value, recentlySelectedEvents)}
+              />
+  
+              <EventHorizontalList events={recentlySelectedEvents || []} />
+              </>
+            ):(
+              <>
+                <SeeAll 
+                    title="Recently Viewed"
+                    seeAllColor='text-secondary-sBlue'
+                    arrowColor='#39C3F2'
+                    styling='mt-6 ml-8 mr-4 mb-3'
+                    onSeeAllPress={() => {}}
+                  />
+              <View className='flex-row justify-center mt-5'>
+                <Text>Nothing here yet. Choose an event to get started!</Text>
+
+              </View>
+              </>
+            )}
           </>
-        ):(
+        ):( // blank page if no events
           <View className="flex justify-center items-center w-full h-full">
             <Image 
               source={images.comingSoon}
@@ -171,17 +194,20 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
     .slice(0, 4)
     .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis());
 
-  const { setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
-
+  const { setSelectedEvent, setShouldClearSelectedEvent, addToRecentlySelected, recentlySelectedEvents } = useEventStore();
+  
+  const displayEvents = events === recentlySelectedEvents? recentlySelectedEvents: upcomingEvents;
+    
   const handleEventPress = async (event: Event) => {
     setShouldClearSelectedEvent(true)
     setSelectedEvent(event);
-    router.navigate('/(root)/event-details')
+    addToRecentlySelected(event);
+    router.navigate('/(root)/event-details');
   }
 
   return (
     <FlatList
-      data={upcomingEvents}
+      data={displayEvents}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <TouchableOpacity 
