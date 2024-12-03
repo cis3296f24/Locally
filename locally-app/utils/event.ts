@@ -6,10 +6,11 @@ import { Event, User } from "@/types/type";
 export const updateSelectedEvent = async (event: Event) => {
   const owner = await fetchUserProfileById(event.ownerId);
   useEventStore.getState().setEventOwner(owner);
+  useUserStore.getState().setSelectedUser(owner);
 
   if (event.attendeeIds && event.attendeeIds.length > 2) {
-      const shuffledIds = [...event.attendeeIds].sort(() => 0.5 - Math.random());
-      const selectedIds = shuffledIds.slice(0, 3);
+      // const shuffledIds = [...event.attendeeIds].sort(() => 0.5 - Math.random());
+      const selectedIds = event.attendeeIds.slice(0, 3);
 
       // Fetch user profiles for selected IDs
       const attendeesList: User[] = await Promise.all(

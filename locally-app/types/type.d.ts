@@ -13,8 +13,6 @@ interface User {
   followersCount: number;
   isFollowing?: boolean;
   bio?: string;
-  // bookmarkedEvents?: Event[];
-  // hostedEvents?: Event[];
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments

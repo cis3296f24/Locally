@@ -17,7 +17,7 @@ enum EventType {
   ThisWeek = 'This Week',
   New = 'New',
   MostFavorite = 'Most Favorite',
-  HotPick = 'Hot Pick'
+  Popular = 'Popular'
 }
 
 const Metadata = () => {
@@ -47,6 +47,16 @@ const Metadata = () => {
       return endDate >= now && endDate <= threeDaysFromNow;
     })
 
+  const PopularEvents = events.filter(event => {
+    const currentDate = new Date();
+    return (
+      event.attendeeIds && 
+      event.attendeeIds.length > 2 && 
+      event.dateEnd.toDate() > currentDate 
+    );
+  });
+    
+
   const handleFiltering = (title: EventType) => {
     setListTitle(title);
 
@@ -66,7 +76,8 @@ const Metadata = () => {
         break;
       case EventType.MostFavorite:
         break;
-      case EventType.HotPick:
+      case EventType.Popular:
+        setFilteredEvents(PopularEvents);
         break;
       default:
         break;
@@ -187,20 +198,20 @@ const CategoryFilter = ({
         onPress={() => onSelect(EventType.ThisWeek)}
       />
       <ItemIcon 
-        icon={icons.megaphone}
-        title={EventType.New}
-        onPress={() => onSelect(EventType.New)}
-      />
-      <ItemIcon 
         icon={icons.heart}
         title={EventType.MostFavorite}
         onPress={() => onSelect(EventType.MostFavorite)}
       />
       <ItemIcon 
         icon={icons.flame}
-        title={EventType.HotPick}
-        onPress={() => onSelect(EventType.HotPick)}
+        title={EventType.Popular}
+        onPress={() => onSelect(EventType.Popular)}
       /> 
+      <ItemIcon 
+        icon={icons.megaphone}
+        title={EventType.New}
+        onPress={() => onSelect(EventType.New)}
+      />
     </View>
   )
 }
@@ -217,12 +228,12 @@ const ItemIcon = ({
 }) => {
   return (
     <TouchableOpacity 
-      className="items-center w-24"
+      className="items-center"
       onPress={onPress}
     >
       <Image 
         source={icon}  
-        className="w-7 h-7 mb-2 color-secondary-sBlue" 
+        className="w-6 h-6 mb-2 color-secondary-sBlue" 
       />
       <Text className="text-sm text-primary-pBlue">
         {title}

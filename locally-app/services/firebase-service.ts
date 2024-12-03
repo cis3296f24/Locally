@@ -6,6 +6,7 @@ import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
+import { useEventStore } from "@/store/event";
 
 // Firebase Authentication
 
@@ -203,6 +204,7 @@ export const followUser = async (currentUserId: string, otherUserId: string) => 
     fetchUserProfileById(otherUserId)
       .then((otherUser) => {
         useUserStore.getState().setSelectedUser(otherUser);
+        useEventStore.getState().setEventOwner(otherUser);
       })
       .catch((error) => {
         console.error("Error fetching or updating user profile:", error);
@@ -234,6 +236,7 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
     fetchUserProfileById(otherUserId)
       .then((otherUser) => {
         useUserStore.getState().setSelectedUser(otherUser);
+        useEventStore.getState().setEventOwner(otherUser);
       })
       .catch((error) => {
         console.error("Error fetching or updating user profile:", error);
@@ -483,7 +486,7 @@ export const createTicket = async (
       eventAddress: `${event.street}, ${event.city}, ${event.state} ${event.zipCode}`,
       userName: user.fullName,
       orderNumber: `#${Math.floor(Math.random() * 100000)}`,
-      date: event.dateStart,
+      date: event.dateEnd,
       time: event.timeStart,
       numTickets: numTickets,
       total: total,
@@ -771,6 +774,7 @@ export const sendMessageToEvent = async (
 ) => {
   try {
     const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
+    const userEventMessageDocRef = doc(Firebase_Firestore, 'users', senderId, 'event-messages', eventId);
     
     const message: Message = {
       id: '', 
@@ -781,6 +785,7 @@ export const sendMessageToEvent = async (
     };
 
     await addDoc(messagesRef, message);
+    await setDoc(userEventMessageDocRef, {});
   } catch (error) {
     console.error("Error sending message to event:", error);
     throw error;
@@ -826,3 +831,31 @@ export const fetchEventBasedMessages = (
 
   return unsubscribe;
 };
+
+export const fetchEventsWithMessagesForUser = async (userId: string) => {
+  try {
+    const userEventMessagesRef = collection(Firebase_Firestore, 'users', userId, 'event-messages');
+    const eventIdsSnapshot = await getDocs(userEventMessagesRef);
+    const eventIds = eventIdsSnapshot.docs.map(doc => doc.id);
+
+    if (eventIds.length === 0) {
+      return []; 
+    }
+
+    const events = await Promise.all(
+      eventIds.map(async (eventId) => {
+        const eventDocRef = doc(Firebase_Firestore, 'events', eventId);
+        const eventDoc = await getDoc(eventDocRef);
+        return { 
+          id: eventDoc.id,
+          ...eventDoc.data() 
+        } as Event;
+      })
+    );
+
+    return events
+  } catch (error) {
+    console.error('Error fetching events with messages for user:', error);
+    throw error;
+  }
+}

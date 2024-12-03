@@ -19,7 +19,7 @@ const UserProfile = () => {
   const { user, selectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
-  const [followers, setFollowers] = useState(selectedUser?.followersCount);
+  const [followers, setFollowers] = useState(0);
 
   const { registerFollower, unfollowMaster } = useNativeNotify();
 
@@ -68,6 +68,8 @@ const UserProfile = () => {
 
       fetchCreatedEventsByUserId(selectedUser.id)
       .then((events) => setUserHostedEvents(events));
+
+      setFollowers(selectedUser.followersCount);
     }
   }, [selectedUser]);
 
@@ -84,7 +86,7 @@ const UserProfile = () => {
         keyExtractor={(item) => item.id.toString()}
         className='bg-white mt-8 gap-2' 
         renderItem={({ item }) => {
-          const formattedDate = formatEventDate(item.dateStart, true); 
+          const formattedDate = formatEventDate(item.dateStart, undefined, true); 
   
           return (
             <TouchableOpacity>

@@ -42,8 +42,9 @@ const Map = ({
 
   useEffect(() => {
     if (fetchedEvents) {
+      const shuffledEvents = [...fetchedEvents].sort(() => Math.random() - 0.5);
       setEventList(fetchedEvents);
-      setEvents(fetchedEvents);
+      setEvents(shuffledEvents);
     } 
   }, [fetchedEvents]);
 

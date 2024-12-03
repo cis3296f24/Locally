@@ -12,16 +12,16 @@ import ChatButton from '@/components/ChatButton';
 import Chat from '@/components/Chat';
 import { useUserStore } from '@/store/user';
 import UserProfileImage from '@/components/UserProfileImage';
-import { createTicket, followUser, unfollowUser } from '@/services/firebase-service';
+import { createTicket, fetchUserProfileById, followUser, unfollowUser } from '@/services/firebase-service';
 import { Event, Ticket, User } from '@/types/type';
 import PurchasePopup from '@/components/PurchasePopup';
 import { useTicketStore } from '@/store/ticket';
 import { handleBookmark, updateSelectedEvent } from '@/utils/event';
-import { animations } from '@/constants';
+
 
 const EventDetailsScreen = () => {
-    const { selectedEvent, eventOwner, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
-    const { user, userBookmarkedEvents } = useUserStore();
+    const { selectedEvent, eventOwner, setEventOwner, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
+    const { user, setSelectedUser, userBookmarkedEvents } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const displayedText = isExpanded || (selectedEvent?.description && selectedEvent.description.length <= 200)

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Image, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ChatModal from '@/components/Chat';
-import { images } from '@/constants';
 import UserProfileImage from '@/components/UserProfileImage';
 import { Conversation, Message, User } from '@/types/type';
-import { fetchAllUsers, listenToConversations, updateUserConversationStatus } from '@/services/firebase-service';
+import { fetchAllUsers, fetchUserProfileById, listenToConversations, updateUserConversationStatus } from '@/services/firebase-service';
 import { useUserStore } from '@/store/user';
 import { formatFirestoreTimestamp } from '@/utils/util';
+import { router } from 'expo-router';
 
 
 const ChatScreen = () => {
@@ -29,15 +29,6 @@ const ChatScreen = () => {
       unsubscribe();
     };
   }, [user?.id, conversations]);
-
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     const users = await fetchAllUsers();
-  //     setAllUsers(users);
-  //   };
-
-  //   fetchUsers();
-  // }, [conversations]);
 
   const handleUserPress = (user: User) => {
     setSelectedUser(user);
@@ -157,6 +148,13 @@ const ConversationItem = ({
   conversation: Conversation;
   onPress: (isRead: boolean) => void;
 }) => {
+
+  const handleUserImagePress = async () => {
+    const user = await fetchUserProfileById(conversation.recipient?.id || '');  
+    useUserStore.getState().setSelectedUser(user);
+    router.push('/(root)/user-profile');
+  }
+
   return (
     <TouchableOpacity 
       onPress={() => onPress(conversation.isRead || false)}
@@ -166,6 +164,7 @@ const ConversationItem = ({
         image={conversation.recipient?.profileImage}
         imageStyle="w-16 h-16"
         buttonStyle='mr-0'
+        onPress={handleUserImagePress}
       />
       <View className="flex-1 ml-3 gap-1">
         <Text className="font-bold text-lg">

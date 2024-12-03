@@ -1,6 +1,5 @@
-import { View, Text, TouchableOpacity, Image, SafeAreaView, ScrollView, StyleSheet, FlatList, RefreshControl, Modal, LayoutChangeEvent, findNodeHandle, UIManager } from 'react-native'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchBookmarkedEventsByUserId, fetchUserProfileById, signOutUser } from '@/services/firebase-service'
+import { View, Text, TouchableOpacity, Image, SafeAreaView, FlatList, Modal, findNodeHandle, UIManager } from 'react-native'
+import React, { useRef, useState } from 'react'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { images } from '@/constants';
@@ -15,14 +14,18 @@ import { Event } from '@/types/type';
 import PrimaryButton from '@/components/PrimaryButton';
 import useNativeNotify from '@/services/native-notify';
 
+enum ListTitle {
+  MyEvents = "My Events",
+  Bookmark = "Bookmark",
+  Messages = "Messages",
+}
+
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
   const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { user, userBookmarkedEvents, userCreatedEvents } = useUserStore();
+  const { user, userBookmarkedEvents, userCreatedEvents, userMessagesEvents } = useUserStore();
   const { ticketList } = useTicketStore();
-
-  const { sendFollowNotification } = useNativeNotify();
 
   // const [refreshing, setRefreshing] = useState(false);
 
@@ -32,19 +35,24 @@ const Profile = () => {
   //   setRefreshing(false);
   // }, []);
 
-  const title1 = "My Events";
-  const title2 = "Bookmark";
-
-  const handleSeeAllClick = (title: string) => {
-    if (title === title1) {
-      setFilteredEvents(userCreatedEvents);
-    } else if (title === title2) {
-      setFilteredEvents(userBookmarkedEvents);
+  const handleSeeAllClick = (title: ListTitle) => {
+    switch (title) {
+      case ListTitle.MyEvents:
+        setFilteredEvents(userCreatedEvents);
+        break;
+      case ListTitle.Bookmark:
+        setFilteredEvents(userBookmarkedEvents);
+        break;
+      case ListTitle.Messages:
+        setFilteredEvents(userMessagesEvents);
+        break;
+      default:
+        console.warn(`Unhandled title: ${title}`);
     }
 
-    setListTitle(title)
-    router.push('/(root)/event-list')
-  }
+    setListTitle(title);
+    router.push('/(root)/event-list');
+};
 
   const handleHambugerClick = async () => {
     router.push('/(root)/edit-profile')
@@ -67,6 +75,13 @@ const Profile = () => {
     setVisible(false)
   }
 
+  const activeTickets = ticketList.filter(ticket => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    return ticket.date && ticket.date.toDate() >= currentDate;
+  });
+
   const renderHistoryTab = () => {  
     return (
       <FlatList
@@ -74,7 +89,7 @@ const Profile = () => {
         keyExtractor={(item) => item.id.toString()}
         className='bg-white mt-8 gap-2' 
         renderItem={({ item }) => {
-          const formattedDate = formatEventDate(item.dateStart, true); 
+          const formattedDate = formatEventDate(item.dateStart, undefined, true); 
   
           return (
             <TouchableOpacity>
@@ -111,11 +126,11 @@ const Profile = () => {
       {user?.isSubscribed && userCreatedEvents.length > 0 && (
         <View>
           <SeeAll
-            title={title1}
+            title={ListTitle.MyEvents}
             styling='m-2'
             seeAllColor='text-secondary-sBlue'
             arrowColor='#39C3F2'
-            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+            onSeeAllPress={() => handleSeeAllClick(ListTitle.MyEvents)} 
           />
 
           {userCreatedEvents.slice(0, 2).map((event) => (
@@ -136,11 +151,11 @@ const Profile = () => {
       { userBookmarkedEvents.length > 0 ? (
         <View>
           <SeeAll
-            title={title2}
+            title={ListTitle.Bookmark}
             styling='m-2'
             seeAllColor='text-secondary-sBlue'
             arrowColor='#39C3F2' 
-            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+            onSeeAllPress={() => handleSeeAllClick(ListTitle.Bookmark)} 
           />
 
           {userBookmarkedEvents
@@ -170,6 +185,33 @@ const Profile = () => {
             iconVisible={false} 
             onPress={() => router.replace('/(root)/(tabs)/explore')}
           />
+        </View>
+      )}
+
+      { userMessagesEvents && (
+        <View>
+          <SeeAll
+            title={ListTitle.Messages}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2' 
+            onSeeAllPress={() => handleSeeAllClick(ListTitle.Messages)} 
+          />
+
+          {userMessagesEvents
+            // .sort(() => Math.random() - 0.5)
+            .slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px]'
+              />
+            </View>
+          ))}
         </View>
       )}
     </View>
@@ -301,11 +343,11 @@ const Profile = () => {
                       <Ionicons name="ticket-outline" size={20} color="#39C3F2" />
                       <Text className="text-secondary-sBlue font-medium text-lg">Ticket</Text>
                     </TouchableOpacity>
-                    {ticketList.length > 0 ? (
+                    {activeTickets.length > 0 ? (
                       <View 
                         className="absolute -top-2 -right-2 bg-primary-pBlue w-6 h-6 rounded-full justify-center items-center"
                       >
-                        <Text className="text-white text-sm font-bold">{ticketList.length}</Text>
+                        <Text className="text-white text-sm font-bold">{activeTickets.length}</Text>
                       </View>
                     ): null}
                   </View>

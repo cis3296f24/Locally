@@ -55,7 +55,7 @@ export const formatEventDate = (
 
   // Return the formatted date based on standardTime flag
   return standardTime
-    ? `${monthStartShort} ${dayStart}, ${yearStart}` // Short Month DD, YYYY
+    ? `${monthStartLong} ${dayStart}, ${yearStart}` // Short Month DD, YYYY
     : formattedDate; // DD Month, YYYY or Date Range
 };
 
