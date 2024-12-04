@@ -22,6 +22,8 @@ export const updateSelectedEvent = async (event: Event) => {
 
     updatedEvent = { ...updatedEvent, owner };
 
+    const stack = useEventStore.getState().eventStack;
+    useEventStore.getState().setEventStack([...stack, updatedEvent as Event]);
     useEventStore.getState().setSelectedEvent(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error);

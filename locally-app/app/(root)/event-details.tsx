@@ -83,7 +83,9 @@ const EventDetailsScreen = () => {
             router.back();
         }
 
-        const lastEvent = eventStack.pop();
+        eventStack.pop();
+        const lastEvent = eventStack.length > 0 ? eventStack[eventStack.length - 1] : null;
+
         if (lastEvent) {
             setEventStack(eventStack);
             useEventStore.getState().setSelectedEvent(lastEvent);
@@ -95,7 +97,6 @@ const EventDetailsScreen = () => {
         if (eventOwner?.id !== user?.id) {
             useUserStore.getState().setSelectedUser(eventOwner as User);
 
-            setEventStack([...eventStack, selectedEvent as Event]);
             console.log('Event stack:', eventStack.length);
             router.push("/(root)/user-profile");
         } else {
