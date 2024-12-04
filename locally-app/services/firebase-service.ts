@@ -1,7 +1,7 @@
 import { Firebase_Auth, Firebase_Firestore, Firebase_Storage } from "@/configs/firebase";
 import { User, Event, Ticket, Message, Conversation } from "@/types/type";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc, getCountFromServer, QueryDocumentSnapshot, startAfter } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, orderBy, startAt, endAt, where, GeoPoint, limit, Timestamp, updateDoc, onSnapshot, deleteDoc, getCountFromServer, QueryDocumentSnapshot, startAfter, increment } from "firebase/firestore";
 import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
@@ -414,6 +414,11 @@ export const bookmarkEvent = async (eventId: string) => {
     await setDoc(doc(userBookmarksRef, eventId), {});
     await setDoc(doc(eventBookmarksRef, currentUid), {});
 
+    const eventRef = doc(Firebase_Firestore, `events/${eventId}`);
+    await updateDoc(eventRef, {
+      bookmarksCount: increment(1)
+    });
+
     console.log("Event bookmarked successfully!");
   } catch (error) {
     console.error("Error bookmarking event:", error);
@@ -432,6 +437,11 @@ export const unbookmarkEvent = async (eventId: string) => {
     const eventBookmarksRef = doc(Firebase_Firestore, `events/${eventId}/bookmarks`, currentUid);
     await deleteDoc(userBookmarksRef);
     await deleteDoc(eventBookmarksRef);
+
+    const eventRef = doc(Firebase_Firestore, `events/${eventId}`);
+    await updateDoc(eventRef, {
+      bookmarksCount: increment(-1)
+    });
 
     console.log("Event unbookmarked successfully!");
   } catch (error) {
@@ -771,6 +781,7 @@ export const sendMessageToEvent = async (
 ) => {
   try {
     const messagesRef = collection(Firebase_Firestore, 'events', eventId, 'event-messages');
+    const userEventMessageDocRef = doc(Firebase_Firestore, 'users', senderId, 'event-messages', eventId);
     
     const message: Message = {
       id: '', 
@@ -781,6 +792,7 @@ export const sendMessageToEvent = async (
     };
 
     await addDoc(messagesRef, message);
+    await setDoc(userEventMessageDocRef, {});
   } catch (error) {
     console.error("Error sending message to event:", error);
     throw error;
@@ -826,3 +838,31 @@ export const fetchEventBasedMessages = (
 
   return unsubscribe;
 };
+
+export const fetchEventsWithMessagesForUser = async (userId: string) => {
+  try {
+    const userEventMessagesRef = collection(Firebase_Firestore, 'users', userId, 'event-messages');
+    const eventIdsSnapshot = await getDocs(userEventMessagesRef);
+    const eventIds = eventIdsSnapshot.docs.map(doc => doc.id);
+
+    if (eventIds.length === 0) {
+      return []; 
+    }
+
+    const events = await Promise.all(
+      eventIds.map(async (eventId) => {
+        const eventDocRef = doc(Firebase_Firestore, 'events', eventId);
+        const eventDoc = await getDoc(eventDocRef);
+        return { 
+          id: eventDoc.id,
+          ...eventDoc.data() 
+        } as Event;
+      })
+    );
+
+    return events
+  } catch (error) {
+    console.error('Error fetching events with messages for user:', error);
+    throw error;
+  }
+}

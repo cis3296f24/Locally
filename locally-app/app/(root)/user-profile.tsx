@@ -84,7 +84,7 @@ const UserProfile = () => {
         keyExtractor={(item) => item.id.toString()}
         className='bg-white mt-8 gap-2' 
         renderItem={({ item }) => {
-          const formattedDate = formatEventDate(item.dateStart, true); 
+          const formattedDate = formatEventDate(item.dateStart, undefined, true); 
   
           return (
             <TouchableOpacity>

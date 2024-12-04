@@ -31,6 +31,10 @@ interface UserStore {
   userCreatedEvents: Event[];
   setUserCreatedEvents: (events: Event[]) => void;
   clearUserCreatedEvents: () => void;
+
+  userMessagesEvents: Event[];
+  setUserMessagesEvents: (events: Event[]) => void;
+  clearUserMessagesEvents: () => void;
 }
 
 interface EventStore {
