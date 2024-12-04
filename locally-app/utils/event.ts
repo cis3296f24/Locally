@@ -3,6 +3,17 @@ import { useEventStore } from "@/store/event";
 import { useUserStore } from "@/store/user";
 import { Event, User } from "@/types/type";
 
+export const updateSelectedUser = async (user: User) => {
+  try {
+    const updatedUser = await fetchUserProfileById(user.id);
+    console.log('Updated user:', updatedUser);
+    useUserStore.getState().setSelectedUser(updatedUser);
+    useUserStore.getState().setUserStack([...useUserStore.getState().userStack, updatedUser]);
+  } catch (error) {
+    console.error('Error updating user:', error);
+  }
+}
+
 export const updateSelectedEvent = async (event: Event) => {
   try {
     const owner = await fetchUserProfileById(event.ownerId);

@@ -97,23 +97,24 @@ const EventDetailsScreen = () => {
         if (eventOwner?.id !== user?.id) {
             useUserStore.getState().setSelectedUser(eventOwner as User);
 
-            console.log('Event stack:', eventStack.length);
             router.push("/(root)/user-profile");
         } else {
+            useEventStore.getState().setEventStack([])
+            useUserStore.getState().setUserStack([])
             router.navigate("/(root)/(tabs)/profile");
         }
     }
 
+    const isFollowing = useUserStore.getState().followingList.includes(eventOwner?.id as string);
+
     const  handleFollowClick = async () => {
-        // if (user?.id && eventOwner?.id && !eventOwner?.isFollowing) {
-        //     await followUser(user.id, eventOwner.id);
-        // } 
+        if (user?.id && eventOwner?.id && !isFollowing) {
+            await followUser(user.id, eventOwner.id);
+        } 
       
-        // if (user?.id && eventOwner?.id && eventOwner?.isFollowing) {
-        //     await unfollowUser(user.id, eventOwner.id);
-        // }
-        useUserStore.getState().setSelectedUser(eventOwner as User);
-        router.push("/(root)/user-profile");
+        if (user?.id && eventOwner?.id && isFollowing) {
+            await unfollowUser(user.id, eventOwner.id);
+        }
     }
 
     // Check if bookmarked
@@ -268,17 +269,17 @@ const EventDetailsScreen = () => {
                                     <TouchableOpacity
                                         onPress={handleFollowClick}
                                         className={`px-4 py-1.5 rounded-full ${
-                                            eventOwner?.isFollowing
+                                            isFollowing
                                             ? 'bg-white border-0.5 border-gray-300'
                                             : 'bg-primary-pBlue'
                                         }`}
                                     >
                                         <Text
                                             className={`${
-                                            eventOwner?.isFollowing ? 'text-primary-pBlue' : 'text-white'
+                                            isFollowing ? 'text-primary-pBlue' : 'text-white'
                                             } text-sm font-semibold`}
                                         >
-                                            {eventOwner?.isFollowing ? 'Following' : 'Follow'}
+                                            {isFollowing ? 'Following' : 'Follow'}
                                         </Text>
                                     </TouchableOpacity>
                                 )

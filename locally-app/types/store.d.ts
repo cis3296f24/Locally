@@ -20,9 +20,15 @@ interface UserStore {
   setSelectedUser: (user: User) => void;
   clearSelectedUser: () => void;
 
+  userStack: User[];
+  setUserStack: (users: User[]) => void
+
   userList: User[];
   setUserList: (users: User[]) => void;
   clearUserList: () => void;
+
+  followingList: string[];
+  setFollowingList: (following: string[]) => void;
 
   userBookmarkedEvents: Event[];
   setUserBookmarkedEvents: (events: Event[]) => void;

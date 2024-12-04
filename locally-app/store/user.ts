@@ -11,9 +11,15 @@ export const useUserStore = create<UserStore>((set) => ({
   setSelectedUser: (selectedUser: User) => set({ selectedUser }),
   clearSelectedUser: () => set({ selectedUser: null }),
 
+  userStack: [],
+  setUserStack: (userStack: User[]) => set({ userStack: userStack }),
+
   userList: [],
   setUserList: (userList: User[]) => set({ userList }),
   clearUserList: () => set({ userList: [] }),
+
+  followingList: [],
+  setFollowingList: (followingList: string[]) => set({ followingList }),
 
   userBookmarkedEvents: [],
   setUserBookmarkedEvents: (events: Event[]) => set({ userBookmarkedEvents: events }),

@@ -200,13 +200,7 @@ export const followUser = async (currentUserId: string, otherUserId: string) => 
         console.error("Error fetching or updating user profile:", error);
       });
     
-    fetchUserProfileById(otherUserId)
-      .then((otherUser) => {
-        useUserStore.getState().setSelectedUser(otherUser);
-      })
-      .catch((error) => {
-        console.error("Error fetching or updating user profile:", error);
-      });
+    useUserStore.getState().setFollowingList([...useUserStore.getState().followingList, otherUserId]);
 
     console.log("User followed successfully!");
   } catch (error) {
@@ -231,13 +225,7 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
         console.error("Error fetching or updating user profile:", error);
       });
 
-    fetchUserProfileById(otherUserId)
-      .then((otherUser) => {
-        useUserStore.getState().setSelectedUser(otherUser);
-      })
-      .catch((error) => {
-        console.error("Error fetching or updating user profile:", error);
-      });
+    useUserStore.getState().setFollowingList(useUserStore.getState().followingList.filter((id) => id !== otherUserId));
 
     console.log("User unfollowed successfully!");
   } catch (error) {
@@ -246,6 +234,31 @@ export const unfollowUser = async (currentUserId: string, otherUserId: string) =
   }
 };
 
+export const fetchFollowingIdsForUser = async (userId: string) => {
+  try {
+    const followingRef = collection(Firebase_Firestore, `users/${userId}/following`);
+    const followingSnapshot = await getDocs(followingRef);
+    const followingIds = followingSnapshot.docs.map((doc) => doc.id);
+
+    return followingIds;
+  } catch (error) {
+    console.error("Error fetching following IDs:", error);
+    throw error;
+  }
+}
+
+export const fetchFollowersIdsForUser = async (userId: string) => {
+  try {
+    const followersRef = collection(Firebase_Firestore, `users/${userId}/followers`);
+    const followersSnapshot = await getDocs(followersRef);
+    const followersIds = followersSnapshot.docs.map((doc) => doc.id);
+
+    return followersIds;
+  } catch (error) {
+    console.error("Error fetching followers IDs:", error);
+    throw error;
+  }
+}
 
 // Firebase Firestore (EVENTS)
 

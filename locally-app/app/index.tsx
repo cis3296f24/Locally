@@ -1,5 +1,5 @@
 import { Firebase_Auth } from "@/configs/firebase";
-import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, fetchEventById, fetchEventsWithMessagesForUser } from "@/services/firebase-service";
+import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, fetchEventById, fetchEventsWithMessagesForUser, fetchFollowingIdsForUser } from "@/services/firebase-service";
 import { useUserStore } from "@/store/user";
 import 'react-native-get-random-values';
 import { Redirect } from "expo-router";
@@ -25,7 +25,8 @@ export default function Index() {
           bookmarkEvents,
           createdEvents,
           messagesEvents,
-          ticketList
+          ticketList,
+          followingIds
         ] = await Promise.all([
           fetchUserProfileById(user.uid),
           fetchAllUsers(),
@@ -33,6 +34,7 @@ export default function Index() {
           fetchCreatedEventsByUserId(user.uid),
           fetchEventsWithMessagesForUser(user.uid),
           fetchTicketsByUser(user.uid),
+          fetchFollowingIdsForUser(user.uid),
         ]);
 
         useUserStore.getState().setUser(currentuser);
@@ -40,6 +42,7 @@ export default function Index() {
         useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
         useUserStore.getState().setUserCreatedEvents(createdEvents);
         useUserStore.getState().setUserMessagesEvents(messagesEvents);
+        useUserStore.getState().setFollowingList(followingIds);
         useTicketStore.getState().setTicketList(ticketList);
         registerDevice(user.uid);
         registerFollowMaster(user.uid);
