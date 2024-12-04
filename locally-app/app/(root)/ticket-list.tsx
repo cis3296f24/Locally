@@ -19,8 +19,13 @@ const TicketList = () => {
     router.push('/(root)/ticket-screen')
   }
 
-  const myTickets = ticketList
-    .filter(ticket => ticket.date.toDate() >= new Date())
+  const activeTickets = ticketList
+    .filter(ticket => {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+
+      return ticket.date && ticket.date.toDate() >= currentDate;
+    })
     .sort((a, b) => a.date.toMillis() - b.date.toMillis())
 
   return (
@@ -40,7 +45,7 @@ const TicketList = () => {
             <NoTickets />
           ): (
             <FlatList
-              data={myTickets}
+              data={activeTickets}
               keyExtractor={(item) => item.ticketId}
               className='px-6 py-3'
               renderItem={({ item }) => (

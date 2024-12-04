@@ -70,6 +70,7 @@ interface Event {
   // attendees
   attendeeIds?: string[];
   attendees?: User[];
+  bookmarksCount?: number;
 }
 
 interface CardPopProps {

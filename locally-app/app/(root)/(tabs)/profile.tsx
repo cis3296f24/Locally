@@ -15,11 +15,17 @@ import { Event } from '@/types/type';
 import PrimaryButton from '@/components/PrimaryButton';
 import useNativeNotify from '@/services/native-notify';
 
+enum ListTitle {
+  MyEvents = "My Events",
+  Bookmark = "Bookmark",
+  Messages = "Messages",
+}
+
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
+  const { events, setSelectedEvent, setListTitle, setFilteredEvents } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { user, userBookmarkedEvents, userCreatedEvents } = useUserStore();
+  const { user, userBookmarkedEvents, userCreatedEvents, userMessagesEvents } = useUserStore();
   const { ticketList } = useTicketStore();
 
   const { sendFollowNotification } = useNativeNotify();
@@ -32,19 +38,24 @@ const Profile = () => {
   //   setRefreshing(false);
   // }, []);
 
-  const title1 = "My Events";
-  const title2 = "Bookmark";
-
-  const handleSeeAllClick = (title: string) => {
-    if (title === title1) {
-      setFilteredEvents(userCreatedEvents);
-    } else if (title === title2) {
-      setFilteredEvents(userBookmarkedEvents);
+  const handleSeeAllClick = (title: ListTitle) => {
+    switch (title) {
+      case ListTitle.MyEvents:
+        setFilteredEvents(userCreatedEvents);
+        break;
+      case ListTitle.Bookmark:
+        setFilteredEvents(userBookmarkedEvents);
+        break;
+      case ListTitle.Messages:
+        setFilteredEvents(userMessagesEvents);
+        break;
+      default:
+        console.warn(`Unhandled title: ${title}`);
     }
 
-    setListTitle(title)
-    router.push('/(root)/event-list')
-  }
+    setListTitle(title);
+    router.push('/(root)/event-list');
+};
 
   const handleHambugerClick = async () => {
     router.push('/(root)/edit-profile')
@@ -56,7 +67,6 @@ const Profile = () => {
 
   const handleOnEventClick = async (event: Event) => {
     setSelectedEvent(event)
-    setShouldClearSelectedEvent(true)
     router.navigate("/(root)/event-details")
   }
 
@@ -67,6 +77,13 @@ const Profile = () => {
     setVisible(false)
   }
 
+  const activeTickets = ticketList.filter(ticket => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    return ticket.date && ticket.date.toDate() >= currentDate;
+  });
+
   const renderHistoryTab = () => {  
     return (
       <FlatList
@@ -74,7 +91,7 @@ const Profile = () => {
         keyExtractor={(item) => item.id.toString()}
         className='bg-white mt-8 gap-2' 
         renderItem={({ item }) => {
-          const formattedDate = formatEventDate(item.dateStart, true); 
+          const formattedDate = formatEventDate(item.dateStart, undefined, true); 
   
           return (
             <TouchableOpacity>
@@ -111,11 +128,11 @@ const Profile = () => {
       {user?.isSubscribed && userCreatedEvents.length > 0 && (
         <View>
           <SeeAll
-            title={title1}
+            title={ListTitle.MyEvents}
             styling='m-2'
             seeAllColor='text-secondary-sBlue'
             arrowColor='#39C3F2'
-            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+            onSeeAllPress={() => handleSeeAllClick(ListTitle.MyEvents)} 
           />
 
           {userCreatedEvents.slice(0, 2).map((event) => (
@@ -133,14 +150,14 @@ const Profile = () => {
         </View>
       )}
 
-      { userBookmarkedEvents.length > 0 ? (
+      { userBookmarkedEvents.length > 0 && (
         <View>
           <SeeAll
-            title={title2}
+            title={ListTitle.Bookmark}
             styling='m-2'
             seeAllColor='text-secondary-sBlue'
             arrowColor='#39C3F2' 
-            onSeeAllPress={(value) => handleSeeAllClick(value)} 
+            onSeeAllPress={() => handleSeeAllClick(ListTitle.Bookmark)} 
           />
 
           {userBookmarkedEvents
@@ -158,18 +175,45 @@ const Profile = () => {
             </View>
           ))}
         </View>
-      ) : (
-        <View className='justify-center gap-8 items-center my-32'>
-          <Text className='text-lg font-semibold text-primary-pBlue'>
-            Let's explore something exciting around you!
-          </Text>
+      // ) : (
+      //   <View className='justify-center gap-8 items-center my-32'>
+      //     <Text className='text-lg font-semibold text-primary-pBlue'>
+      //       Let's explore something exciting around you!
+      //     </Text>
 
-          <PrimaryButton
-            text={"back to home"} 
-            bgColor="bg-[#003566]" 
-            iconVisible={false} 
-            onPress={() => router.replace('/(root)/(tabs)/explore')}
+      //     <PrimaryButton
+      //       text={"back to home"} 
+      //       bgColor="bg-[#003566]" 
+      //       iconVisible={false} 
+      //       onPress={() => router.replace('/(root)/(tabs)/explore')}
+      //     />
+      //   </View>
+      )}
+
+      { userMessagesEvents && (
+        <View>
+          <SeeAll
+            title={ListTitle.Messages}
+            styling='m-2'
+            seeAllColor='text-secondary-sBlue'
+            arrowColor='#39C3F2' 
+            onSeeAllPress={() => handleSeeAllClick(ListTitle.Messages)} 
           />
+
+          {userMessagesEvents
+            // .sort(() => Math.random() - 0.5)
+            .slice(0, 2).map((event) => (
+            <View 
+              key={event.id} 
+              className='bg-white rounded-2xl w-full items-center my-2'>
+              <CardPop 
+                event={event}
+                onEventClick={() => handleOnEventClick(event)}
+                styling='shadow-md shadow-slate-300 w-[90%] px-4'
+                imageSize='w-[80px] h-[80px]'
+              />
+            </View>
+          ))}
         </View>
       )}
     </View>
@@ -305,7 +349,7 @@ const Profile = () => {
                       <View 
                         className="absolute -top-2 -right-2 bg-primary-pBlue w-6 h-6 rounded-full justify-center items-center"
                       >
-                        <Text className="text-white text-sm font-bold">{ticketList.length}</Text>
+                        <Text className="text-white text-sm font-bold">{activeTickets.length}</Text>
                       </View>
                     ): null}
                   </View>

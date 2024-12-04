@@ -20,7 +20,7 @@ import { handleBookmark, updateSelectedEvent } from '@/utils/event';
 import { animations } from '@/constants';
 
 const EventDetailsScreen = () => {
-    const { selectedEvent, eventOwner, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
+    const { selectedEvent, eventStack, setEventStack } = useEventStore();
     const { user, userBookmarkedEvents } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -49,6 +49,7 @@ const EventDetailsScreen = () => {
 
     const threeAttendees = selectedEvent?.attendees || [];
     const attendeeIds = selectedEvent?.attendeeIds || [];
+    const eventOwner = selectedEvent?.owner;
 
     const handlePurchase = () => {
         router.push('/(root)/purchase-screen');
@@ -76,28 +77,42 @@ const EventDetailsScreen = () => {
         router.push("/(root)/ticket-screen");
     }
 
+    console.log("event stack length", eventStack.length);
     const handleGoBack = () => {
-        if (shouldClearSelectedEvent) {
-            clearSelectedEvent()
-            console.log('clearing selected event');
+        if (eventStack.length === 0) {
+            router.back();
+        }
+
+        eventStack.pop();
+        const lastEvent = eventStack.length > 0 ? eventStack[eventStack.length - 1] : null;
+
+        if (lastEvent) {
+            setEventStack(eventStack);
+            useEventStore.getState().setSelectedEvent(lastEvent);
         }
         router.back(); 
     };
 
     const handleOrganizerImageClick = async () => {
         if (eventOwner?.id !== user?.id) {
+            useUserStore.getState().setSelectedUser(eventOwner as User);
+
             router.push("/(root)/user-profile");
         } else {
-            router.push("/(root)/(tabs)/profile");
+            useEventStore.getState().setEventStack([])
+            useUserStore.getState().setUserStack([])
+            router.navigate("/(root)/(tabs)/profile");
         }
     }
 
+    const isFollowing = useUserStore.getState().followingList.includes(eventOwner?.id as string);
+
     const  handleFollowClick = async () => {
-        if (user?.id && eventOwner?.id && !eventOwner?.isFollowing) {
+        if (user?.id && eventOwner?.id && !isFollowing) {
             await followUser(user.id, eventOwner.id);
         } 
       
-        if (user?.id && eventOwner?.id && eventOwner?.isFollowing) {
+        if (user?.id && eventOwner?.id && isFollowing) {
             await unfollowUser(user.id, eventOwner.id);
         }
     }
@@ -254,17 +269,17 @@ const EventDetailsScreen = () => {
                                     <TouchableOpacity
                                         onPress={handleFollowClick}
                                         className={`px-4 py-1.5 rounded-full ${
-                                            eventOwner?.isFollowing
+                                            isFollowing
                                             ? 'bg-white border-0.5 border-gray-300'
                                             : 'bg-primary-pBlue'
                                         }`}
                                     >
                                         <Text
                                             className={`${
-                                            eventOwner?.isFollowing ? 'text-primary-pBlue' : 'text-white'
+                                            isFollowing ? 'text-primary-pBlue' : 'text-white'
                                             } text-sm font-semibold`}
                                         >
-                                            {eventOwner?.isFollowing ? 'Following' : 'Follow'}
+                                            {isFollowing ? 'Following' : 'Follow'}
                                         </Text>
                                     </TouchableOpacity>
                                 )

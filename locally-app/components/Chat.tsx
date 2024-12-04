@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Keyboard, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchMessagesByConversationId, fetchUserProfileById, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
+import { fetchConversationIdByUserIds, fetchEventBasedMessages, fetchEventsWithMessagesForUser, fetchMessagesByConversationId, fetchUserProfileById, sendMessage, sendMessageToEvent } from '@/services/firebase-service';
 import { Message } from '@/types/type';
 import UserProfileImage from './UserProfileImage';
 import { formatFirestoreTimestamp } from '@/utils/util';
@@ -35,6 +35,7 @@ const Chat: React.FC<ChatProps> = ({
   const [inputText, setInputText] = useState('');
   const [conversation, setConversation] = useState(conversationId ? conversationId : 'none');
   const [isNewConversation, setIsNewConversation] = useState(conversationId ? false : true);
+  const { setUserMessagesEvents } = useUserStore();
 
   useEffect(() => {
     if (!conversation) return;
@@ -84,6 +85,8 @@ const Chat: React.FC<ChatProps> = ({
     if (eventId && inputText && curretUserId) {
       sendMessageToEvent(curretUserId, eventId, inputText);
       setInputText('');
+      const updatedMessagesEvents = await fetchEventsWithMessagesForUser(curretUserId);
+      setUserMessagesEvents(updatedMessagesEvents);
     }
 
     console.log('Send Message');
@@ -104,15 +107,15 @@ const Chat: React.FC<ChatProps> = ({
         <View className="bg-white h-[85%] mt-auto rounded-t-3xl">
             {/*Header*/}
             <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-              <View className='flex-row items-center'>
+              <View className='flex-row flex-1 items-center'>
                 <UserProfileImage
                   image={image}
                   imageStyle="w-12 h-12"
                   buttonStyle='mr-0'
                 />
-                <View className="ml-3">
+                <View className="ml-3 flex-1">
                   { date && <Text className="text-[#ff6720] text-sm">{date}</Text> }
-                  <Text className="text-base font-semibold">
+                  <Text className="text-base font-semibold line-clamp-1">
                     {title}
                   </Text>
                 </View>

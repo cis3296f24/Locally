@@ -23,7 +23,7 @@ import { push } from 'expo-router/build/global-state/routing'
 
 const CreateEvent = () => {
   const { user, userCreatedEvents, setUserCreatedEvents } = useUserStore();
-  const { events, selectedEvent, setEvents, setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
+  const { events, selectedEvent, setEvents, setSelectedEvent } = useEventStore();
   const { destinationCity } = useLocationStore();
   const [image, setImage] = useState<string | null>(null);
   const initialFormState = {
@@ -143,7 +143,6 @@ const CreateEvent = () => {
   const handleSeeEvent = () => {
     setModalVisible(false);
     setForm(initialFormState);
-    setShouldClearSelectedEvent(true);
     router.replace('/(root)/event-details');
   }
 

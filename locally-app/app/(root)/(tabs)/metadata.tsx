@@ -10,70 +10,13 @@ import { useEventStore } from '@/store/event'
 import useLocationStore from '@/store/locationStore'
 import { images } from '@/constants'
 
-enum EventType {
-  Upcoming = 'Upcoming Events',
-  EndingSoon = 'Ending Soon',
-  Today = 'Today',
-  ThisWeek = 'This Week',
-  New = 'New',
-  MostFavorite = 'Most Favorite',
-  HotPick = 'Hot Pick'
-}
-
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
-  const { events, setListTitle, setFilteredEvents } = useEventStore();
+  const { getEventsByType, handleFiltering } = useEventFiltering();
   const { destinationCity } = useLocationStore();
 
-  const upcomingEvents = events
-    .filter(event => event.dateStart.toDate() > new Date())
-    
-    
-  const currentEvents = events
-    .filter(event => {
-      const now = new Date();
-      const startDate = event.dateStart.toDate(); 
-      const endDate = event.dateEnd.toDate(); 
-      return startDate <= now && endDate >= now; 
-    })
-
-  const endingSoonEvents = events
-    .filter(event => {
-      const now = new Date();
-      const endDate = event.dateEnd.toDate();
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(now.getDate() + 3);
-
-      return endDate >= now && endDate <= threeDaysFromNow;
-    })
-
-  const handleFiltering = (title: EventType) => {
-    setListTitle(title);
-
-    switch (title) {
-      case EventType.Upcoming:
-        setFilteredEvents(upcomingEvents);
-        break;
-      case EventType.Today:
-        setFilteredEvents(currentEvents);
-        break;
-      case EventType.EndingSoon:
-        setFilteredEvents(endingSoonEvents);
-        break;
-      case EventType.ThisWeek:
-        break;
-      case EventType.New:
-        break;
-      case EventType.MostFavorite:
-        break;
-      case EventType.HotPick:
-        break;
-      default:
-        break;
-    }
-
-    router.push('/(root)/event-list')
-  }
+  const upcomingEvents = getEventsByType(EventType.Upcoming);
+  const endingSoonEvents = getEventsByType(EventType.EndingSoon);
 
   return (
     <SafeAreaView className='h-full w-full'>
@@ -87,7 +30,7 @@ const Metadata = () => {
           onSelect={(type) => handleFiltering(type)}
         />
 
-        { events.length > 0 ? (
+        { upcomingEvents.length > 0 ? (
           <>
             <SeeAll 
               title={EventType.Upcoming}
@@ -187,20 +130,20 @@ const CategoryFilter = ({
         onPress={() => onSelect(EventType.ThisWeek)}
       />
       <ItemIcon 
-        icon={icons.megaphone}
-        title={EventType.New}
-        onPress={() => onSelect(EventType.New)}
-      />
-      <ItemIcon 
         icon={icons.heart}
         title={EventType.MostFavorite}
         onPress={() => onSelect(EventType.MostFavorite)}
       />
       <ItemIcon 
         icon={icons.flame}
-        title={EventType.HotPick}
-        onPress={() => onSelect(EventType.HotPick)}
+        title={EventType.Popular}
+        onPress={() => onSelect(EventType.Popular)}
       /> 
+      <ItemIcon 
+        icon={icons.megaphone}
+        title={EventType.New}
+        onPress={() => onSelect(EventType.New)}
+      />
     </View>
   )
 }
@@ -217,12 +160,12 @@ const ItemIcon = ({
 }) => {
   return (
     <TouchableOpacity 
-      className="items-center w-24"
+      className="items-center"
       onPress={onPress}
     >
       <Image 
         source={icon}  
-        className="w-7 h-7 mb-2 color-secondary-sBlue" 
+        className="w-6 h-6 mb-2 color-secondary-sBlue" 
       />
       <Text className="text-sm text-primary-pBlue">
         {title}
@@ -233,10 +176,9 @@ const ItemIcon = ({
 
 // Horizontal List component
 const EventHorizontalList = ({ events }: { events: Event[] }) => {
-  const { setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
+  const { setSelectedEvent } = useEventStore();
 
   const handleEventPress = async (event: Event) => {
-    setShouldClearSelectedEvent(true)
     setSelectedEvent(event);
     router.navigate('/(root)/event-details')
   }
@@ -267,3 +209,104 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
   )
 }
 
+
+enum EventType {
+  Upcoming = 'Upcoming Events',
+  EndingSoon = 'Ending Soon',
+  Today = 'Today',
+  ThisWeek = 'This Week',
+  New = 'New',
+  MostFavorite = 'Most Favorite',
+  Popular = 'Popular',
+}
+
+export const useEventFiltering = () => {
+  const { events, setListTitle, setFilteredEvents } = useEventStore();
+
+  const now = new Date();
+
+  // Filter events in the future
+  const upcomingEvents = events.filter(
+    (event) => event.dateStart.toDate() > now
+  );
+
+  // Filter events ending in the next 3 days
+  const endingSoonEvents = events.filter((event) => {
+    const endDate = event.dateEnd.toDate();
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(now.getDate() + 3);
+
+    return endDate >= now && endDate <= threeDaysFromNow;
+  });
+
+  // Filter events that are currently happening
+  const currentEvents = events.filter((event) => {
+    const startDate = event.dateStart.toDate();
+    const endDate = event.dateEnd.toDate();
+    return startDate <= now && endDate >= now;
+  });
+
+  // Filter events happening this week
+  const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  const thisWeekEvents = events.filter((event) => {
+    const eventDate = event.dateStart.toDate();
+    return eventDate >= startOfWeek && eventDate <= endOfWeek;
+  });
+
+  const mostFavoriteEvents = events
+    .filter((event) => event.bookmarksCount)
+    .sort((a, b) => (b.bookmarksCount || 0) - (a.bookmarksCount || 0))
+    .slice(0, 10);
+
+  // Filter events with more than 2 attendees and ending in the future
+  const popularEvents = events.filter(event => {
+    const currentDate = new Date();
+    return (
+      event.attendeeIds && 
+      event.attendeeIds.length > 2 && 
+      event.dateEnd.toDate() > currentDate 
+    );
+  });
+
+  // Filter events created in the last week
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const newEvents = events.filter((event) => {
+    const createdDate = event.dateCreated.toDate();
+    return createdDate >= oneWeekAgo;
+  });
+
+  const getEventsByType = (type: EventType): Event[] => {
+    switch (type) {
+      case EventType.Upcoming:
+        return upcomingEvents;
+      case EventType.EndingSoon:
+        return endingSoonEvents;
+      case EventType.Today:
+        return currentEvents;
+      case EventType.ThisWeek:
+        return thisWeekEvents;
+      case EventType.MostFavorite:
+        return mostFavoriteEvents;
+      case EventType.Popular:
+        return popularEvents;
+      case EventType.New:
+        return newEvents;
+      default:
+        return [];
+    }
+  };
+
+  // Handler for setting filtered events and updating state
+  const handleFiltering = (title: EventType) => {
+    setListTitle(title);
+    setFilteredEvents(getEventsByType(title));
+    router.push('/(root)/event-list');
+  };
+
+  return { getEventsByType, handleFiltering };
+};

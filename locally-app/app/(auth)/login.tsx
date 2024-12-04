@@ -6,7 +6,7 @@ import FormInput from '../../components/FormInput'
 
 import { images } from '@/constants'
 import PrimaryButton from '@/components/PrimaryButton'
-import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, signInUser } from '@/services/firebase-service'
+import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, signInUser, fetchEventsWithMessagesForUser } from '@/services/firebase-service'
 import { useTicketStore } from '@/store/ticket'
 import { useUserStore } from '@/store/user'
 import useNativeNotify from '@/services/native-notify'
@@ -35,12 +35,14 @@ const LoginScreen = () => {
                     users,
                     bookmarkEvents,
                     createdEvents,
+                    messagesEvents,
                     ticketList
                 ] = await Promise.all([
                     fetchUserProfileById(user.id),
                     fetchAllUsers(),
                     fetchBookmarkedEventsByUserId(user.id),
                     fetchCreatedEventsByUserId(user.id),
+                    fetchEventsWithMessagesForUser(user.id),
                     fetchTicketsByUser(user.id),
                 ]);
 
@@ -48,6 +50,7 @@ const LoginScreen = () => {
                 useUserStore.getState().setUserList(users);
                 useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
                 useUserStore.getState().setUserCreatedEvents(createdEvents);
+                useUserStore.getState().setUserMessagesEvents(messagesEvents);
                 useTicketStore.getState().setTicketList(ticketList);
                 registerDevice(user.id);
                 registerFollowMaster(user.id);

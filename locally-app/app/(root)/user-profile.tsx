@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image, SafeAreaView, FlatList } from 'react-native'
+import { View, Text, TouchableOpacity, Image, SafeAreaView, FlatList, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { fetchBookmarkedEventsByUserId, fetchCreatedEventsByUserId, followUser, unfollowUser } from '@/services/firebase-service'
+import { fetchBookmarkedEventsByUserId, fetchCreatedEventsByUserId, fetchFollowersIdsForUser, followUser, unfollowUser } from '@/services/firebase-service'
 import { router } from 'expo-router'
 import { useEventStore } from '@/store/event';
 import { animations, images } from '@/constants';
@@ -10,22 +10,21 @@ import CardPop from '@/components/CardPop';
 import UserProfileImage from '@/components/UserProfileImage';
 import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUserStore } from '@/store/user';
-import { Event } from '@/types/type';
+import { Event, User } from '@/types/type';
 import useNativeNotify from '@/services/native-notify';
+import { updateSelectedUser } from '@/utils/event';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setSelectedEvent, setListTitle, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
-  const { user, selectedUser } = useUserStore();
+  const { events, setSelectedEvent, setListTitle, setFilteredEvents } = useEventStore();
+  const { user, selectedUser, userStack, setUserStack } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
-  const [followers, setFollowers] = useState(selectedUser?.followersCount);
+  const [followers, setFollowers] = useState(0);
 
   const { registerFollower, unfollowMaster } = useNativeNotify();
 
   const title1 = `Hosted by ${selectedUser?.username}`;
   const title2 = `Bookmarked by ${selectedUser?.username}`;
-
 
   const handleSeeAllClick = (title: string) => {
     setFilteredEvents(bookmarkEvents);
@@ -34,17 +33,30 @@ const UserProfile = () => {
   }
 
   const handleCloseClick = () => {
+    if (userStack.length === 0) {
+      router.back();
+    }
+
+    userStack.pop();
+    const previousUser = userStack.length > 0 ? userStack[userStack.length - 1] : null;
+
+    if (previousUser) {
+      setUserStack(userStack);
+      useUserStore.getState().setSelectedUser(previousUser);
+    }
     router.back();
   }
 
+  const isFollowing = useUserStore.getState().followingList.includes(selectedUser?.id as string);
+
   const handleFollowClick = async () => {
-    if (user?.id && selectedUser?.id && !isfollowing) {
+    if (user?.id && selectedUser?.id && !isFollowing) {
       await followUser(user.id, selectedUser.id);
       registerFollower(selectedUser.id, user.id);
       setFollowers((followers ?? 0) + 1);
     } 
 
-    if (user?.id && selectedUser?.id && isfollowing) {
+    if (user?.id && selectedUser?.id && isFollowing) {
       await unfollowUser(user.id, selectedUser.id);
       unfollowMaster(selectedUser.id, user.id);
       
@@ -52,8 +64,6 @@ const UserProfile = () => {
         setFollowers(followers - 1);
       }
     }
-
-    setIsFollowing(!isfollowing);
   }
 
   const isSubscribed = selectedUser?.isSubscribed;
@@ -71,9 +81,29 @@ const UserProfile = () => {
     }
   }, [selectedUser]);
 
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const update = async () => {
+      await updateSelectedUser(selectedUser as User)
+      console.log('userStack length', userStack.length);
+
+      const followerIds = await fetchFollowersIdsForUser(selectedUser?.id as string);
+      setFollowers(followerIds.length);
+      setLoading(false);
+    }
+    update();
+  }, []);
+
+  if (loading) {
+    return (
+      <View className='flex-1 bg-white items-center justify-center'>
+        <ActivityIndicator size="large" color="#39C3F2" />
+      </View>
+    )
+  }
+
   const handleOnEventClick = async (event: Event) => {
     setSelectedEvent(event)
-    setShouldClearSelectedEvent(true)
     router.navigate("/(root)/event-details")
   }
 
@@ -84,7 +114,7 @@ const UserProfile = () => {
         keyExtractor={(item) => item.id.toString()}
         className='bg-white mt-8 gap-2' 
         renderItem={({ item }) => {
-          const formattedDate = formatEventDate(item.dateStart, true); 
+          const formattedDate = formatEventDate(item.dateStart, undefined, true); 
   
           return (
             <TouchableOpacity>
@@ -270,13 +300,13 @@ const UserProfile = () => {
                 {/* New Button */}
                 <View className='flex-1 justify-center items-end'>
                   <TouchableOpacity 
-                    className={`${isfollowing 
+                    className={`${isFollowing 
                       ? "bg-white border-secondary-sBlue border" 
                       : "bg-secondary-sBlue" } gap-1 px-4 py-2 rounded-full flex-row items-center`
                     }
                     onPress={handleFollowClick}
                   >
-                    {isfollowing ? (
+                    {isFollowing ? (
                       <>
                         <MaterialCommunityIcons name="account-check-outline" size={20} color="#39C3F2" />
                         <Text className="text-secondary-sBlue font-medium text-md">Following</Text>

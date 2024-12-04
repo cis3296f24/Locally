@@ -9,11 +9,10 @@ import { Event } from '@/types/type'
 
 const EventList = () => {
 
-  const { filteredEvents, listTitle, setSelectedEvent, setShouldClearSelectedEvent } = useEventStore()
+  const { filteredEvents, listTitle, setSelectedEvent } = useEventStore()
 
   const handleOnEventClick = async (event: Event) => {
     setSelectedEvent(event)
-    setShouldClearSelectedEvent(true)
     router.navigate("/(root)/event-details")
   }
 
