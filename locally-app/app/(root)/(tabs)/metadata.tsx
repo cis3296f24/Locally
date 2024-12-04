@@ -176,10 +176,9 @@ const ItemIcon = ({
 
 // Horizontal List component
 const EventHorizontalList = ({ events }: { events: Event[] }) => {
-  const { setSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
+  const { setSelectedEvent } = useEventStore();
 
   const handleEventPress = async (event: Event) => {
-    setShouldClearSelectedEvent(true)
     setSelectedEvent(event);
     router.navigate('/(root)/event-details')
   }

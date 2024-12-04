@@ -15,7 +15,7 @@ import useNativeNotify from '@/services/native-notify';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setSelectedEvent, setListTitle, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
+  const { events, setSelectedEvent, setListTitle, setFilteredEvents } = useEventStore();
   const { user, selectedUser } = useUserStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isfollowing, setIsFollowing] = useState(selectedUser?.isFollowing);
@@ -73,7 +73,6 @@ const UserProfile = () => {
 
   const handleOnEventClick = async (event: Event) => {
     setSelectedEvent(event)
-    setShouldClearSelectedEvent(true)
     router.navigate("/(root)/event-details")
   }
 

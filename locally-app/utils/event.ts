@@ -4,21 +4,27 @@ import { useUserStore } from "@/store/user";
 import { Event, User } from "@/types/type";
 
 export const updateSelectedEvent = async (event: Event) => {
-  const owner = await fetchUserProfileById(event.ownerId);
-  useEventStore.getState().setEventOwner(owner);
+  try {
+    const owner = await fetchUserProfileById(event.ownerId);
 
-  if (event.attendeeIds && event.attendeeIds.length > 2) {
-      const shuffledIds = [...event.attendeeIds].sort(() => 0.5 - Math.random());
+    let updatedEvent = { ...event };
+
+    if (updatedEvent.attendeeIds && updatedEvent.attendeeIds.length > 2) {
+      const shuffledIds = [...updatedEvent.attendeeIds].sort(() => 0.5 - Math.random());
       const selectedIds = shuffledIds.slice(0, 3);
 
-      // Fetch user profiles for selected IDs
       const attendeesList: User[] = await Promise.all(
-          selectedIds.map(async (id) => fetchUserProfileById(id))
+        selectedIds.map(async (id) => fetchUserProfileById(id))
       );
 
-      // Attach the attendees to the event object
-      event = { ...event, attendees: attendeesList };
-      useEventStore.getState().setSelectedEvent(event);
+      updatedEvent = { ...updatedEvent, attendees: attendeesList };
+    }
+
+    updatedEvent = { ...updatedEvent, owner };
+
+    useEventStore.getState().setSelectedEvent(updatedEvent);
+  } catch (error) {
+    console.error('Error updating event:', error);
   }
 }
 

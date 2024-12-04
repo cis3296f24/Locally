@@ -23,7 +23,7 @@ enum ListTitle {
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("BIO");
-  const { events, setSelectedEvent, setListTitle, setEventOwner, setFilteredEvents, setShouldClearSelectedEvent } = useEventStore();
+  const { events, setSelectedEvent, setListTitle, setFilteredEvents } = useEventStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const { user, userBookmarkedEvents, userCreatedEvents, userMessagesEvents } = useUserStore();
   const { ticketList } = useTicketStore();
@@ -67,7 +67,6 @@ const Profile = () => {
 
   const handleOnEventClick = async (event: Event) => {
     setSelectedEvent(event)
-    setShouldClearSelectedEvent(true)
     router.navigate("/(root)/event-details")
   }
 

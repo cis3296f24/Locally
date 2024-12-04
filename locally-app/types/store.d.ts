@@ -43,15 +43,12 @@ interface EventStore {
   setEvents: (events: Event[]) => void;       
   setSelectedEvent: (event: Event) => void;   
   clearSelectedEvent: () => void;
-  
-  shouldClearSelectedEvent: boolean;
-  setShouldClearSelectedEvent: (shouldClear: boolean) => void
-
-  eventOwner: User | null;
-  setEventOwner: (user: User) => void;
 
   filteredEvents: Event[];
   setFilteredEvents: (events: Event[]) => void;
+
+  eventStack: Event[];
+  setEventStack: (events: Event[]) => void;
   
   listTitle: string;
   setListTitle: (title: string) => void;

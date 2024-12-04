@@ -20,7 +20,7 @@ import { handleBookmark, updateSelectedEvent } from '@/utils/event';
 import { animations } from '@/constants';
 
 const EventDetailsScreen = () => {
-    const { selectedEvent, eventOwner, shouldClearSelectedEvent, clearSelectedEvent } = useEventStore();
+    const { selectedEvent, eventStack, setEventStack } = useEventStore();
     const { user, userBookmarkedEvents } = useUserStore();
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -49,6 +49,7 @@ const EventDetailsScreen = () => {
 
     const threeAttendees = selectedEvent?.attendees || [];
     const attendeeIds = selectedEvent?.attendeeIds || [];
+    const eventOwner = selectedEvent?.owner;
 
     const handlePurchase = () => {
         router.push('/(root)/purchase-screen');
@@ -76,30 +77,42 @@ const EventDetailsScreen = () => {
         router.push("/(root)/ticket-screen");
     }
 
+    console.log("event stack length", eventStack.length);
     const handleGoBack = () => {
-        if (shouldClearSelectedEvent) {
-            clearSelectedEvent()
-            console.log('clearing selected event');
+        if (eventStack.length === 0) {
+            router.back();
+        }
+
+        const lastEvent = eventStack.pop();
+        if (lastEvent) {
+            setEventStack(eventStack);
+            useEventStore.getState().setSelectedEvent(lastEvent);
         }
         router.back(); 
     };
 
     const handleOrganizerImageClick = async () => {
         if (eventOwner?.id !== user?.id) {
+            useUserStore.getState().setSelectedUser(eventOwner as User);
+
+            setEventStack([...eventStack, selectedEvent as Event]);
+            console.log('Event stack:', eventStack.length);
             router.push("/(root)/user-profile");
         } else {
-            router.push("/(root)/(tabs)/profile");
+            router.navigate("/(root)/(tabs)/profile");
         }
     }
 
     const  handleFollowClick = async () => {
-        if (user?.id && eventOwner?.id && !eventOwner?.isFollowing) {
-            await followUser(user.id, eventOwner.id);
-        } 
+        // if (user?.id && eventOwner?.id && !eventOwner?.isFollowing) {
+        //     await followUser(user.id, eventOwner.id);
+        // } 
       
-        if (user?.id && eventOwner?.id && eventOwner?.isFollowing) {
-            await unfollowUser(user.id, eventOwner.id);
-        }
+        // if (user?.id && eventOwner?.id && eventOwner?.isFollowing) {
+        //     await unfollowUser(user.id, eventOwner.id);
+        // }
+        useUserStore.getState().setSelectedUser(eventOwner as User);
+        router.push("/(root)/user-profile");
     }
 
     // Check if bookmarked

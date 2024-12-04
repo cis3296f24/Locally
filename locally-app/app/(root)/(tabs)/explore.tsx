@@ -13,7 +13,7 @@ import { setUserCity } from '@/services/storage-service';
 
 const Explore = () => {
   const { setUserLocation, userCity, destinationCity, setDestinationLocation } = useLocationStore();
-  const { events, setSelectedEvent, selectedEvent, setCategory, clearSelectedEvent, setShouldClearSelectedEvent } = useEventStore();
+  const { events, setSelectedEvent, selectedEvent, setCategory, clearSelectedEvent } = useEventStore();
 
   useEffect(() => {
     (async () => {
@@ -73,7 +73,6 @@ const Explore = () => {
   }
 
   const handleEventPress = () => {
-    setShouldClearSelectedEvent(false);
     router.navigate('/(root)/event-details')
   }
 

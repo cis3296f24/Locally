@@ -9,14 +9,11 @@ export const useEventStore = create<EventStore>((set) => ({
   setSelectedEvent: (event: Event) => set({ selectedEvent: event }),
   clearSelectedEvent: () => set({ selectedEvent: null }),
 
-  shouldClearSelectedEvent: false,
-  setShouldClearSelectedEvent: (shouldClear: boolean) => set({ shouldClearSelectedEvent: shouldClear }),
-
-  eventOwner: null,
-  setEventOwner: (user: User) => set({ eventOwner: user }),
-
   filteredEvents: [],
   setFilteredEvents: (events: Event[]) => set({ filteredEvents: events }),
+
+  eventStack: [],
+  setEventStack: (events: Event[]) => set({ eventStack: events }),
 
   listTitle: "",
   setListTitle: (title: string) => set({ listTitle: title }),
