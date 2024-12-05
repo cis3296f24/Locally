@@ -1,27 +1,79 @@
-import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
-import React, { useState } from 'react'
-import { Link, router } from 'expo-router'
-import GoogleButton from '../../components/GoogleButton'
-import FormInput from '../../components/FormInput'
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Link, router } from 'expo-router';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
+import { signInWithGoogle, signInUser, fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById } from '@/services/firebase-service';
+import { useTicketStore } from '@/store/ticket';
+import { useUserStore } from '@/store/user';
+import GoogleButton from '../../components/GoogleButton';
+import FormInput from '../../components/FormInput';
+import PrimaryButton from '@/components/PrimaryButton';
+import { images } from '@/constants';
 
-import { images } from '@/constants'
-import PrimaryButton from '@/components/PrimaryButton'
-import { fetchAllUsers, fetchBookmarkedEventsByUserId, fetchTicketsByUser, fetchCreatedEventsByUserId, fetchUserProfileById, signInUser } from '@/services/firebase-service'
-import { useTicketStore } from '@/store/ticket'
-import { useUserStore } from '@/store/user'
+WebBrowser.maybeCompleteAuthSession();
 
-//Login logic goes here
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        iosClientId: Constants.expoConfig?.extra?.IOS_CLIENT_ID,
+        androidClientId: Constants.expoConfig?.extra?.ANDROID_CLIENT_ID,
+    });
+
+    useEffect(() => {
+        if (response?.type === 'success') {
+            const { authentication } = response;
+            if (authentication?.idToken && authentication?.accessToken) {
+                handleGoogleSignIn(authentication.idToken, authentication.accessToken);
+            }
+        }
+    }, [response]);
+
+    const handleGoogleSignIn = async (idToken: string, accessToken: string) => {
+        setLoading(true);
+        try {
+            const { user } = await signInWithGoogle(idToken, accessToken);
+            if (user) {
+                const [
+                    currentuser,
+                    users,
+                    bookmarkEvents,
+                    createdEvents,
+                    ticketList
+                ] = await Promise.all([
+                    fetchUserProfileById(user.id),
+                    fetchAllUsers(),
+                    fetchBookmarkedEventsByUserId(user.id),
+                    fetchCreatedEventsByUserId(user.id),
+                    fetchTicketsByUser(user.id),
+                ]);
+
+                useUserStore.getState().setUser(currentuser);
+                useUserStore.getState().setUserList(users);
+                useUserStore.getState().setUserBookmarkedEvents(bookmarkEvents);
+                useUserStore.getState().setUserCreatedEvents(createdEvents);
+                useTicketStore.getState().setTicketList(ticketList);
+
+                setLoading(false);
+                router.replace('/(root)/(tabs)/explore');
+            }
+        } catch (error: any) {
+            console.log('Error signing in with Google', error.message);
+            Alert.alert('Error', error.message);
+            setLoading(false);
+        }
+    };
+
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert('Error', 'Please fill in all fields')
-            return
+            Alert.alert('Error', 'Please fill in all fields');
+            return;
         }
-        setLoading(true)
+        setLoading(true);
 
         try {
             const { user } = await signInUser({email, password })
@@ -63,10 +115,11 @@ const LoginScreen = () => {
         } finally {
             setLoading(false)
         }
-    }
+    };
 
     const handleGoogleLogin = () => {
-    }
+        promptAsync();
+    };
 
     return (
         <View className="flex-1 bg-white p-6">

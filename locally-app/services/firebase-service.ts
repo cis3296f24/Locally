@@ -6,6 +6,7 @@ import { useUserStore } from "@/store/user";
 import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage";
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 // Firebase Authentication
 
@@ -805,4 +806,19 @@ export const fetchEventBasedMessages = (
   );
 
   return unsubscribe;
+};
+
+export const signInWithGoogle = async (idToken: string, accessToken: string) => {
+  try {
+    const credential = GoogleAuthProvider.credential(idToken, accessToken);
+    const userCredential = await signInWithCredential(Firebase_Auth, credential);
+    const user = await fetchUserProfileById(userCredential.user.uid);
+
+    useUserStore.getState().setUser(user);
+
+    return { user };
+  } catch (error: any) {
+    console.error("Error signing in with Google:", error);
+    throw new Error('Google Sign-In failed. Please try again.');
+  }
 };

@@ -8,7 +8,6 @@ export default {
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -24,6 +23,7 @@ export default {
       }
     },
     "android": {
+      "package": "com.project_final.locally",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "permissions": ["ACCESS_FINE_LOCATION"],
@@ -35,13 +35,8 @@ export default {
         }
       }
     },
-    "web": {
-      "bundler": "metro",
-      "output": "server",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
-      ["expo-router", {"origin": "https://locally.com/"}],
+      ["expo-router"],
       [
         "expo-image-picker",
         {
@@ -55,7 +50,14 @@ export default {
     "extra": {
       "GOOGLE_API_KEY": process.env.GOOGLE_API_KEY,
       "STRIPE_PUBLISHABLE_KEY": process.env.STRIPE_PUBLISHABLE_KEY,
-      "STRIPE_SECRET_KEY": process.env.STRIPE_SECRET_KEY
-    }
+      "STRIPE_SECRET_KEY": process.env.STRIPE_SECRET_KEY,
+      "IOS_CLIENT_ID": process.env.IOS_CLIENT_ID,
+      "ANDROID_CLIENT_ID": process.env.ANDROID_CLIENT_ID,
+      "EXPO_CLIENT_ID": process.env.EXPO_CLIENT_ID,
+      "eas": {
+        "projectId": "6f919c70-376d-4652-bc52-8a1bf024fb32"
+      }
+    },
+    "scheme": "locally"
   }
-};
+}
