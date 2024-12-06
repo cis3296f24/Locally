@@ -27,8 +27,13 @@ const UserProfile = () => {
   const title2 = `Bookmarked by ${selectedUser?.username}`;
 
   const handleSeeAllClick = (title: string) => {
-    setFilteredEvents(bookmarkEvents);
-    setListTitle(title)
+    if (title === title1) {
+      setListTitle(title1);
+      setFilteredEvents(userHostedEvents);
+    } else if (title === title2) {
+      setListTitle(title2);
+      setFilteredEvents(bookmarkEvents);
+    }
     router.push('/(root)/event-list')
   }
 
