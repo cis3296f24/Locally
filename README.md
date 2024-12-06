@@ -143,6 +143,7 @@ Download the [Expo Go](https://expo.dev/go) app and Scan the QR code on your res
 1. Install **Expo Go** on your mobile device.
 2. Ensure your device is on the same Wi-Fi network as the network on the development server.
 3. Open Expo Go, and scan the QR code generated in the terminal to load the app on your device.
+4. Expo Sign-up is necessary to register your device to receive notifications.
 
 **Option 2: Use an Emulator or Simulator**
 
