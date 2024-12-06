@@ -156,7 +156,12 @@ Download the [Expo Go](https://expo.dev/go) app and Scan the QR code on your res
 ## <a name="snippets">📱 Snippets</a>
 <img src="https://github.com/user-attachments/assets/0cd96b95-ca00-4484-93e5-f5ea6aa02074" width="200" />
 <img src="https://github.com/user-attachments/assets/9be8e1d6-fa9e-4a6c-aee9-6cbb9b358387" width="200" />
-<img src="https://github.com/user-attachments/assets/40364d57-9292-4311-91e0-8b74fc4d4957" width="200" />
+<img src="https://github.com/user-attachments/assets/6f918a0e-a13d-486f-bb0a-f7c57fe146bb" width="200" />
+<img src="https://github.com/user-attachments/assets/d28d4718-83f3-4440-915b-c62629568359" width="200" />
+<img src="https://github.com/user-attachments/assets/77f872e8-a1df-4056-83b1-0fbde2546e9c" width="200" />
+<img src="https://github.com/user-attachments/assets/2f2a3d23-1f27-43aa-8b6d-e2eac43e9406" width="200" />
+<img src="https://github.com/user-attachments/assets/3e026e83-f147-4ddf-8a92-0ff25b03dac8" width="200" />
+<img src="https://github.com/user-attachments/assets/ed1b352f-46e3-4d59-9d3b-9b7360244d1c" width="200" />
 
 ## <a name="contributors">🧑‍🚀 Contributors</a>
 
