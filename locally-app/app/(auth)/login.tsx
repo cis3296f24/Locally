@@ -11,6 +11,7 @@ import GoogleButton from '../../components/GoogleButton';
 import FormInput from '../../components/FormInput';
 import PrimaryButton from '@/components/PrimaryButton';
 import { images } from '@/constants';
+import { makeRedirectUri } from 'expo-auth-session';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,10 +20,15 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const redirectUri = `https://auth.expo.io/@toast21/locally-app`;
+
     const [request, response, promptAsync] = Google.useAuthRequest({
-        iosClientId: Constants.expoConfig?.extra?.IOS_CLIENT_ID,
-        androidClientId: Constants.expoConfig?.extra?.ANDROID_CLIENT_ID,
+        clientId: Constants.expoConfig?.extra?.EXPO_CLIENT_ID,
+        redirectUri: redirectUri,
+        scopes: ['profile', 'email'],
+        responseType: 'id_token',
     });
+
 
     useEffect(() => {
         if (response?.type === 'success') {
@@ -76,8 +82,8 @@ const LoginScreen = () => {
         setLoading(true);
 
         try {
-            const { user } = await signInUser({email, password })
-            
+            const { user } = await signInUser({ email, password })
+
             if (user) {
                 const [
                     currentuser,
@@ -126,7 +132,7 @@ const LoginScreen = () => {
             {/* Logo and Title */}
             <View className="items-center mt-24 gap-4">
                 <Image
-                    source={ images.logo }
+                    source={images.logo}
                     className="w-32 h-32"
                 />
                 <Text className="text-3xl font-bold text-primary-pBlue text-center">
@@ -157,7 +163,7 @@ const LoginScreen = () => {
                         value={password}
                         onChangeText={setPassword}
                     />
-                </View>  
+                </View>
 
                 <TouchableOpacity className="self-end mb-4">
                     <Text className="text-orange-500">Forgot Password?</Text>

@@ -21,9 +21,13 @@ const SignUpScreen = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const redirectUri = `https://auth.expo.io/@toast21/locally-app`;
+
     const [request, response, promptAsync] = Google.useAuthRequest({
-        iosClientId: Constants.expoConfig?.extra?.IOS_CLIENT_ID,
-        androidClientId: Constants.expoConfig?.extra?.ANDROID_CLIENT_ID,
+        clientId: Constants.expoConfig?.extra?.EXPO_CLIENT_ID, // Web Client ID
+        redirectUri: redirectUri,
+        scopes: ['profile', 'email'],
+        responseType: 'id_token',
     });
 
     useEffect(() => {
@@ -69,8 +73,8 @@ const SignUpScreen = () => {
         setLoading(true);
 
         try {
-            const user = await signUpUser({fullName, email, password })
-            
+            const user = await signUpUser({ fullName, email, password })
+
             if (user) {
                 const [
                     currentuser,
