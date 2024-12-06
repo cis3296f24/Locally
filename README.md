@@ -154,7 +154,9 @@ Download the [Expo Go](https://expo.dev/go) app and Scan the QR code on your res
   - In the terminal, press `i` to open the app on iOS.
 
 ## <a name="snippets">📱 Snippets</a>
-
+<img src="https://github.com/user-attachments/assets/0cd96b95-ca00-4484-93e5-f5ea6aa02074" width="200" />
+<img src="https://github.com/user-attachments/assets/9be8e1d6-fa9e-4a6c-aee9-6cbb9b358387" width="200" />
+<img src="https://github.com/user-attachments/assets/40364d57-9292-4311-91e0-8b74fc4d4957" width="200" />
 
 ## <a name="contributors">🧑‍🚀 Contributors</a>
 
