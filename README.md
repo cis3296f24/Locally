@@ -20,7 +20,7 @@
 
 ## <a name="introduction">✨ Introduction</a>
 
-Locally is a fuul-stack mobile app that connects users with personalized local experiences, helping them discover events, restaurants, landmarks, and activities tailored to their interests. Ideal for travelers, newcomers, or locals seeking new adventures, the app provides real-time updates, community-driven insights, and interactive features like reviews and Q&A to make informed decisions. By promoting local culture and supporting small businesses, Locally fosters community connections, celebrates heritage, and contributes to the local economy.
+Locally is a full-stack mobile app that connects users with personalized local experiences, helping them discover events, restaurants, landmarks, and activities tailored to their interests. Ideal for travelers, newcomers, or locals seeking new adventures, the app provides real-time updates, community-driven insights, and interactive features like reviews and Q&A to make informed decisions. By promoting local culture and supporting small businesses, Locally fosters community connections, celebrates heritage, and contributes to the local economy.
 
 [ProjectBoard](https://trello.com/b/ByZkiFVe/locally)
 
