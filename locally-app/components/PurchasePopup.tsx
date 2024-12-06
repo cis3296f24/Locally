@@ -3,23 +3,44 @@ import { View, Text, Image, Modal } from "react-native";
 import React, { useState } from "react";
 import PrimaryButton from "./PrimaryButton";
 import { images } from "@/constants";
-import { Href } from "expo-router";
 import { Event } from "@/types/type";
 
 // this is the component for the modal 
 const PurchasePopup = ({
   event,
+  isTicket = true,
   seeTicketClick,
   onkeepExploringClick,
+  onSeeEventClick,
+  onBackToProfileClick,
   visible,
   onClose,
 }: {
-  event?: Event;
-  seeTicketClick: () => void;
-  onkeepExploringClick: () => void;
+  event: Event;
+  isTicket?: boolean;
+  seeTicketClick?: () => void;
+  onkeepExploringClick?: () => void;
+  onSeeEventClick?: () => void;
+  onBackToProfileClick?: () => void;
   visible: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }) => {
+    const handleSeeButton = () => {
+      if (isTicket && seeTicketClick) {
+        seeTicketClick();
+      } else if (onSeeEventClick) {
+        onSeeEventClick();
+      }
+    }
+
+    const handleBackClick = () => {
+      if (isTicket && onkeepExploringClick) {
+        onkeepExploringClick();
+      } else if (onBackToProfileClick) {
+        onBackToProfileClick();
+      }
+    }
+
     return(
       <>
         <Modal
@@ -39,24 +60,38 @@ const PurchasePopup = ({
 
           {/* Text */}
             <Text className="text-2xl font-bold mt-2">Congratulations!</Text>
-            <Text className="text-xl text-center">You have successfully placed an order for  
-              <Text className="font-semibold text-[#39C3F2]"> {event?.title}! </Text> 
-              Enjoy!
-            </Text>
+            {isTicket ? (
+              <Text className="text-xl text-center">You have successfully placed an order for  
+                <Text className="font-semibold text-[#39C3F2]"> {event?.title}! </Text> 
+                Enjoy!
+              </Text>
+            ): (
+              <Text className="text-xl text-center">
+                Your event 
+                <Text className="font-semibold text-[#39C3F2]"> {event?.title} </Text> 
+                has been created successfully!
+              </Text>
+            )}
 
             {/* Button 1, See Ticket */}
             <View className="w-[90%]">
-              <PrimaryButton text="see ticket" bgColor="bg-[#003566]" iconBgColor="bg-[#39C3F2]" icon="ticket-confirmation-outline"
-                onPress={seeTicketClick}>
-              </PrimaryButton>
+              <PrimaryButton 
+                text={isTicket ? "see ticket" : "see event"} 
+                bgColor="bg-[#003566]" 
+                iconBgColor="bg-[#39C3F2]" 
+                icon={isTicket ? "ticket-confirmation-outline" : "calendar-text"}
+                onPress={handleSeeButton}
+              />
             </View>
           {/* Button 2, See Ticket */}
             <View className="shadow-md">
               <PrimaryButton
-                text="keep Exploring" bgColor="bg-white" textcolor="text-black" iconVisible={false} 
-                onPress={onkeepExploringClick}
-              >
-              </PrimaryButton>
+                text={isTicket ? "keep Exploring" : "back to profile"} 
+                bgColor="bg-white" 
+                textStyle="text-black" 
+                iconVisible={false} 
+                onPress={handleBackClick}
+              />
             </View>
           </View>
         </View>

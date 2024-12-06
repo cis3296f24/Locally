@@ -6,22 +6,22 @@ const SeeAll = ({
   title,
   seeAllColor = 'text-gray-500',
   arrowColor = '#6B7280',
-  styling,
+  styling = 'pl-8 pr-6',
   onSeeAllPress
 }: {
   title: string,
   seeAllColor?: string,
   arrowColor?: string,
   styling?: string,
-  onSeeAllPress: () => void
+  onSeeAllPress: (title: string) => void
 }) => {
   return (
-    <View className={`flex-row items-center justify-between pl-8 pr-6 ${styling}`}>
+    <View className={`flex-row items-center justify-between ${styling}`}>
       <Text className="text-lg font-semibold color-primary-pBlue">
         {title}
       </Text>
       
-      <TouchableOpacity onPress={onSeeAllPress}>
+      <TouchableOpacity onPress={() => onSeeAllPress(title)}>
         <View className='flex-row gap-1 items-center'>
           <Text className={`font-medium ${seeAllColor}`}>
             See All

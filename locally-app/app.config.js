@@ -8,6 +8,8 @@ export default {
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "userInterfaceStyle": "automatic",
+    "owner": "jaime168",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -40,12 +42,21 @@ export default {
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      ["expo-router", {"origin": "https://locally.com/"}]
+      ["expo-router", {"origin": "https://locally.com/"}],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
+      "eas": {
+        "projectId": "5aab8167-8bac-4e09-b5e4-ba672b241c82"
+      },
       "GOOGLE_API_KEY": process.env.GOOGLE_API_KEY,
       "STRIPE_PUBLISHABLE_KEY": process.env.STRIPE_PUBLISHABLE_KEY,
       "STRIPE_SECRET_KEY": process.env.STRIPE_SECRET_KEY

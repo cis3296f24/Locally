@@ -1,20 +1,22 @@
 import { View, Text, ScrollView, SafeAreaView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { icons } from '@/constants'
 import EventCard from '@/components/EventCard'
 import SeeAll from '@/components/SeeAll'
 import { router } from 'expo-router'
 import { useUserStore } from '@/store/user'
-import { Timestamp } from 'firebase/firestore'
-import { Event } from '@/types/type'
+import { Event, User } from '@/types/type'
 import { useEventStore } from '@/store/event'
 import useLocationStore from '@/store/locationStore'
 import { images } from '@/constants'
 
 const Metadata = () => {
   const user = useUserStore((state) => state.user);
-  const { events, setEvents } = useEventStore();
+  const { getEventsByType, handleFiltering } = useEventFiltering();
   const { destinationCity } = useLocationStore();
+
+  const upcomingEvents = getEventsByType(EventType.Upcoming);
+  const endingSoonEvents = getEventsByType(EventType.EndingSoon);
 
   return (
     <SafeAreaView className='h-full w-full'>
@@ -24,27 +26,35 @@ const Metadata = () => {
           destinationCity={destinationCity ?? "User City"}
         />
         
-        <CategoryFilter />
+        <CategoryFilter 
+          onSelect={(type) => handleFiltering(type)}
+        />
 
-        { events.length > 0 ? (
+        { upcomingEvents.length > 0 ? (
           <>
             <SeeAll 
-              title="Upcoming Events"
+              title={EventType.Upcoming}
               seeAllColor='text-secondary-sBlue'
               arrowColor='#39C3F2'
-              styling='mt-6 mb-3'
-              onSeeAllPress={() => router.push('./../event-list')}
+              styling='mt-6 mb-3 ml-8 mr-4'
+              onSeeAllPress={() => handleFiltering(EventType.Upcoming)}
             />
 
-            <EventHorizontalList events={events || []} />
+            <EventHorizontalList events={upcomingEvents} />
 
-            <SeeAll 
-              title="Recently Viewed"
-              seeAllColor='text-secondary-sBlue'
-              arrowColor='#39C3F2'
-              styling='mt-6'
-              onSeeAllPress={() => {}}
-            />
+            { endingSoonEvents.length > 0 && (
+              <>
+                <SeeAll 
+                  title={EventType.EndingSoon}
+                  seeAllColor='text-secondary-sBlue'
+                  arrowColor='#39C3F2'
+                  styling='mt-6 mb-3 ml-8 mr-4'
+                  onSeeAllPress={() => handleFiltering(EventType.EndingSoon)}
+                />
+
+                <EventHorizontalList events={endingSoonEvents} />
+              </>
+            )}
           </>
         ):(
           <View className="flex justify-center items-center w-full h-full">
@@ -102,29 +112,38 @@ const Header = ({
 }
 
 // Category Filter component
-const CategoryFilter = () => {
+const CategoryFilter = ({
+  onSelect
+}: {
+  onSelect: (type: EventType) => void
+}) => {
   return (
     <View className="flex-row justify-around items-center px-4">
       <ItemIcon 
         icon={icons.sparkles}
-        title="Today"
+        title={EventType.Today}
+        onPress={() => onSelect(EventType.Today)}
       />
       <ItemIcon 
         icon={icons.calendar}
-        title="This Week"
-      />
-      <ItemIcon 
-        icon={icons.megaphone}
-        title="New"
+        title={EventType.ThisWeek}
+        onPress={() => onSelect(EventType.ThisWeek)}
       />
       <ItemIcon 
         icon={icons.heart}
-        title="Most Favorite"
+        title={EventType.MostFavorite}
+        onPress={() => onSelect(EventType.MostFavorite)}
       />
       <ItemIcon 
         icon={icons.flame}
-        title="Hot Pick"
+        title={EventType.Popular}
+        onPress={() => onSelect(EventType.Popular)}
       /> 
+      <ItemIcon 
+        icon={icons.megaphone}
+        title={EventType.New}
+        onPress={() => onSelect(EventType.New)}
+      />
     </View>
   )
 }
@@ -133,20 +152,20 @@ const CategoryFilter = () => {
 const ItemIcon = ({
   icon, 
   title,
+  onPress
 }: {
   icon: any,
   title: string,
+  onPress?: () => void
 }) => {
   return (
     <TouchableOpacity 
-      className="items-center w-24"
-      onPress={(title) => {
-       
-      }}
+      className="items-center"
+      onPress={onPress}
     >
       <Image 
         source={icon}  
-        className="w-7 h-7 mb-2 color-secondary-sBlue" 
+        className="w-6 h-6 mb-2 color-secondary-sBlue" 
       />
       <Text className="text-sm text-primary-pBlue">
         {title}
@@ -157,25 +176,18 @@ const ItemIcon = ({
 
 // Horizontal List component
 const EventHorizontalList = ({ events }: { events: Event[] }) => {
-  const isEmpty = events.length === 0;
-  const today = Timestamp.now();
-
-  const upcomingEvents = events
-    // .sort(() => 0.5 - Math.random())
-    .slice(0, 4)
-    .sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis());
-
   const { setSelectedEvent } = useEventStore();
 
-  const handleEventPress = (event: Event) => {
+  const handleEventPress = async (event: Event) => {
     setSelectedEvent(event);
-    router.push('./../event-details')
+    router.navigate('/(root)/event-details')
   }
 
   return (
     <FlatList
-      data={upcomingEvents}
+      data={events.slice(0, 4).sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())}
       keyExtractor={(item) => item.id}
+      showsHorizontalScrollIndicator={false}
       renderItem={({ item }) => (
         <TouchableOpacity 
           className="flex-row mr-12"
@@ -197,3 +209,104 @@ const EventHorizontalList = ({ events }: { events: Event[] }) => {
   )
 }
 
+
+enum EventType {
+  Upcoming = 'Upcoming Events',
+  EndingSoon = 'Ending Soon',
+  Today = 'Today',
+  ThisWeek = 'This Week',
+  New = 'New',
+  MostFavorite = 'Most Favorite',
+  Popular = 'Popular',
+}
+
+export const useEventFiltering = () => {
+  const { events, setListTitle, setFilteredEvents } = useEventStore();
+
+  const now = new Date();
+
+  // Filter events in the future
+  const upcomingEvents = events.filter(
+    (event) => event.dateStart.toDate() > now
+  );
+
+  // Filter events ending in the next 3 days
+  const endingSoonEvents = events.filter((event) => {
+    const endDate = event.dateEnd.toDate();
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(now.getDate() + 3);
+
+    return endDate >= now && endDate <= threeDaysFromNow;
+  });
+
+  // Filter events that are currently happening
+  const currentEvents = events.filter((event) => {
+    const startDate = event.dateStart.toDate();
+    const endDate = event.dateEnd.toDate();
+    return startDate <= now && endDate >= now;
+  });
+
+  // Filter events happening this week
+  const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  const thisWeekEvents = events.filter((event) => {
+    const eventDate = event.dateStart.toDate();
+    return eventDate >= startOfWeek && eventDate <= endOfWeek;
+  });
+
+  const mostFavoriteEvents = events
+    .filter((event) => event.bookmarksCount)
+    .sort((a, b) => (b.bookmarksCount || 0) - (a.bookmarksCount || 0))
+    .slice(0, 10);
+
+  // Filter events with more than 2 attendees and ending in the future
+  const popularEvents = events.filter(event => {
+    const currentDate = new Date();
+    return (
+      event.attendeeIds && 
+      event.attendeeIds.length > 2 && 
+      event.dateEnd.toDate() > currentDate 
+    );
+  });
+
+  // Filter events created in the last week
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const newEvents = events.filter((event) => {
+    const createdDate = event.dateCreated.toDate();
+    return createdDate >= oneWeekAgo;
+  });
+
+  const getEventsByType = (type: EventType): Event[] => {
+    switch (type) {
+      case EventType.Upcoming:
+        return upcomingEvents;
+      case EventType.EndingSoon:
+        return endingSoonEvents;
+      case EventType.Today:
+        return currentEvents;
+      case EventType.ThisWeek:
+        return thisWeekEvents;
+      case EventType.MostFavorite:
+        return mostFavoriteEvents;
+      case EventType.Popular:
+        return popularEvents;
+      case EventType.New:
+        return newEvents;
+      default:
+        return [];
+    }
+  };
+
+  // Handler for setting filtered events and updating state
+  const handleFiltering = (title: EventType) => {
+    setListTitle(title);
+    setFilteredEvents(getEventsByType(title));
+    router.push('/(root)/event-list');
+  };
+
+  return { getEventsByType, handleFiltering };
+};

@@ -6,7 +6,12 @@ import sparkles from '@/assets/icons/sparkles.png';
 import marker from '@/assets/icons/marker.png';
 import bookmark from '@/assets/icons/bookmark.png';
 import bookmarkFilled from '@/assets/icons/bookmark-filled.png';
+import celebrationSm from '@/assets/icons/celebration-sm.png';
+import celebrationMd from '@/assets/icons/celebration-md.png';
+import celebrationLg from '@/assets/icons/celebration-lg.png';
+import entertainmentMd from '@/assets/icons/entertain-md.png';
 
+import splash from '@/assets/images/splash.png';
 import dog from '@/assets/images/dog.png';
 import concert from '@/assets/images/concert.jpg';
 import organizer from '@/assets/images/organizer.jpg';
@@ -26,6 +31,9 @@ import man1 from '@/assets/images/man1.jpg'
 import man2 from '@/assets/images/man2.jpg'
 import woman4 from '@/assets/images/woman4.jpg'
 import woman5 from '@/assets/images/woman5.jpg'
+import noTickets from '@/assets/images/no-ticket.png'
+
+import loadingGif from '@/assets/images/loading.gif'
 
 export const icons = {
   calendar,
@@ -35,7 +43,11 @@ export const icons = {
   sparkles,
   marker,
   bookmark,
-  bookmarkFilled
+  bookmarkFilled,
+  celebrationSm,
+  celebrationMd,
+  celebrationLg,
+  entertainmentMd
 }
 
 export const images = {
@@ -57,5 +69,11 @@ export const images = {
   man1,
   man2,
   woman4,
-  woman5
+  woman5,
+  splash,
+  noTickets
+}
+
+export const animations = {
+  loadingGif
 }

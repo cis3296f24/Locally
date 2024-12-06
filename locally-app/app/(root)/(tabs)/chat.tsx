@@ -14,10 +14,9 @@ const ChatScreen = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const { user, userList } = useUserStore();
+  const [allUsers, setAllUsers] = useState(userList);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
-  const { user } = useUserStore();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -31,14 +30,14 @@ const ChatScreen = () => {
     };
   }, [user?.id, conversations]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const users = await fetchAllUsers();
-      setAllUsers(users);
-    };
+  // useEffect(() => {
+  //   const fetchUsers = async () => {
+  //     const users = await fetchAllUsers();
+  //     setAllUsers(users);
+  //   };
 
-    fetchUsers();
-  }, [conversations]);
+  //   fetchUsers();
+  // }, [conversations]);
 
   const handleUserPress = (user: User) => {
     setSelectedUser(user);

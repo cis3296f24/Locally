@@ -19,7 +19,7 @@ import { createTicket } from "@/services/firebase-service";
 import Constants from 'expo-constants';
 
 const PurchaseScreen = () => {
-  const { setTicket, setShowHeader } = useTicketStore();
+  const { ticketList, setTicketList, setSelectedTicket, setShowHeaderTitle } = useTicketStore();
   const { selectedEvent } = useEventStore();
   const { user } = useUserStore();
 
@@ -42,16 +42,14 @@ const PurchaseScreen = () => {
       (subTotal * 1.07).toFixed(2)
     )
 
-    setTicket(ticket);
+    setTicketList([...ticketList, ticket]);
+    setSelectedTicket(ticket);
   }
 
   const handleSeeTicket = () => {
     setPaymentConfirmed(false);
-    setShowHeader(false);
-    router.replace({
-      pathname: "/(root)/ticket-screen", 
-      params: { showHeader: "true" }      
-    });
+    setShowHeaderTitle(false);
+    router.replace( "/(root)/ticket-screen");
   }
 
   const handleKeepExploring = () => {
@@ -94,7 +92,9 @@ const PurchaseScreen = () => {
           <View className="pb-5 items-center">
             <CardPop
               event={event}
-              style="bg-white p-2 rounded-2xl shadow-md w-[375px] flex-row items-center"
+              imageSize="h-[100px] w-[100px]"
+              isBookmarkShown={false}
+              isCardDisabled={true}
             />
           </View>
 

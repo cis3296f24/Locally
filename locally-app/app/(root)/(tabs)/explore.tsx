@@ -9,12 +9,11 @@ import { router } from 'expo-router';
 import useLocationStore from '@/store/locationStore';
 import * as Location from 'expo-location';
 import { useEventStore } from '@/store/event';
-import { getUserCity, setUserCity } from '@/services/storage-service';
+import { setUserCity } from '@/services/storage-service';
 
 const Explore = () => {
-  const [currentSelectedEvent, setCurrentSelectedEvent] = useState<Event | null>(null);
   const { setUserLocation, userCity, destinationCity, setDestinationLocation } = useLocationStore();
-  const { events, setEvents, setSelectedEvent, selectedEvent, setCategory, category } = useEventStore();
+  const { events, setSelectedEvent, selectedEvent, setCategory, clearSelectedEvent } = useEventStore();
 
   useEffect(() => {
     (async () => {
@@ -56,20 +55,25 @@ const Explore = () => {
   }, []);
 
   const handleMarkerSelect = (event: Event) => {
-    setCurrentSelectedEvent(event);
-    setSelectedEvent(event);
+    const thisEvent = events.find((e) => e.id === event.id) as Event;
+    console.log('thisEvent', thisEvent);
+    setSelectedEvent(thisEvent);
   };
 
   const handleSearchBarPress = () => {
-    setCurrentSelectedEvent(null);
+    clearSelectedEvent();
     setCategory('All');
   }
 
   const handleMapPress = () => {
-    setCurrentSelectedEvent(null);
+    clearSelectedEvent();
     if (userCity !== destinationCity) {
       setCategory('All');
     }
+  }
+
+  const handleEventPress = () => {
+    router.navigate('/(root)/event-details')
   }
 
   return (
@@ -88,15 +92,14 @@ const Explore = () => {
         
       </View>
 
-      {currentSelectedEvent && (
-        <TouchableOpacity 
-          className="absolute bottom-8 left-0 right-0 z-1 items-center"
-          onPress={() => {
-            router.push('./../event-details');
-          }}
-        >
-          <CardPop event={currentSelectedEvent} />
-        </TouchableOpacity>
+      {selectedEvent && (
+        <View className="absolute bottom-8 left-0 right-0 z-1 items-center">
+          <CardPop 
+            event={selectedEvent}
+            styling='max-w-[85%]'
+            onEventClick={() => handleEventPress()}
+          />
+        </View>
       )}
     </View>
   );

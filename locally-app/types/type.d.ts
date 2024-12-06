@@ -7,17 +7,19 @@ interface User {
   username?: string = null;
   isSubscribed: boolean = false;
   profileImage: string = "";
+
+  // optional
+  followingCount: number;
+  followersCount: number;
+  isFollowing?: boolean;
+  bio?: string;
+  // bookmarkedEvents?: Event[];
+  // hostedEvents?: Event[];
 }
 
 interface CategoryCardProps { // use this to define the types for the arguments
   label: string;
   iconName: any;
-}
-
-interface CardPopProps {
-  event: Event;
-  additionalStyling?: string;
-  style?: string;
 }
 
 interface Ticket {
@@ -56,8 +58,8 @@ interface Event {
   coverImage?: string;
   dateCreated: Timestamp;
   dateStart: Timestamp;
-  dateEnd?: Timestamp;
-  price?: number;
+  dateEnd: Timestamp;
+  price?: number | null;
   timeStart: string;
   timeEnd?: string;
 
@@ -68,6 +70,7 @@ interface Event {
   // attendees
   attendeeIds?: string[];
   attendees?: User[];
+  bookmarksCount?: number;
 }
 
 interface CardPopProps {
@@ -80,7 +83,7 @@ type PrimaryButtonProps = {
   onPress: () => void;
   icon?: any;
   bgColor?: string;
-  textcolor?: string;
+  textStyle?: string;
   iconBgColor?: string;
   iconColor?: string;
   iconVisible?: boolean;

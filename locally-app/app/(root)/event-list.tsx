@@ -5,31 +5,39 @@ import CardPop from '@/components/CardPop'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import { Event } from '@/types/type'
 
 const EventList = () => {
 
-  const { events, setSelectedEvent } = useEventStore()
+  const { filteredEvents, listTitle, setSelectedEvent } = useEventStore()
+
+  const handleOnEventClick = async (event: Event) => {
+    setSelectedEvent(event)
+    router.navigate("/(root)/event-details")
+  }
 
   return (
-    <SafeAreaView className='h-full w-full'>
-      <View className="flex-1 px-4">
+    <SafeAreaView className='h-full w-full' edges={['top', 'left', 'right']}>
+      <View className="flex-1">
         <TouchableOpacity onPress={() => router.back()}>
-          <View className="flex-row gap-2 py-8 items-center ml-4">
+          <View className="flex-row gap-2 py-6 mt-4 items-center ml-6">
             <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
             <Text className="text-2xl">
-              Upcoming Events
+              {listTitle}
             </Text>
           </View>
         </TouchableOpacity>
 
         <FlatList
-          data={events}
+          data={filteredEvents.sort((a, b) => a.dateStart.toMillis() - b.dateStart.toMillis())}
           keyExtractor={(item) => item.id}
+          className='px-6'
           renderItem={({ item }) => (
             <CardPop
               event={item}
-              additionalStyling="w-full mb-4"
-              style="bg-white p-3 rounded-2xl shadow-none w-[340px] flex-row items-center" 
+              styling="mb-4 shadow-md shadow-slate-300"
+              onEventClick={() => handleOnEventClick(item)}
+              isBookmarkShown={true} 
             />
           )} 
         />

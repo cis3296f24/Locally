@@ -1,17 +1,46 @@
 import { Event, Ticket, User } from "./type";
 
 interface TicketStore {
-  ticket: Ticket | null;
-  showHeader: boolean;
-  setTicket: (ticket: Ticket) => void;
-  setShowHeader: (show: boolean) => void;
-  clearTicket: () => void;
+  ticketList: Ticket[];
+  selectedTicket: Ticket | null;
+  showHeaderTitle: boolean;
+  setTicketList: (tickets: Ticket[]) => void;
+  setSelectedTicket: (ticket: Ticket) => void;
+  setShowHeaderTitle: (showHeader: boolean) => void;
+  clearTicketList: () => void;
+  clearSelectedTicket: () => void;
 }
 
 interface UserStore {
   user: User | null;
   setUser: (user: User) => void;
   clearUser: () => void;
+
+  selectedUser: User | null;
+  setSelectedUser: (user: User) => void;
+  clearSelectedUser: () => void;
+
+  userStack: User[];
+  setUserStack: (users: User[]) => void
+
+  userList: User[];
+  setUserList: (users: User[]) => void;
+  clearUserList: () => void;
+
+  followingList: string[];
+  setFollowingList: (following: string[]) => void;
+
+  userBookmarkedEvents: Event[];
+  setUserBookmarkedEvents: (events: Event[]) => void;
+  clearUserBookmarkedEvents: () => void;
+
+  userCreatedEvents: Event[];
+  setUserCreatedEvents: (events: Event[]) => void;
+  clearUserCreatedEvents: () => void;
+
+  userMessagesEvents: Event[];
+  setUserMessagesEvents: (events: Event[]) => void;
+  clearUserMessagesEvents: () => void;
 }
 
 interface EventStore {
@@ -19,8 +48,16 @@ interface EventStore {
   selectedEvent: Event | null;       
   setEvents: (events: Event[]) => void;       
   setSelectedEvent: (event: Event) => void;   
-  clearSelectedEvent: () => void; 
+  clearSelectedEvent: () => void;
+
+  filteredEvents: Event[];
+  setFilteredEvents: (events: Event[]) => void;
+
+  eventStack: Event[];
+  setEventStack: (events: Event[]) => void;
   
+  listTitle: string;
+  setListTitle: (title: string) => void;
   category: string;
   setCategory: (category: string) => void;
 }
