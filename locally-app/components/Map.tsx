@@ -42,7 +42,10 @@ const Map = ({
 
   useEffect(() => {
     if (fetchedEvents) {
-      setEventList(fetchedEvents);
+      const happeningNow = fetchedEvents.filter(
+        (event) => event.dateEnd.toDate() > new Date()
+      );
+      setEventList(happeningNow);
       const shuffleEventsRandomly = fetchedEvents.sort(() => 0.5 - Math.random());
       setEvents(shuffleEventsRandomly);
     } 
